@@ -336,7 +336,9 @@ function setupEventListeners() {
   });
 
   // Drag and drop audio uploader
-  DOM.dropZone.addEventListener('click', () => {
+  DOM.dropZone.addEventListener('click', (e) => {
+    // If they clicked the label, let the browser's native click behavior handle it
+    if (e.target.tagName === 'LABEL') return;
     DOM.fileInput.click();
   });
 
