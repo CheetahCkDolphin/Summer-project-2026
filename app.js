@@ -2658,6 +2658,7 @@ function initVoiceSynthesis() {
             const formData = new FormData();
             formData.append('ssml', ssml);
             formData.append('voice', 'en-US-JennyNeural');
+            formData.append('event', state.selectedEvent || 'oratory');
 
             if (state.audioFile) {
               formData.append('audio', state.audioFile);
@@ -2809,6 +2810,11 @@ function initVoiceSynthesis() {
     ssml += `</voice></speak>`;
     return ssml;
   }
+
+  window.generateSSMLFromMatrix = function() {
+    parseSegments();
+    return generateSsml();
+  };
 
   function setupAudioPlayer(audioUrl) {
     useFallback = false;

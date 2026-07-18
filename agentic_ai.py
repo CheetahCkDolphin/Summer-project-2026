@@ -291,6 +291,85 @@ def synthesize_speech_audio_with_clone(client: genai.Client, ssml: str, referenc
             except Exception as e:
                 print(f"Error deleting file from Gemini File API: {e}", file=sys.stderr)
 
+# Stdio server parameters to spawn our voice_mcp_server.py
+voice_server_params = StdioServerParameters(
+    command="python3",
+    args=["/Users/Shasta/Projects/Summer-project-2026/voice_mcp_server.py"]
+)
+
+async def synthesize_speech_audio_agentic_async(ssml: str, voice_name: str, reference_audio_bytes: bytes, event_type: str) -> bytes:
+    """
+    Connects to the voice_mcp_server.py, retrieves finalist delivery profile rules,
+    and calls the custom synthesis tool.
+    """
+    # 1. Detect emotion from SSML tags
+    emotion = "joy"
+    if "-15%" in ssml:
+        emotion = "sorrow"
+    elif "+4dB" in ssml or "emphasis" in ssml:
+        emotion = "anger"
+    elif "+12%" in ssml or "+25%" in ssml:
+        emotion = "anxiety"
+    elif "-8%" in ssml or "-12%" in ssml:
+        emotion = "nostalgia"
+    elif "-5%" in ssml or "break time='500ms'" in ssml:
+        emotion = "relief"
+
+    # 2. Query custom voice generation MCP server
+    profile_json = None
+    try:
+        async with stdio_client(voice_server_params) as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                
+                # Fetch performance profile
+                profile_res = await session.call_tool("get_nsda_performance_profile", {
+                    "event": event_type,
+                    "emotion": emotion
+                })
+                profile_json = "".join([c.text for c in profile_res.content if hasattr(c, 'text')])
+    except Exception as e:
+        print(f"Error querying custom voice MCP server for profile: {e}", file=sys.stderr)
+
+    # 3. Call synthesis tool on custom voice generation MCP server
+    audio_base64 = None
+    ref_audio_b64 = None
+    if reference_audio_bytes:
+        ref_audio_b64 = base64.b64encode(reference_audio_bytes).decode('utf-8')
+        
+    try:
+        async with stdio_client(voice_server_params) as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                
+                # Call voice synthesis tool
+                synth_res = await session.call_tool("generate_nsda_synthesized_speech", {
+                    "ssml": ssml,
+                    "reference_audio_base64": ref_audio_b64,
+                    "prebuilt_voice": voice_name,
+                    "profile_json": profile_json
+                })
+                audio_base64 = "".join([c.text for c in synth_res.content if hasattr(c, 'text')])
+    except Exception as e:
+        print(f"Error querying custom voice MCP server for synthesis: {e}", file=sys.stderr)
+        # Fall back to standard fallback path in agentic_ai
+        return synthesize_speech_audio(ssml, voice_name, reference_audio_bytes)
+
+    if not audio_base64:
+        # Fallback
+        return synthesize_speech_audio(ssml, voice_name, reference_audio_bytes)
+
+    # Decode and return raw audio bytes
+    import base64 as b64_module
+    return b64_module.b64decode(audio_base64)
+
+def synthesize_speech_audio_agentic(ssml: str, voice_name: str = "Aoede", reference_audio_bytes: bytes = None, event_type: str = "oratory") -> bytes:
+    """
+    Synchronous entrypoint to run the custom voice generation pipeline.
+    """
+    import base64
+    return asyncio.run(synthesize_speech_audio_agentic_async(ssml, voice_name, reference_audio_bytes, event_type))
+
 if __name__ == "__main__":
     # Small test run
     test_transcript = (

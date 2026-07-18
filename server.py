@@ -99,6 +99,7 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
                 ssml = ""
                 voice = "Aoede"
+                event_type = "oratory"
                 reference_audio_bytes = None
 
                 if 'multipart/form-data' in content_type:
@@ -115,6 +116,8 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                             ssml = part.get_payload()
                         elif name == 'voice':
                             voice = part.get_payload()
+                        elif name == 'event':
+                            event_type = part.get_payload()
                         elif name == 'audio':
                             reference_audio_bytes = part.get_payload(decode=True)
                 else:
@@ -122,10 +125,11 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                     request_data = json.loads(post_data.decode('utf-8'))
                     ssml = request_data.get('ssml', '')
                     voice = request_data.get('voice', 'Aoede')
+                    event_type = request_data.get('event', 'oratory')
 
-                # Import and call Agentic AI audio synthesis
+                # Import and call Agentic AI audio synthesis using the custom MCP pipeline
                 import agentic_ai
-                audio_bytes = agentic_ai.synthesize_speech_audio(ssml, voice, reference_audio_bytes)
+                audio_bytes = agentic_ai.synthesize_speech_audio_agentic(ssml, voice, reference_audio_bytes, event_type)
 
                 # Send response
                 self.send_response(200)

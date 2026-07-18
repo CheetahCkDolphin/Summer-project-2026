@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock, mock_open
 import json
 import io
 import os
+import base64
 
 # Import the code to test
 import mcp_server
@@ -118,6 +119,7 @@ class TestWebServer(unittest.TestCase):
         mock_agentic_ai = MagicMock()
         mock_agentic_ai.analyze_speech_emotions.return_value = {"status": "ok"}
         mock_agentic_ai.synthesize_speech_audio.return_value = b"wav_response"
+        mock_agentic_ai.synthesize_speech_audio_agentic.return_value = b"wav_response"
 
         # Mock Request Handler
         class MockSocket:
@@ -219,6 +221,61 @@ class TestWebServer(unittest.TestCase):
         with patch.dict(os.environ, {"GEMINI_API_KEY": "fake_key"}):
             with self.assertRaises(ValueError):
                 agentic_ai.analyze_speech_emotions("", "oratory")
+
+class TestVoiceMcpServer(unittest.TestCase):
+    def test_get_nsda_performance_profile(self):
+        import voice_mcp_server
+        # Test Oratory Sorrow
+        profile_json = voice_mcp_server.get_nsda_performance_profile("oratory", "sorrow")
+        profile = json.loads(profile_json)
+        self.assertEqual(profile["pitch_shift"], "-18%")
+        self.assertEqual(profile["rate_shift"], "-22%")
+        self.assertIn("sorrow", profile["coaching_instruction"].lower())
+
+        # Test Extemp Anger
+        profile_json = voice_mcp_server.get_nsda_performance_profile("extemp", "anger")
+        profile = json.loads(profile_json)
+        self.assertEqual(profile["pitch_shift"], "-5%")
+        self.assertEqual(profile["rate_shift"], "+15%")
+
+    @patch('voice_mcp_server.genai.Client')
+    def test_generate_nsda_synthesized_speech_prebuilt(self, mock_genai_client_class):
+        import voice_mcp_server
+        mock_client = MagicMock()
+        mock_genai_client_class.return_value = mock_client
+
+        # Mock response audio
+        mock_response = MagicMock()
+        mock_part = MagicMock()
+        mock_part.inline_data.data = b"mcp_fake_audio_bytes"
+        mock_response.candidates = [MagicMock(content=MagicMock(parts=[mock_part]))]
+        mock_client.models.generate_content.return_value = mock_response
+
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "fake_key"}):
+            res_b64 = voice_mcp_server.generate_nsda_synthesized_speech(
+                ssml="<speak>Test</speak>",
+                prebuilt_voice="Aoede"
+            )
+            # Should return base64 encoded bytes
+            audio_bytes = base64.b64decode(res_b64.encode('utf-8'))
+            self.assertEqual(audio_bytes, b"mcp_fake_audio_bytes")
+
+
+class TestAgenticVoiceSynthesis(unittest.TestCase):
+    @patch('agentic_ai.synthesize_speech_audio')
+    @patch('agentic_ai.stdio_client')
+    def test_synthesize_speech_audio_agentic_fallback(self, mock_stdio_client, mock_fallback_synth):
+        # Setup mock_stdio_client to raise an exception to trigger the fallback path
+        mock_stdio_client.side_effect = Exception("Stdio connection failed")
+        mock_fallback_synth.return_value = b"fallback_wav_bytes"
+
+        audio = agentic_ai.synthesize_speech_audio_agentic(
+            ssml="<speak>Hello</speak>",
+            voice_name="Aoede",
+            event_type="oratory"
+        )
+        self.assertEqual(audio, b"fallback_wav_bytes")
+        mock_fallback_synth.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
