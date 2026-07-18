@@ -159,14 +159,20 @@ def synthesize_speech_audio(ssml: str, voice_name: str = "Aoede", reference_audi
             
     # Standard fallback path (prebuilt voice synthesis)
     system_instruction = (
-        "You are a professional dramatic orator and expressive voice actor. You will perform the provided script "
-        "with rich, human-like voice acting, flow, and natural rhythm.\n\n"
-        "If the text is a poem or contains poetic structure, recite it with poetic cadence, emotional resonance, "
-        "and appropriate pauses between lines. Strictly apply all emotional transitions, speed variations, "
-        "pitch changes, and volume shifts specified in the <prosody> tags. Respect the pauses from <break> tags "
-        "and punctuation. Emphasize words inside <emphasis> tags. Ensure the output sounds completely natural, "
-        "alive, and expressive, avoiding any robotic, monotone, or flat speech. Generate ONLY the audio. "
-        "Do not output any text response."
+        "You are a master dramatic orator and expressive voice actor. You will perform the provided SSML script.\n\n"
+        "CRITICAL: Avoid robotic, monotone, or flat speech. You must deliver a highly expressive, human-like, and "
+        "emotionally resonant performance based on the emotional cues, punctuation, and SSML tags in the script:\n"
+        "- When you see a <break time='...'/> tag or punctuation (commas, periods, dashes), pause naturally. "
+        "Let the silence carry dramatic weight.\n"
+        "- When you see <emphasis level='strong'>, emphasize that word with vocal intensity, stress, or elongation.\n"
+        "- Vary your tone, pitch, and speed dynamically according to the emotions requested:\n"
+        "  * Sorrow / Grief: Soft, breathy, lower pitch, slower tempo, with heavy, weary pauses.\n"
+        "  * Anger / Outrage: Intense, sharp, faster tempo, louder volume, with firm, punchy delivery.\n"
+        "  * Joy / Wonder: Higher pitch, warm, smiling tone, fast and energetic rate.\n"
+        "  * Anxiety / Fear: High pitch, rapid tempo, trembling or hesitant volume, with short, nervous pauses.\n"
+        "  * Nostalgia: Soft, warm, reflective tone, slightly slower pacing with wistful, lingering pauses.\n"
+        "  * Relief / Acceptance: Deep, steady, relaxed register, with audible breath releases and peaceful pacing.\n\n"
+        "Generate ONLY the audio bytes. Do not output any text response."
     )
     
     prompt = f"Please read the following SSML script and speak it accordingly:\n\n{ssml}"
@@ -194,6 +200,7 @@ def synthesize_speech_audio(ssml: str, voice_name: str = "Aoede", reference_audi
         config=types.GenerateContentConfig(
             system_instruction=system_instruction,
             response_modalities=["AUDIO"],
+            temperature=0.85,
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=prebuilt_voice)
@@ -227,14 +234,22 @@ def synthesize_speech_audio_with_clone(client: genai.Client, ssml: str, referenc
         print(f"Uploaded reference audio. File name: {ref_file.name}")
         
         system_instruction = (
-            "You are an expert voice cloner and expressive voice actor. You will perform the provided SSML script. "
+            "You are a master dramatic orator, voice actor, and expert voice cloner. You will perform the provided SSML script.\n\n"
             "IMPORTANT: Listen carefully to the voice, accent, pitch, and vocal style of the speaker in the provided "
             "reference audio file. You must generate the new speech in the EXACT SAME voice as the reference speaker.\n\n"
-            "If the text is a poem, perform it with poetic flow and dramatic emotional cadence. "
-            "Apply all emotional changes, volume changes, and speed/pitch adjustments requested in the <prosody> tags. "
-            "Respect the pauses from <break> tags and punctuation. Apply word emphasis when <emphasis> tags are used. "
-            "Ensure the output sounds completely natural, alive, and expressive, in the speaker's original voice. "
-            "Generate ONLY the audio. Do not output any text response."
+            "CRITICAL: Avoid robotic, monotone, or flat speech. You must deliver a highly expressive, human-like, and "
+            "emotionally resonant performance based on the emotional cues, punctuation, and SSML tags in the script:\n"
+            "- When you see a <break time='...'/> tag or punctuation (commas, periods, dashes), pause naturally. "
+            "Let the silence carry dramatic weight.\n"
+            "- When you see <emphasis level='strong'>, emphasize that word with vocal intensity, stress, or elongation.\n"
+            "- Vary your tone, pitch, and speed dynamically according to the emotions requested:\n"
+            "  * Sorrow / Grief: Soft, breathy, lower pitch, slower tempo, with heavy, weary pauses.\n"
+            "  * Anger / Outrage: Intense, sharp, faster tempo, louder volume, with firm, punchy delivery.\n"
+            "  * Joy / Wonder: Higher pitch, warm, smiling tone, fast and energetic rate.\n"
+            "  * Anxiety / Fear: High pitch, rapid tempo, trembling or hesitant volume, with short, nervous pauses.\n"
+            "  * Nostalgia: Soft, warm, reflective tone, slightly slower pacing with wistful, lingering pauses.\n"
+            "  * Relief / Acceptance: Deep, steady, relaxed register, with audible breath releases and peaceful pacing.\n\n"
+            "Generate ONLY the audio bytes. Do not output any text response."
         )
         
         prompt = [
@@ -248,7 +263,8 @@ def synthesize_speech_audio_with_clone(client: genai.Client, ssml: str, referenc
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
-                response_modalities=["AUDIO"]
+                response_modalities=["AUDIO"],
+                temperature=0.85
             )
         )
         
