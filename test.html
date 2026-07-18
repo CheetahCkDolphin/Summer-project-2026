@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSDA Evaluator - Panel Integration Test Suite</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #8b5cf6;
+      --primary-glow: rgba(139, 92, 246, 0.3);
+      --success: #10b981;
+      --danger: #ef4444;
+      --border: #334155;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.8rem;
+      color: var(--text-main);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-val {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .stat-val.passed { color: var(--success); }
+    .stat-val.failed { color: var(--danger); }
+
+    .panel-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 1rem;
+      font-weight: 600;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      background: var(--border);
+      color: var(--text-main);
+    }
+
+    .test-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .test-item {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .test-item:last-child {
+      border-bottom: none;
+    }
+
+    .test-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .test-name {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .test-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .test-status {
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 4px;
+    }
+
+    .test-status.pass {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+    }
+
+    .test-status.fail {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .test-status.pending {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-muted);
+    }
+
+    #app-frame {
+      display: none;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: var(--text-main);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .btn:hover {
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h1>NSDA Evaluator Panel Integration Tests</h1>
+        <p class="subtitle">Verifies UI functionality of each component panel inside a browser workspace</p>
+      </div>
+      <button class="btn" onclick="runAllTests()">Run Tests</button>
+    </header>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Tests</div>
+        <div class="stat-val" id="total-val">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Passed</div>
+        <div class="stat-val passed" id="passed-val">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Failed</div>
+        <div class="stat-val failed" id="failed-val">0</div>
+      </div>
+    </div>
+
+    <div id="test-panels">
+      <!-- Mapped dynamically in test_suite.js -->
+    </div>
+  </div>
+
+  <iframe id="app-frame" src="index.html"></iframe>
+
+  <script src="test_suite.js"></script>
+</body>
+</html>

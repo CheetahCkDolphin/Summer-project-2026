@@ -196,5 +196,29 @@ class TestWebServer(unittest.TestCase):
             h.send_response.assert_called_once_with(200)
             self.assertEqual(res, b"wav_response")
 
+            # Test POST /analyze-emotions with invalid JSON
+            body = b"{invalid_json"
+            headers = {'Content-Length': str(len(body)), 'Content-Type': 'application/json'}
+            h, res = run_handler('POST', '/analyze-emotions', body, headers)
+            h.send_response.assert_called_once_with(500)
+            self.assertIn(b"error", res)
+
+            # Test POST /transcribe with empty body (which fails wave validation)
+            body = b""
+            headers = {'Content-Length': "0", 'Content-Type': 'audio/wav'}
+            h, res = run_handler('POST', '/transcribe', body, headers)
+            h.send_response.assert_called_once_with(500)
+            self.assertIn(b"error", res)
+
+    def test_agentic_ai_api_key_missing(self):
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(ValueError):
+                agentic_ai.analyze_speech_emotions("Hello", "oratory")
+
+    def test_agentic_ai_empty_transcript(self):
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "fake_key"}):
+            with self.assertRaises(ValueError):
+                agentic_ai.analyze_speech_emotions("", "oratory")
+
 if __name__ == '__main__':
     unittest.main()

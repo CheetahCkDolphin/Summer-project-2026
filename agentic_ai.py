@@ -75,6 +75,9 @@ async def analyze_speech_emotions_async(transcript: str, event_type: str) -> dic
     rules, expectations = await get_nsda_info_from_mcp(event_type)
     
     # 2. Get API key from environment
+    if not transcript or not transcript.strip():
+        raise ValueError("Transcript cannot be empty.")
+        
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable is not set. Please set it in your .env file.")
