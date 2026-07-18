@@ -3,6 +3,10 @@ import socketserver
 import json
 import speech_recognition as sr
 import os
+import dotenv
+
+# Load .env environment variables (such as GEMINI_API_KEY)
+dotenv.load_dotenv()
 
 PORT = 8080
 
@@ -57,13 +61,44 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Length', str(len(response_data)))
                 self.end_headers()
                 self.wfile.write(response_data)
+        elif self.path == '/analyze-emotions':
+            try:
+                # Read content length
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length)
+
+                # Decode request payload
+                request_data = json.loads(post_data.decode('utf-8'))
+                transcript = request_data.get('transcript', '')
+                event_type = request_data.get('event', 'oratory')
+
+                # Import and call Agentic AI
+                import agentic_ai
+                result = agentic_ai.analyze_speech_emotions(transcript, event_type)
+
+                # Send response
+                response_data = json.dumps(result).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(response_data)))
+                self.end_headers()
+                self.wfile.write(response_data)
+            except Exception as e:
+                # Handle general error
+                response_data = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(response_data)))
+                self.end_headers()
+                self.wfile.write(response_data)
         else:
             self.send_response(404)
             self.end_headers()
 
 with socketserver.TCPServer(("", PORT), NoCacheHTTPRequestHandler) as httpd:
-    print(f"Serving at port {PORT} with caching disabled and /transcribe POST endpoint ready...")
+    print(f"Serving at port {PORT} with caching disabled, /transcribe, and /analyze-emotions POST endpoints ready...")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("\nServer stopped.")
+

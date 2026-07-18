@@ -1604,162 +1604,222 @@ function evaluateSpeechEmotions(text) {
     return;
   }
 
-  // Get Expected/Correct Script Emotion details by running the NLP classifier on the transcript text!
-  const scriptAnalysis = analyzeScriptEmotion(text);
-  const expectedEmotion = scriptAnalysis.emotion;
-  
-  const expectedClassMap = {
-    'Sorrow & Grief': 'tag-neutral',
-    'Anger & Frustration': 'tag-danger',
-    'Joy & Wonder': 'tag-success',
-    'Anxiety & Fear': 'tag-warning',
-    'Nostalgia': 'tag-primary',
-    'Relief & Acceptance': 'tag-info'
+  // Show "Thinking..." status for expected emotions while loading from Agentic AI
+  expectedTag.textContent = 'Analyzing...';
+  expectedTag.className = 'emotion-tag tag-neutral';
+  suggestionsList.innerHTML = '<li>Analyzing speech with Agentic AI...</li>';
+  if (DOM.audioExpectedEmotionName) {
+    DOM.audioExpectedEmotionName.textContent = 'Analyzing...';
+    DOM.audioExpectedEmotionName.className = 'emotion-tag tag-neutral';
+  }
+  if (DOM.audioExpectedEmotionGuidance) {
+    DOM.audioExpectedEmotionGuidance.innerHTML = '<em>Agentic AI speech evaluation in progress...</em>';
+  }
+
+  // Helper local fallback function
+  const runLocalFallback = () => {
+    const scriptAnalysis = analyzeScriptEmotion(text);
+    const expectedEmotion = scriptAnalysis.emotion;
+    const expectedClassMap = {
+      'Sorrow & Grief': 'tag-neutral',
+      'Anger & Frustration': 'tag-danger',
+      'Joy & Wonder': 'tag-success',
+      'Anxiety & Fear': 'tag-warning',
+      'Nostalgia': 'tag-primary',
+      'Relief & Acceptance': 'tag-info'
+    };
+    const expectedClass = expectedClassMap[expectedEmotion] || 'tag-primary';
+    const expectedSuggestions = scriptAnalysis.suggestions;
+    updateUIWithEmotions(expectedEmotion, expectedClass, scriptAnalysis.guidance, expectedSuggestions, 'Local Fallback Mode');
   };
-  const expectedClass = expectedClassMap[expectedEmotion] || 'tag-primary';
-  const expectedSuggestions = scriptAnalysis.suggestions;
 
-  // Determine Existing/Detected Emotion based on WPM, Filler Ratio, and Pitch variations in the audio
-  let existingEmotion = 'Relief & Acceptance';
-  let existingClass = 'tag-info';
-  const fillers = countFillerWords(text);
-  const wordCount = text.split(/\s+/).length;
-  const fillerRatio = wordCount > 0 ? (fillers / wordCount) * 100 : 0;
+  // Helper function to update the UI
+  const updateUIWithEmotions = (expectedEmotion, expectedClass, guidance, expectedSuggestions, transitionTipVal) => {
+    // Determine Existing/Detected Emotion based on WPM, Filler Ratio, and Pitch variations in the audio
+    let existingEmotion = 'Relief & Acceptance';
+    let existingClass = 'tag-info';
+    const fillers = countFillerWords(text);
+    const wordCount = text.split(/\s+/).length;
+    const fillerRatio = wordCount > 0 ? (fillers / wordCount) * 100 : 0;
 
-  // Let's check for predefined sample signatures first
-  const normalizeText = (str) => str.toLowerCase().replace(/\s+/g, ' ').trim();
-  const normText = normalizeText(text);
-  const activeSample = Object.keys(speechSamples).find(key => normalizeText(speechSamples[key].transcript) === normText);
+    // Let's check for predefined sample signatures first
+    const normalizeText = (str) => str.toLowerCase().replace(/\s+/g, ' ').trim();
+    const normText = normalizeText(text);
+    const activeSample = Object.keys(speechSamples).find(key => normalizeText(speechSamples[key].transcript) === normText);
 
-  let transitionTip = '';
+    let transitionTip = transitionTipVal;
 
-  if (activeSample === 'oratory') {
-    existingEmotion = 'Sorrow & Grief';
-    existingClass = 'tag-neutral';
-    transitionTip = 'Your delivery is quiet and flat, projecting sorrow. To express relief, lift your vocal register and use steady, relaxed breath patterns.';
-  } else if (activeSample === 'extemp') {
-    existingEmotion = 'Relief & Acceptance';
-    existingClass = 'tag-info';
-    transitionTip = 'Vocal tone is peaceful and accepting, which is calming but lacks competitive energy. To elevate, project your voice from the chest and add anger/outrage emphasis on logical proof.';
-  } else if (activeSample === 'oratory-excessive') {
-    existingEmotion = 'Anger & Frustration';
-    existingClass = 'tag-danger';
-    transitionTip = 'Vocal delivery is aggressive and rapid. Reduce speed and add reflective pauses to transition into relief and acceptance.';
-  } else if (activeSample === 'impromptu') {
-    existingEmotion = 'Anxiety & Fear';
-    existingClass = 'tag-warning';
-    transitionTip = 'High hesitation indicates anxiety. Eliminate filler words and swap them with silent pauses to project acceptance and stability.';
-  } else {
-    // Dynamic logic for custom files/recordings
-    if (state.wpm > 165) {
-      existingEmotion = 'Anger & Frustration';
-      existingClass = 'tag-danger';
-      transitionTip = 'Vocal pacing is extremely rapid, indicating anger and strain. Reduce speaking rate to under 160 WPM and add pauses after key punctuation marks.';
-    } else if (state.wpm < 115) {
+    if (activeSample === 'oratory') {
       existingEmotion = 'Sorrow & Grief';
       existingClass = 'tag-neutral';
-      transitionTip = 'The delivery feels slow and flat, conveying sorrow. Speed up your tempo and use rising inflections to transition to joy and wonder.';
-    } else if (fillerRatio > 2.5) {
+      transitionTip = 'Your delivery is quiet and flat, projecting sorrow. To express relief, lift your vocal register and use steady, relaxed breath patterns.';
+    } else if (activeSample === 'extemp') {
+      existingEmotion = 'Relief & Acceptance';
+      existingClass = 'tag-info';
+      transitionTip = 'Vocal tone is peaceful and accepting, which is calming but lacks competitive energy. To elevate, project your voice from the chest and add anger/outrage emphasis on logical proof.';
+    } else if (activeSample === 'oratory-excessive') {
+      existingEmotion = 'Anger & Frustration';
+      existingClass = 'tag-danger';
+      transitionTip = 'Vocal delivery is aggressive and rapid. Reduce speed and add reflective pauses to transition into relief and acceptance.';
+    } else if (activeSample === 'impromptu') {
       existingEmotion = 'Anxiety & Fear';
       existingClass = 'tag-warning';
-      transitionTip = 'Frequent filler words indicate anxiety. Substitute verbal fillers ("um", "like") with clean silent pauses.';
-    } else {
-      // Normal/good tempo
-      if (state.wpm > 140) {
-        existingEmotion = 'Joy & Wonder';
-        existingClass = 'tag-success';
-        transitionTip = 'Excellent, vibrant pacing showing joy and wonder. Maintain energetic emphasis on core rhetorical assertions.';
+      transitionTip = 'High hesitation indicates anxiety. Eliminate filler words and swap them with silent pauses to project acceptance and stability.';
+    } else if (!transitionTipVal) {
+      // Dynamic logic for custom files/recordings
+      if (state.wpm > 165) {
+        existingEmotion = 'Anger & Frustration';
+        existingClass = 'tag-danger';
+        transitionTip = 'Vocal pacing is extremely rapid, indicating anger and strain. Reduce speaking rate to under 160 WPM and add pauses after key punctuation marks.';
+      } else if (state.wpm < 115) {
+        existingEmotion = 'Sorrow & Grief';
+        existingClass = 'tag-neutral';
+        transitionTip = 'The delivery feels slow and flat, conveying sorrow. Speed up your tempo and use rising inflections to transition to joy and wonder.';
+      } else if (fillerRatio > 2.5) {
+        existingEmotion = 'Anxiety & Fear';
+        existingClass = 'tag-warning';
+        transitionTip = 'Frequent filler words indicate anxiety. Substitute verbal fillers ("um", "like") with clean silent pauses.';
       } else {
-        existingEmotion = 'Relief & Acceptance';
-        existingClass = 'tag-info';
-        transitionTip = 'Delivery is steady and controlled, conveying acceptance and closure. Add slight pitch peaks during transition points.';
+        // Normal/good tempo
+        if (state.wpm > 140) {
+          existingEmotion = 'Joy & Wonder';
+          existingClass = 'tag-success';
+          transitionTip = 'Excellent, vibrant pacing showing joy and wonder. Maintain energetic emphasis on core rhetorical assertions.';
+        } else {
+          existingEmotion = 'Relief & Acceptance';
+          existingClass = 'tag-info';
+          transitionTip = 'Delivery is steady and controlled, conveying acceptance and closure. Add slight pitch peaks during transition points.';
+        }
       }
     }
-  }
 
-  // Update Main Dashboard UI Elements
-  existingTag.textContent = existingEmotion;
-  existingTag.className = `emotion-tag ${existingClass}`;
-  expectedTag.textContent = expectedEmotion;
-  expectedTag.className = `emotion-tag ${expectedClass}`;
+    // Update Main Dashboard UI Elements
+    existingTag.textContent = existingEmotion;
+    existingTag.className = `emotion-tag ${existingClass}`;
+    expectedTag.textContent = expectedEmotion;
+    expectedTag.className = `emotion-tag ${expectedClass}`;
 
-  // Update printable layout fields
-  const printExisting = DOM.printExistingEmotion;
-  const printExpected = DOM.printExpectedEmotion;
-  if (printExisting && printExpected) {
-    printExisting.textContent = existingEmotion;
-    printExpected.textContent = expectedEmotion;
+    // Update printable layout fields
+    const printExisting = DOM.printExistingEmotion;
+    const printExpected = DOM.printExpectedEmotion;
+    if (printExisting && printExpected) {
+      printExisting.textContent = existingEmotion;
+      printExpected.textContent = expectedEmotion;
+      
+      // Assign matching text colors for printed ballot
+      if (existingClass === 'tag-danger') printExisting.style.color = '#dc2626';
+      else if (existingClass === 'tag-warning') printExisting.style.color = '#d97706';
+      else if (existingClass === 'tag-success') printExisting.style.color = '#15803d';
+      else printExisting.style.color = '#4b5563';
+
+      if (expectedClass === 'tag-primary') printExpected.style.color = '#7c3aed';
+      else if (expectedClass === 'tag-success') printExpected.style.color = '#15803d';
+      else if (expectedClass === 'tag-warning') printExpected.style.color = '#d97706';
+      else if (expectedClass === 'tag-danger') printExpected.style.color = '#dc2626';
+    }
+
+    // Populate main suggestions list
+    suggestionsList.innerHTML = '';
+    const transitionLi = document.createElement('li');
+    transitionLi.innerHTML = `<strong>Tone Shift Tip:</strong> ${transitionTip}`;
+    suggestionsList.appendChild(transitionLi);
+
+    expectedSuggestions.forEach(suggestion => {
+      const li = document.createElement('li');
+      li.textContent = suggestion;
+      suggestionsList.appendChild(li);
+    });
+
+    // Update Audio Section Emotion Matrix
+    if (DOM.audioEmotionMatrixPanel && DOM.audioExistingEmotionName && DOM.audioExistingEmotionDetail && DOM.audioExpectedEmotionGuidance) {
+      DOM.audioEmotionMatrixPanel.style.display = 'block';
+      DOM.audioExistingEmotionName.textContent = existingEmotion;
+      DOM.audioExistingEmotionName.className = `emotion-tag ${existingClass}`;
+      
+      if (DOM.audioExpectedEmotionName) {
+        DOM.audioExpectedEmotionName.textContent = expectedEmotion;
+        DOM.audioExpectedEmotionName.className = `emotion-tag ${expectedClass}`;
+      }
+      
+      // Set color-coded columns for matrix comparison
+      if (DOM.matrixGivenAudioView) {
+        DOM.matrixGivenAudioView.innerHTML = highlightExpressedAudioEmotions(text, state.audioBuffer);
+      }
+      if (DOM.matrixCorrectScriptView) {
+        DOM.matrixCorrectScriptView.innerHTML = highlightEmotionWords(text);
+      }
+
+      // Set custom visual detail text
+      let detailText = "Standard speaking voice parameters detected.";
+      if (existingClass === 'tag-neutral') {
+        detailText = "Flat pitch contours and consistent volume readings suggest a monotone vocal presentation.";
+      } else if (existingClass === 'tag-success') {
+        detailText = "Balanced pacing, fluid pauses, and structured word stress suggest confident delivery.";
+      } else if (existingClass === 'tag-danger') {
+        detailText = "Rapid speaking rate and narrow frequency bounds indicate high muscle tension/anxiety.";
+      } else if (existingClass === 'tag-warning') {
+        detailText = "High occurrence of verbal pauses ('um', 'ah') and frequent stop-starts indicate hesitance.";
+      }
+      DOM.audioExistingEmotionDetail.textContent = detailText;
+      
+      // Set guidance text matching the user's specific request
+      DOM.audioExpectedEmotionGuidance.innerHTML = `
+        <strong>Correct Script Tone: ${expectedEmotion}</strong>
+        <p style="margin-top: 0.4rem; line-height: 1.4; color: var(--text-main); font-size: 0.8rem;">
+          ${guidance}
+        </p>
+        <ul style="margin-top: 0.4rem; padding-left: 0.95rem; font-size: 0.75rem; color: var(--text-muted); list-style-type: disc;">
+          ${expectedSuggestions.map(s => `<li style="margin-bottom: 0.25rem;">${s}</li>`).join('')}
+        </ul>
+        <p style="margin-top: 0.4rem; line-height: 1.3; color: var(--secondary); font-size: 0.75rem; font-weight: 500;">
+          💡 <strong>Elevation Tip:</strong> ${transitionTip}
+        </p>
+      `;
+    }
+  };
+
+  // Perform API call to Agentic AI
+  fetch('/analyze-emotions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      transcript: text,
+      event: state.selectedEvent
+    })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Failed to get analysis from server');
+    return response.json();
+  })
+  .then(data => {
+    if (data.error) throw new Error(data.error);
     
-    // Assign matching text colors for printed ballot
-    if (existingClass === 'tag-danger') printExisting.style.color = '#dc2626';
-    else if (existingClass === 'tag-warning') printExisting.style.color = '#d97706';
-    else if (existingClass === 'tag-success') printExisting.style.color = '#15803d';
-    else printExisting.style.color = '#4b5563';
-
-    if (expectedClass === 'tag-primary') printExpected.style.color = '#7c3aed';
-    else if (expectedClass === 'tag-success') printExpected.style.color = '#15803d';
-    else if (expectedClass === 'tag-warning') printExpected.style.color = '#d97706';
-    else if (expectedClass === 'tag-danger') printExpected.style.color = '#dc2626';
-  }
-
-  // Populate main suggestions list
-  suggestionsList.innerHTML = '';
-  const transitionLi = document.createElement('li');
-  transitionLi.innerHTML = `<strong>Tone Shift Tip:</strong> ${transitionTip}`;
-  suggestionsList.appendChild(transitionLi);
-
-  expectedSuggestions.forEach(suggestion => {
-    const li = document.createElement('li');
-    li.textContent = suggestion;
-    suggestionsList.appendChild(li);
+    // Map response emotion to class
+    const expectedClassMap = {
+      'Sorrow & Grief': 'tag-neutral',
+      'Anger & Frustration': 'tag-danger',
+      'Joy & Wonder': 'tag-success',
+      'Anxiety & Fear': 'tag-warning',
+      'Nostalgia': 'tag-primary',
+      'Relief & Acceptance': 'tag-info'
+    };
+    const expectedClass = expectedClassMap[data.emotion] || 'tag-primary';
+    
+    updateUIWithEmotions(
+      data.emotion, 
+      expectedClass, 
+      data.guidance, 
+      data.suggestions || [], 
+      data.transition_tip
+    );
+  })
+  .catch(err => {
+    console.warn("Agentic AI failed, falling back to local NLP rules:", err);
+    runLocalFallback();
   });
-
-  // 3. Update Audio Section Emotion Matrix
-  if (DOM.audioEmotionMatrixPanel && DOM.audioExistingEmotionName && DOM.audioExistingEmotionDetail && DOM.audioExpectedEmotionGuidance) {
-    DOM.audioEmotionMatrixPanel.style.display = 'block';
-    DOM.audioExistingEmotionName.textContent = existingEmotion;
-    DOM.audioExistingEmotionName.className = `emotion-tag ${existingClass}`;
-    
-    if (DOM.audioExpectedEmotionName) {
-      DOM.audioExpectedEmotionName.textContent = expectedEmotion;
-      DOM.audioExpectedEmotionName.className = `emotion-tag ${expectedClass}`;
-    }
-    
-    // Set color-coded columns for matrix comparison
-    if (DOM.matrixGivenAudioView) {
-      DOM.matrixGivenAudioView.innerHTML = highlightExpressedAudioEmotions(text, state.audioBuffer);
-    }
-    if (DOM.matrixCorrectScriptView) {
-      DOM.matrixCorrectScriptView.innerHTML = highlightEmotionWords(text);
-    }
-
-    // Set custom visual detail text
-    let detailText = "Standard speaking voice parameters detected.";
-    if (existingClass === 'tag-neutral') {
-      detailText = "Flat pitch contours and consistent volume readings suggest a monotone vocal presentation.";
-    } else if (existingClass === 'tag-success') {
-      detailText = "Balanced pacing, fluid pauses, and structured word stress suggest confident delivery.";
-    } else if (existingClass === 'tag-danger') {
-      detailText = "Rapid speaking rate and narrow frequency bounds indicate high muscle tension/anxiety.";
-    } else if (existingClass === 'tag-warning') {
-      detailText = "High occurrence of verbal pauses ('um', 'ah') and frequent stop-starts indicate hesitance.";
-    }
-    DOM.audioExistingEmotionDetail.textContent = detailText;
-    
-    // Set guidance text matching the user's specific request
-    DOM.audioExpectedEmotionGuidance.innerHTML = `
-      <strong>Correct Script Tone: ${expectedEmotion}</strong>
-      <p style="margin-top: 0.4rem; line-height: 1.4; color: var(--text-main); font-size: 0.8rem;">
-        ${scriptAnalysis.guidance}
-      </p>
-      <ul style="margin-top: 0.4rem; padding-left: 0.95rem; font-size: 0.75rem; color: var(--text-muted); list-style-type: disc;">
-        ${expectedSuggestions.map(s => `<li style="margin-bottom: 0.25rem;">${s}</li>`).join('')}
-      </ul>
-      <p style="margin-top: 0.4rem; line-height: 1.3; color: var(--secondary); font-size: 0.75rem; font-weight: 500;">
-        💡 <strong>Elevation Tip:</strong> ${transitionTip}
-      </p>
-    `;
-  }
+}
 }
 
 // Color code script statements based strictly on physical audio expressed emotions (vocal variations)
