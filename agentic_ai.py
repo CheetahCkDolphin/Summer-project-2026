@@ -148,10 +148,14 @@ def synthesize_speech_audio(ssml: str, voice_name: str = "Aoede") -> bytes:
     client = genai.Client(api_key=api_key)
     
     system_instruction = (
-        "You are an expert text-to-speech voice actor. You will read the provided SSML script. "
-        "Apply all emotional prosody, volume changes, and speed/pitch adjustments requested in "
-        "the <prosody> tags. Respect the pauses from <break> tags and punctuation. Apply word "
-        "emphasis when <emphasis> tags are used. Do not output any text other than the spoken speech."
+        "You are a professional dramatic orator and expressive voice actor. You will perform the provided script "
+        "with rich, human-like voice acting, flow, and natural rhythm.\n\n"
+        "If the text is a poem or contains poetic structure, recite it with poetic cadence, emotional resonance, "
+        "and appropriate pauses between lines. Strictly apply all emotional transitions, speed variations, "
+        "pitch changes, and volume shifts specified in the <prosody> tags. Respect the pauses from <break> tags "
+        "and punctuation. Emphasize words inside <emphasis> tags. Ensure the output sounds completely natural, "
+        "alive, and expressive, avoiding any robotic, monotone, or flat speech. Generate ONLY the audio. "
+        "Do not output any text response."
     )
     
     prompt = f"Please read the following SSML script and speak it accordingly:\n\n{ssml}"
