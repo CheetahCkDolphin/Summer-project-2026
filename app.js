@@ -2648,10 +2648,20 @@ function initVoiceSynthesis() {
             setupBrowserSpeechFallback();
           } else {
             // Attempt server-side neural synthesis
+            const formData = new FormData();
+            formData.append('ssml', ssml);
+            formData.append('voice', 'en-US-JennyNeural');
+
+            if (state.audioFile) {
+              formData.append('audio', state.audioFile);
+            } else if (state.audioChunks && state.audioChunks.length > 0) {
+              const recordedBlob = new Blob(state.audioChunks, { type: 'audio/wav' });
+              formData.append('audio', recordedBlob, 'recorded_voice.wav');
+            }
+
             fetch('/synthesize', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ssml: ssml, voice: 'en-US-JennyNeural' })
+              body: formData
             })
             .then(res => {
               if (!res.ok) throw new Error("Server synthesis failed");

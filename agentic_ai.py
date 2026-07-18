@@ -137,9 +137,10 @@ def analyze_speech_emotions(transcript: str, event_type: str) -> dict:
     """
     return asyncio.run(analyze_speech_emotions_async(transcript, event_type))
 
-def synthesize_speech_audio(ssml: str, voice_name: str = "Aoede") -> bytes:
+def synthesize_speech_audio(ssml: str, voice_name: str = "Aoede", reference_audio_bytes: bytes = None) -> bytes:
     """
     Calls Gemini API with response_modalities=["AUDIO"] to generate the speech audio from SSML.
+    If reference_audio_bytes is provided, it uses Gemini's File API to perform zero-shot voice cloning.
     """
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -147,6 +148,13 @@ def synthesize_speech_audio(ssml: str, voice_name: str = "Aoede") -> bytes:
         
     client = genai.Client(api_key=api_key)
     
+    if reference_audio_bytes:
+        try:
+            return synthesize_speech_audio_with_clone(client, ssml, reference_audio_bytes)
+        except Exception as e:
+            print(f"Voice clone synthesis failed, falling back to prebuilt voice model: {e}", file=sys.stderr)
+            
+    # Standard fallback path (prebuilt voice synthesis)
     system_instruction = (
         "You are a professional dramatic orator and expressive voice actor. You will perform the provided script "
         "with rich, human-like voice acting, flow, and natural rhythm.\n\n"
@@ -200,6 +208,69 @@ def synthesize_speech_audio(ssml: str, voice_name: str = "Aoede") -> bytes:
         raise RuntimeError("No audio data returned from Gemini API.")
         
     return audio_bytes
+
+def synthesize_speech_audio_with_clone(client: genai.Client, ssml: str, reference_audio_bytes: bytes) -> bytes:
+    """
+    Calls Gemini API with a reference audio file to perform zero-shot voice cloning.
+    """
+    temp_ref_path = "temp_reference_voice.wav"
+    with open(temp_ref_path, "wb") as f:
+        f.write(reference_audio_bytes)
+        
+    ref_file = None
+    try:
+        print("Uploading reference audio to Gemini File API...")
+        ref_file = client.files.upload(file=temp_ref_path)
+        print(f"Uploaded reference audio. File name: {ref_file.name}")
+        
+        system_instruction = (
+            "You are an expert voice cloner and expressive voice actor. You will perform the provided SSML script. "
+            "IMPORTANT: Listen carefully to the voice, accent, pitch, and vocal style of the speaker in the provided "
+            "reference audio file. You must generate the new speech in the EXACT SAME voice as the reference speaker.\n\n"
+            "If the text is a poem, perform it with poetic flow and dramatic emotional cadence. "
+            "Apply all emotional changes, volume changes, and speed/pitch adjustments requested in the <prosody> tags. "
+            "Respect the pauses from <break> tags and punctuation. Apply word emphasis when <emphasis> tags are used. "
+            "Ensure the output sounds completely natural, alive, and expressive, in the speaker's original voice. "
+            "Generate ONLY the audio. Do not output any text response."
+        )
+        
+        prompt = [
+            "Below is the reference audio containing the target voice to clone, followed by the SSML script to speak.",
+            ref_file,
+            f"Here is the SSML script to read in the target voice:\n\n{ssml}"
+        ]
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                response_modalities=["AUDIO"]
+            )
+        )
+        
+        audio_bytes = b""
+        for part in response.candidates[0].content.parts:
+            if part.inline_data:
+                audio_bytes += part.inline_data.data
+                
+        if not audio_bytes:
+            raise RuntimeError("No audio data returned from Gemini API during voice cloning.")
+            
+        return audio_bytes
+        
+    finally:
+        if os.path.exists(temp_ref_path):
+            try:
+                os.remove(temp_ref_path)
+            except Exception:
+                pass
+        if ref_file:
+            try:
+                print(f"Deleting file {ref_file.name} from Gemini File API...")
+                client.files.delete(name=ref_file.name)
+            except Exception as e:
+                print(f"Error deleting file from Gemini File API: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
     # Small test run

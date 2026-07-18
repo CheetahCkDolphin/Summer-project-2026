@@ -85,18 +85,39 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(response_data)
         elif self.path == '/synthesize':
             try:
-                # Read content length
+                content_type = self.headers.get('Content-Type', '')
                 content_length = int(self.headers['Content-Length'])
                 post_data = self.rfile.read(content_length)
 
-                # Decode request payload
-                request_data = json.loads(post_data.decode('utf-8'))
-                ssml = request_data.get('ssml', '')
-                voice = request_data.get('voice', 'Aoede')
+                ssml = ""
+                voice = "Aoede"
+                reference_audio_bytes = None
+
+                if 'multipart/form-data' in content_type:
+                    # Construct message bytes for standard email library parser
+                    msg_bytes = f"Content-Type: {content_type}\n\n".encode('utf-8') + post_data
+                    from email.parser import BytesParser
+                    msg = BytesParser().parsebytes(msg_bytes)
+
+                    for part in msg.walk():
+                        if part.get_content_maintype() == 'multipart':
+                            continue
+                        name = part.get_param('name', header='content-disposition')
+                        if name == 'ssml':
+                            ssml = part.get_payload()
+                        elif name == 'voice':
+                            voice = part.get_payload()
+                        elif name == 'audio':
+                            reference_audio_bytes = part.get_payload(decode=True)
+                else:
+                    # Fallback to json parsing
+                    request_data = json.loads(post_data.decode('utf-8'))
+                    ssml = request_data.get('ssml', '')
+                    voice = request_data.get('voice', 'Aoede')
 
                 # Import and call Agentic AI audio synthesis
                 import agentic_ai
-                audio_bytes = agentic_ai.synthesize_speech_audio(ssml, voice)
+                audio_bytes = agentic_ai.synthesize_speech_audio(ssml, voice, reference_audio_bytes)
 
                 # Send response
                 self.send_response(200)
