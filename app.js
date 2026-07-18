@@ -335,43 +335,23 @@ function setupEventListeners() {
     switchInputTab('record');
   });
 
-  // Drag and drop audio uploader
-  DOM.dropZone.addEventListener('click', (e) => {
-    // If they clicked the label, let the browser's native click behavior handle it
-    if (e.target.tagName === 'LABEL') return;
-    DOM.fileInput.click();
+  // Visual feedback for drag-and-drop on the topmost transparent file input
+  DOM.fileInput.addEventListener('dragenter', () => {
+    DOM.dropZone.classList.add('dragover');
+  });
+  DOM.fileInput.addEventListener('dragover', () => {
+    DOM.dropZone.classList.add('dragover');
+  });
+  DOM.fileInput.addEventListener('dragleave', () => {
+    DOM.dropZone.classList.remove('dragover');
+  });
+  DOM.fileInput.addEventListener('drop', () => {
+    DOM.dropZone.classList.remove('dragover');
   });
 
   DOM.fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
       handleAudioFile(e.target.files[0]);
-    }
-  });
-
-  DOM.dropZone.addEventListener('dragenter', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    DOM.dropZone.classList.add('dragover');
-  });
-
-  DOM.dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    DOM.dropZone.classList.add('dragover');
-  });
-
-  DOM.dropZone.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    DOM.dropZone.classList.remove('dragover');
-  });
-
-  DOM.dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    DOM.dropZone.classList.remove('dragover');
-    if (e.dataTransfer.files.length > 0) {
-      handleAudioFile(e.dataTransfer.files[0]);
     }
   });
 

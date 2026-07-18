@@ -91,15 +91,15 @@
 
         <!-- UPLOAD VIEW -->
         <div class="tab-content active" id="content-upload">
-          <div class="dropzone" id="drop-zone">
+          <div class="dropzone" id="drop-zone" style="position: relative;">
             <svg class="dropzone-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M14,13V17H10V13H7L12,8L17,13M19.35,10.03C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.03C2.34,8.36 0,10.9 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.03Z"/>
             </svg>
             <p>Drag and drop audio file here</p>
             <span style="font-size: 0.8rem; color: var(--text-muted);">Supports WAV, MP3, M4A, OGG</span>
-            <label for="file-input" style="font-size: 0.85rem; color: var(--primary); text-decoration: underline; cursor: pointer; display: inline-block;">or browse files</label>
+            <span style="font-size: 0.85rem; color: var(--primary); text-decoration: underline; cursor: pointer;">or browse files</span>
+            <input type="file" id="file-input" accept="audio/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;">
           </div>
-          <input type="file" id="file-input" accept="audio/*" style="opacity: 0; position: absolute; width: 0; height: 0; z-index: -1;">
           <div class="file-info" id="uploaded-file-info">
             <div class="file-info-header">
               <span id="info-filename" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">speech_draft.mp3</span>
