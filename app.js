@@ -480,6 +480,7 @@ function handleAudioFile(file) {
   state.lastSampleKey = null;
   state.audioFile = file;
   DOM.fileInfo.style.display = 'block';
+  DOM.fileInfo.classList.add('visible');
   DOM.infoFilename.textContent = file.name;
   DOM.infoFilesize.textContent = 'Size: ' + (file.size / (1024 * 1024)).toFixed(1) + ' MB';
   
@@ -807,7 +808,7 @@ function initAudioContext() {
 function generateStaticWaveform() {
   const canvas = DOM.waveformCanvas;
   const ctx = canvas.getContext('2d');
-  const width = canvas.width = DOM.waveformCanvas.parentElement.clientWidth;
+  const width = canvas.width = DOM.waveformCanvas.parentElement.clientWidth || 600;
   const height = canvas.height = 120;
   
   ctx.clearRect(0, 0, width, height);
@@ -1145,6 +1146,7 @@ function loadSpeechSample(key) {
   DOM.playBtn.disabled = false;
   DOM.waveformTime.textContent = '0:00 / ' + formatDuration(state.audioDuration);
   DOM.fileInfo.style.display = 'block';
+  DOM.fileInfo.classList.add('visible');
   DOM.infoFilename.textContent = 'sample_' + key + '.mp3';
   DOM.infoDuration.textContent = formatDuration(state.audioDuration);
   DOM.infoFilesize.textContent = 'Size: Sample Audio File';
@@ -2574,6 +2576,7 @@ function resetApplication() {
   DOM.transcriptInput.value = '';
   DOM.charWordCount.textContent = 'Words: 0 | Characters: 0';
   DOM.fileInfo.style.display = 'none';
+  DOM.fileInfo.classList.remove('visible');
   DOM.fileInput.value = '';
   
   resetRecording();
