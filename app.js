@@ -1827,7 +1827,6 @@ function evaluateSpeechEmotions(text) {
     runLocalFallback();
   });
 }
-}
 
 // Color code script statements based strictly on physical audio expressed emotions (vocal variations)
 function highlightExpressedAudioEmotions(text, audioBuffer) {
