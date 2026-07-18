@@ -351,6 +351,9 @@ function setupEventListeners() {
   DOM.fileInput.addEventListener('drop', (e) => {
     e.preventDefault();
     DOM.dropZone.classList.remove('dragover');
+    if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+      handleAudioFile(e.dataTransfer.files[0]);
+    }
   });
 
   DOM.fileInput.addEventListener('change', (e) => {
@@ -490,7 +493,23 @@ function handleAudioFile(file) {
   if (state.audioElement) {
     state.audioElement.pause();
   }
-  state.audioElement = new Audio(URL.createObjectURL(file));
+  
+  try {
+    const objectUrl = URL.createObjectURL(file);
+    state.audioElement = new Audio(objectUrl);
+    
+    state.audioElement.addEventListener('error', (err) => {
+      console.error("Audio playback element failed to load:", err);
+      if (window.onerror) {
+        window.onerror(`Browser failed to load/decode audio format: ${file.name}. Make sure it is a valid audio file.`, "app.js", 497, 0);
+      }
+    });
+  } catch (e) {
+    console.error("Failed to create Audio object:", e);
+    if (window.onerror) {
+      window.onerror(`Failed to initialize audio player for ${file.name}: ${e.message}`, "app.js", 497, 0);
+    }
+  }
   
   // Try to load meta details (duration)
   state.audioElement.addEventListener('loadedmetadata', () => {
