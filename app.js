@@ -2224,7 +2224,8 @@ function highlightEmotionWords(text) {
       } else {
         // Output existing colored span block
         const color = colors[currentEmotion];
-        htmlResult.push(`<span style="color: ${color}; font-weight: 500; background: ${color}08; padding: 2px 4px; border-radius: 4px; border-bottom: 2px solid ${color}20; display: inline;">${currentGroup.join('')}</span>`);
+        const emotionClass = `word-${currentEmotion}`;
+        htmlResult.push(`<span class="${emotionClass}" style="color: ${color}; font-weight: 500; background: ${color}08; padding: 2px 4px; border-radius: 4px; border-bottom: 2px solid ${color}20; display: inline;">${currentGroup.join('')}</span>`);
         
         // Start next group
         currentEmotion = item.emotion;
@@ -2235,7 +2236,8 @@ function highlightEmotionWords(text) {
 
   if (currentGroup.length > 0) {
     const color = colors[currentEmotion];
-    htmlResult.push(`<span style="color: ${color}; font-weight: 500; background: ${color}08; padding: 2px 4px; border-radius: 4px; border-bottom: 2px solid ${color}20; display: inline;">${currentGroup.join('')}</span>`);
+    const emotionClass = `word-${currentEmotion}`;
+    htmlResult.push(`<span class="${emotionClass}" style="color: ${color}; font-weight: 500; background: ${color}08; padding: 2px 4px; border-radius: 4px; border-bottom: 2px solid ${color}20; display: inline;">${currentGroup.join('')}</span>`);
   }
 
   return htmlResult.join('');
@@ -2739,17 +2741,25 @@ function initVoiceSynthesis() {
       let pitch = "+0%";
       let rate = "+0%";
       let volume = "+0dB";
+      let preBreak = "";
+      let postBreak = "";
+      let emphasisStart = "";
+      let emphasisEnd = "";
       
       switch (seg.emotion) {
         case 'sorrow':
           pitch = "-15%";
           rate = "-20%";
           volume = "-4dB";
+          preBreak = "<break time='600ms'/>";
+          postBreak = "<break time='800ms'/>";
           break;
         case 'anger':
           pitch = "-2%";
           rate = "+18%";
           volume = "+4dB";
+          emphasisStart = "<emphasis level='strong'>";
+          emphasisEnd = "</emphasis>";
           break;
         case 'joy':
           pitch = "+15%";
@@ -2760,20 +2770,23 @@ function initVoiceSynthesis() {
           pitch = "+12%";
           rate = "+25%";
           volume = "-2dB";
+          preBreak = "<break time='300ms'/>";
           break;
         case 'nostalgia':
           pitch = "-8%";
           rate = "-12%";
           volume = "-3dB";
+          preBreak = "<break time='400ms'/>";
           break;
         case 'relief':
           pitch = "+2%";
           rate = "-5%";
           volume = "-1dB";
+          preBreak = "<break time='500ms'/>";
           break;
       }
       
-      ssml += `<prosody pitch='${pitch}' rate='${rate}' volume='${volume}'>${escapeXml(seg.text)}</prosody>`;
+      ssml += `${preBreak}<prosody pitch='${pitch}' rate='${rate}' volume='${volume}'>${emphasisStart}${escapeXml(seg.text)}${emphasisEnd}</prosody>${postBreak}`;
     });
     
     ssml += `</voice></speak>`;
