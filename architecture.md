@@ -8,10 +8,10 @@ This document details the system design, components, and data flow of the NSDA S
 
 ```mermaid
 graph TD
-    Client[Browser Frontend: index.html / app.js] <--> |HTTP POST /analyze-emotions| WebServer[Python Web Server: server.py]
+    Client[Browser Frontend: index.html / app.js] <--> |HTTP POST /analyze-emotions & /synthesize| WebServer[Python Web Server: server.py]
     WebServer <--> |Calls Function| Agent[Agentic AI: agentic_ai.py]
     Agent <--> |Spawns & Queries Stdio| MCPServer[MCP Server: mcp_server.py]
-    Agent <--> |Gemini API Requests| Gemini[Gemini API: gemini-2.5-flash]
+    Agent <--> |Gemini API Requests (Text & Audio Modality)| Gemini[Gemini API: gemini-2.5-flash]
 ```
 
 ---
@@ -20,13 +20,16 @@ graph TD
 
 ### 1. Browser Frontend (`app.js` & `index.html`)
 * **Role**: Collects audio recordings or uploads, calculates real-time pacing (WPM) and speech length, displays the visual score dashboard, and renders the emotion matrix.
-* **Agentic Integration**: When a transcript is entered or transcribed, the frontend issues an asynchronous `fetch` request to `/analyze-emotions` with the transcript text and event type. It displays a "Thinking" state and renders the dynamic suggestions once returned.
+* **Agentic Integration**: 
+  * When a transcript is entered or transcribed, the frontend issues an asynchronous `fetch` request to `/analyze-emotions` with the transcript text and event type.
+  * In the **Expressive Voice Clone Synthesis** section, when the user clicks "Generate", it compiles the SSML for the script and requests speech audio via `/synthesize`, which is played directly.
 
 ### 2. Python Web Server (`server.py`)
 * **Role**: Serves the static files (HTML, CSS, JS) on port `8080` and provides backend API routes.
 * **Endpoints**:
   * `/transcribe`: Accepts WAV audio, stores it temporarily, and uses Python's speech recognition to transcribe it.
   * `/analyze-emotions`: Receives the transcript and event type, boots the local environment configurations, calls the `agentic_ai` orchestrator, and returns the response as JSON.
+  * `/synthesize`: Receives SSML and voice name, invokes Gemini's audio modality model, and streams back the generated WAV speech.
 
 ### 3. Agentic AI Orchestrator (`agentic_ai.py`)
 * **Role**: Performs the reasoning and self-reflection loops.

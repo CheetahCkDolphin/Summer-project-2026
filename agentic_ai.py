@@ -137,6 +137,65 @@ def analyze_speech_emotions(transcript: str, event_type: str) -> dict:
     """
     return asyncio.run(analyze_speech_emotions_async(transcript, event_type))
 
+def synthesize_speech_audio(ssml: str, voice_name: str = "Aoede") -> bytes:
+    """
+    Calls Gemini API with response_modalities=["AUDIO"] to generate the speech audio from SSML.
+    """
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY environment variable is not set.")
+        
+    client = genai.Client(api_key=api_key)
+    
+    system_instruction = (
+        "You are an expert text-to-speech speaker. You will read the provided SSML script. "
+        "Apply the emotional changes, pitch, and speed adjustments requested in the <prosody> tags. "
+        "Generate only the audio of you speaking the script. Do not output any text."
+    )
+    
+    prompt = f"Please read the following SSML script and speak it accordingly:\n\n{ssml}"
+    
+    prebuilt_voice = "Aoede"
+    v_lower = voice_name.lower()
+    if "puck" in v_lower:
+        prebuilt_voice = "Puck"
+    elif "charon" in v_lower:
+        prebuilt_voice = "Charon"
+    elif "kore" in v_lower:
+        prebuilt_voice = "Kore"
+    elif "fenrir" in v_lower:
+        prebuilt_voice = "Fenrir"
+    elif "aoede" in v_lower:
+        prebuilt_voice = "Aoede"
+    elif "jenny" in v_lower:
+        prebuilt_voice = "Aoede"
+    elif "guy" in v_lower:
+        prebuilt_voice = "Puck"
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=prebuilt_voice)
+                )
+            )
+        )
+    )
+    
+    audio_bytes = b""
+    for part in response.candidates[0].content.parts:
+        if part.inline_data:
+            audio_bytes += part.inline_data.data
+            
+    if not audio_bytes:
+        raise RuntimeError("No audio data returned from Gemini API.")
+        
+    return audio_bytes
+
 if __name__ == "__main__":
     # Small test run
     test_transcript = (
