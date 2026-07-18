@@ -145,10 +145,11 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
-with socketserver.TCPServer(("", PORT), NoCacheHTTPRequestHandler) as httpd:
-    print(f"Serving at port {PORT} with caching disabled, /transcribe, /analyze-emotions, and /synthesize POST endpoints ready...")
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        print("\nServer stopped.")
+if __name__ == '__main__':
+    with socketserver.TCPServer(("", PORT), NoCacheHTTPRequestHandler) as httpd:
+        print(f"Serving at port {PORT} with caching disabled, /transcribe, /analyze-emotions, and /synthesize POST endpoints ready...")
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nServer stopped.")
 
