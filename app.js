@@ -336,16 +336,20 @@ function setupEventListeners() {
   });
 
   // Visual feedback for drag-and-drop on the topmost transparent file input
-  DOM.fileInput.addEventListener('dragenter', () => {
+  DOM.fileInput.addEventListener('dragenter', (e) => {
+    e.preventDefault();
     DOM.dropZone.classList.add('dragover');
   });
-  DOM.fileInput.addEventListener('dragover', () => {
+  DOM.fileInput.addEventListener('dragover', (e) => {
+    e.preventDefault();
     DOM.dropZone.classList.add('dragover');
   });
-  DOM.fileInput.addEventListener('dragleave', () => {
+  DOM.fileInput.addEventListener('dragleave', (e) => {
+    e.preventDefault();
     DOM.dropZone.classList.remove('dragover');
   });
-  DOM.fileInput.addEventListener('drop', () => {
+  DOM.fileInput.addEventListener('drop', (e) => {
+    e.preventDefault();
     DOM.dropZone.classList.remove('dragover');
   });
 
