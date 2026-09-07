@@ -136,7 +136,7 @@ const tests = [
     ]
   },
   {
-    panel: "Vocal Emotion Comparison Matrix Panel",
+    panel: "Vocal Emotion Suggestion Panel",
     tests: [
       {
         id: "matrix_expected_emotion_classification",
@@ -219,39 +219,7 @@ const tests = [
       }
     ]
   },
-  {
-    panel: "Expressive Voice Clone Synthesis Panel",
-    tests: [
-      {
-        id: "voice_options_mapping",
-        name: "Synthesis Voice Dropdown Mappings",
-        desc: "Verifies available synthesis voices load correctly in the select dropdown menu",
-        run: (win, doc) => {
-          const select = doc.getElementById('voice-select');
-          if (select.options.length < 3) {
-            throw new Error(`Expected at least 3 voice choices, got ${select.options.length}`);
-          }
-          return true;
-        }
-      },
-      {
-        id: "voice_synthesis_ssml_builder",
-        name: "SSML Voice Cues Builder",
-        desc: "Verifies voice clone synthesizer successfully parses script markers into SSML",
-        run: (win, doc) => {
-          const transcriptInput = doc.getElementById('transcript-input');
-          transcriptInput.value = "This is a sad lost tragedy.";
-          transcriptInput.dispatchEvent(new Event('input'));
-          
-          const ssml = win.generateSSMLFromMatrix();
-          if (!ssml.includes("<speak>") || !ssml.includes("<break") || !ssml.includes("</speak>")) {
-            throw new Error(`Generated invalid SSML structure: ${ssml}`);
-          }
-          return true;
-        }
-      }
-    ]
-  }
+
 ];
 
 function initTestInterface() {

@@ -26,6 +26,34 @@
           </svg>
           NSDA Unified Rules Summary
         </button>
+
+        <!-- User Authentication Header Bar -->
+        <div id="user-header-profile" class="user-header-profile" style="display: none;">
+          <div class="user-avatar-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span id="user-display-name">Speaker</span>
+          </div>
+          <button id="signout-btn" class="btn btn-secondary btn-signout">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign Out
+          </button>
+        </div>
+
+        <button id="header-login-btn" class="btn btn-primary" style="display: none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          Sign In
+        </button>
       </div>
     </header>
 
@@ -40,11 +68,27 @@
         <div class="form-group">
           <label for="event-selector">Choose Event Category</label>
           <select id="event-selector" class="custom-select">
-            <option value="oratory" selected>Original Oratory (OO)</option>
-            <option value="informative">Informative Speaking (INF)</option>
-            <option value="extemp">Extemporaneous Speaking (USX/IX)</option>
-            <option value="impromptu">Impromptu Speaking (IMP)</option>
-            <option value="dramatic">Dramatic Interpretation (DI/HI)</option>
+            <optgroup label="Main Events - Public Speaking">
+              <option value="oratory" selected>Original Oratory (OO)</option>
+              <option value="informative">Informative Speaking (INF)</option>
+            </optgroup>
+            <optgroup label="Main Events - Limited Preparation">
+              <option value="usx">United States Extemporaneous Speaking (USX)</option>
+              <option value="ix">International Extemporaneous Speaking (IX)</option>
+            </optgroup>
+            <optgroup label="Main Events - Interpretation">
+              <option value="dramatic">Dramatic Interpretation (DI)</option>
+              <option value="humorous">Humorous Interpretation (HI)</option>
+              <option value="duo">Duo Interpretation (DUO)</option>
+              <option value="poi">Program Oral Interpretation (POI)</option>
+            </optgroup>
+            <optgroup label="Supplemental & Middle School Events">
+              <option value="impromptu">Impromptu Speaking (IMP)</option>
+              <option value="prose">Prose Interpretation (PROSE)</option>
+              <option value="poetry">Poetry Interpretation (POETRY)</option>
+              <option value="declamation">Declamation (DEC)</option>
+              <option value="expository">Expository Speaking (EXP)</option>
+            </optgroup>
           </select>
         </div>
 
@@ -57,9 +101,10 @@
             <li><span>Maximum Time:</span> <span id="rule-max-time">10:00 mins</span></li>
             <li><span>Grace Period:</span> <span id="rule-grace">30 seconds</span></li>
             <li><span>Direct Quotations:</span> <span id="rule-quotes">Max 150 words</span></li>
-            <li><span>Speech Type:</span> <span>Original Work Required</span></li>
-            <li><span>Visual Aids:</span> <span>Not Permitted</span></li>
+            <li><span>Manuscript / Binder:</span> <span id="rule-binder">Memorized</span></li>
+            <li><span>Visual Aids:</span> <span id="rule-visual-aids" style="font-weight: bold; color: #dc2626;">Not Permitted</span></li>
           </ul>
+          <p id="rule-desc" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; line-height: 1.4; border-top: 1px dashed var(--border-color); padding-top: 0.5rem;"></p>
         </div>
       </div>
 
@@ -142,38 +187,10 @@
         </div>
       </div>
 
-      <!-- 3. Quick Test Speech Samples Panel -->
-      <div class="glass-panel" id="samples-panel">
-        <h2 class="panel-title">
-          <span>3. Quick Test Speech Samples</span>
-        </h2>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-          No audio file? Load a pre-transcribed competitive speech sample with simulated timings to try out the evaluator.
-        </p>
-        <div class="samples-grid">
-          <button class="sample-card" data-sample="oratory">
-            <div class="sample-name">Original Oratory</div>
-            <div class="sample-details">"The Plastic Self" • 9:52 mins</div>
-          </button>
-          <button class="sample-card" data-sample="extemp">
-            <div class="sample-name">Extemp Speech</div>
-            <div class="sample-details">"Economic Policy" • 7:18 mins</div>
-          </button>
-          <button class="sample-card" data-sample="oratory-excessive">
-            <div class="sample-name">OO (Rule Violator)</div>
-            <div class="sample-details">Too Long & Over-Quoted • 10:45 mins</div>
-          </button>
-          <button class="sample-card" data-sample="impromptu">
-            <div class="sample-name">Impromptu Speech</div>
-            <div class="sample-details">"Character is Destiny" • 6:42 mins</div>
-          </button>
-        </div>
-      </div>
-
-      <!-- 4. Speech Audio Waveform Panel -->
+      <!-- 3. Speech Audio Waveform Panel -->
       <div class="glass-panel">
         <h2 class="panel-title">
-          <span>4. Speech Audio Waveform</span>
+          <span>3. Speech Audio Waveform</span>
           <span class="time-readout" id="waveform-time-readout">0:00 / 0:00</span>
         </h2>
         <div class="visualizer-container">
@@ -200,10 +217,10 @@
         </div>
       </div>
 
-      <!-- 5. Speech Transcript Panel -->
+      <!-- 4. Speech Transcript Panel -->
       <div class="glass-panel transcript-section">
         <div class="transcript-header">
-          <h2 class="panel-title" style="margin-bottom: 0;">5. Speech Transcript</h2>
+          <h2 class="panel-title" style="margin-bottom: 0;">4. Speech Transcript</h2>
           <div class="transcript-actions">
             <span id="speech-recognition-status" class="status-orange" style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; margin-right: 0.5rem;">
               <span class="pulse-ring" style="position:relative; width:8px; height:8px; display:inline-block; border-radius:50%; background:currentColor; animation:none;"></span>
@@ -227,9 +244,9 @@
         </div>
       </div>
 
-      <!-- 6. Vocal Emotion Comparison Matrix Panel -->
+      <!-- 5. Vocal Emotion Suggestion Panel -->
       <div class="glass-panel" id="audio-emotion-matrix-panel">
-        <h2 class="panel-title">6. Vocal Emotion Comparison Matrix</h2>
+        <h2 class="panel-title">5. Vocal Emotion Suggestion</h2>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
           Side-by-side emotional comparison: what your voice expressed (left column) vs. the SLM-recommended script emotion (right column).
         </p>
@@ -240,7 +257,7 @@
               <span class="emotion-tag tag-neutral" id="audio-existing-emotion-name" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; margin: 0; line-height: 1;">Pending</span>
               <span>Given Audio's Emotions</span>
             </div>
-            <div id="matrix-given-audio-view" class="transcript-textarea" style="height: 220px; overflow-y: auto; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap; resize: none; width: 100%;">
+            <div id="matrix-given-audio-view" class="transcript-textarea" style="height: 220px; overflow-y: auto; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap; resize: none; width: 100%;">
               <span style="color: var(--text-muted); font-style: italic;">Provide speech audio to analyze expressed voice emotions.</span>
             </div>
           </div>
@@ -249,8 +266,8 @@
               <span class="emotion-tag tag-primary" id="audio-expected-emotion-name" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; margin: 0; line-height: 1;">Select Event</span>
               <span>Correct Script Emotions</span>
             </div>
-            <div id="matrix-correct-script-view" class="transcript-textarea" style="height: 220px; overflow-y: auto; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap; resize: none; width: 100%;">
-              <span style="color: var(--text-muted); font-style: italic;">Provide speech script to generate target script emotions.</span>
+            <div id="matrix-correct-script-view" class="transcript-textarea" style="height: 220px; overflow-y: auto; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.75rem; font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap; resize: none; width: 100%;">
+              <span style="color: var(--text-muted); font-style: italic;">Select an event and enter speech transcript to compute script emotion targets.</span>
             </div>
           </div>
         </div>
@@ -300,45 +317,11 @@
             </div>
           </div>
         </div>
-
-        <!-- Expressive Voice Clone Synthesis Section -->
-        <div id="voice-synthesis-section" style="margin-top: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
-          <div style="font-size: 0.8rem; font-weight: 700; color: var(--secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-              <line x1="12" y1="19" x2="12" y2="23"></line>
-              <line x1="8" y1="23" x2="16" y2="23"></line>
-            </svg>
-            <span>Expressive Voice Clone Synthesis</span>
-          </div>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-            Listen to the synthesized speech reading your corrected script using the cloned voice of your uploaded audio, expressively modulated for each word's emotion.
-          </p>
-          <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-            <button class="btn btn-primary" id="generate-clone-btn" style="flex: initial; padding: 0.45rem 1rem; font-size: 0.8rem;">
-              Generate Expressive Voice Clone
-            </button>
-            <div id="clone-status-text" style="font-size: 0.75rem; color: var(--text-muted);">Ready to extract voice model...</div>
-          </div>
-          
-          <div id="clone-player-container" style="margin-top: 1rem; display: none; align-items: center; gap: 0.75rem; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem 0.75rem;">
-            <button class="play-pause-btn" id="clone-play-btn" style="width: 32px; height: 32px; flex: shrink 0; display: flex; align-items: center; justify-content: center;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" id="clone-play-icon" style="margin-left: 1px;">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-            </button>
-            <div class="progress-bar-container" id="clone-timeline-bar" style="height: 6px; margin: 0; cursor: pointer; flex-grow: 1;">
-              <div class="progress-bar-fill" id="clone-timeline-fill" style="background: var(--secondary); width: 0%;"></div>
-            </div>
-            <div class="time-readout" id="clone-playback-time" style="font-size: 0.75rem; min-width: 30px; text-align: right;">0:00</div>
-          </div>
-        </div>
       </div>
 
-      <!-- 7. NSDA Competition Evaluation Dashboard Panel -->
+      <!-- 6. NSDA Competition Evaluation Dashboard Panel -->
       <div class="glass-panel">
-        <h2 class="panel-title">7. NSDA Competition Evaluation Dashboard</h2>
+        <h2 class="panel-title">6. NSDA Competition Evaluation Dashboard</h2>
         
         <div class="dashboard-grid">
           
@@ -439,88 +422,7 @@
               </li>
             </ul>
           </div>
-        </div>
-      </div>
-
-      <!-- 8. Vocal Emotion & Rhetorical Tone Analysis Panel -->
-      <div class="glass-panel" id="emotion-panel">
-        <h2 class="panel-title">8. Vocal Emotion & Rhetorical Tone Analysis</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-          Compares the simulated/recorded vocal emotions of your speech against competitive expectations to help you maximize delivery impact.
-        </p>
-        <div class="emotion-comparison-container" style="margin-bottom: 1.25rem; overflow-x: auto;">
-          <table class="emotion-table" style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
-                <th style="padding: 0.75rem 0.5rem; font-family: 'Outfit'; font-size: 0.95rem; width: 50%;">Existing Emotion (Detected)</th>
-                <th style="padding: 0.75rem 0.5rem; font-family: 'Outfit'; font-size: 0.95rem; width: 50%;">Expected Emotion (NSDA Standard)</th>
-              </tr>
-            </thead>
-            <tbody id="emotion-table-body">
-              <tr>
-                <td style="padding: 1rem 0.5rem;"><span class="emotion-tag tag-neutral" id="emotion-existing-tag">No audio analyzed</span></td>
-                <td style="padding: 1rem 0.5rem;"><span class="emotion-tag tag-primary" id="emotion-expected-tag">Select an event</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="emotion-suggestions-card" id="emotion-suggestions" style="border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.01); margin-top: 1rem;">
-          <div style="font-weight: 600; color: var(--secondary); font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 2 22 22 22 12 2"></polygon>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            Rhetorical Tone Elevation Guide
-          </div>
-          <ul id="emotion-suggestions-list" class="guideline-list" style="font-size: 0.85rem; padding-left: 0; list-style: none;">
-            <li>Provide audio input to receive tone elevation guidelines.</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- 9. Category Breakdown & Rubric Scoring Panel -->
-      <div class="glass-panel">
-        <h2 class="panel-title">9. Category Breakdown & Rubric Scoring</h2>
-        <div class="rubric-sliders">
-          
-          <div class="rubric-item">
-            <div class="rubric-label-row">
-              <span>Vocal Delivery & Pacing</span>
-              <span id="score-delivery-val">7.0 / 10</span>
-            </div>
-            <input type="range" class="rubric-slider" id="rubric-delivery" min="1" max="10" step="0.5" value="7">
-            <div class="rubric-desc">Assesses volume, inflection, vocal variety, articulation, and rate matching competitive pacing rules.</div>
-          </div>
-
-          <div class="rubric-item">
-            <div class="rubric-label-row">
-              <span>Content & Rhetorical Quality</span>
-              <span id="score-content-val">7.0 / 10</span>
-            </div>
-            <input type="range" class="rubric-slider" id="rubric-content" min="1" max="10" step="0.5" value="7">
-            <div class="rubric-desc">Assesses thesis clarity, logical reasoning, evidence weight, citation practices, and topic relevance.</div>
-          </div>
-
-          <div class="rubric-item">
-            <div class="rubric-label-row">
-              <span>Organization & Structure</span>
-              <span id="score-org-val">7.0 / 10</span>
-            </div>
-            <input type="range" class="rubric-slider" id="rubric-org" min="1" max="10" step="0.5" value="7">
-            <div class="rubric-desc">Assesses introduction quality, roadmap clarity, transition flows, and cohesive summary closure.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 10. Judge Ballot Feedback & Ballot Recommendations Panel -->
-      <div class="glass-panel comments-panel">
-        <h2 class="panel-title">10. Judge Ballot Feedback & Ballot Recommendations</h2>
-        <div class="ballot-comments" id="ballot-comments-box">
-          <p style="color: var(--text-muted); font-style: italic;">Provide speech audio and script to generate official judge recommendations...</p>
-        </div>
-        
-        <div class="export-actions">
+        <div class="export-actions" style="margin-top: 1.5rem;">
           <button class="btn btn-primary" id="print-ballot-btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 6 2 18 2 18 9"></polyline>
@@ -643,32 +545,151 @@
       </svg>
       NSDA Unified Rules Summary
     </h2>
-    <div style="font-size: 0.9rem; display: flex; flex-direction: column; gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+    <div style="font-size: 0.9rem; display: flex; flex-direction: column; gap: 1rem; max-height: 420px; overflow-y: auto; padding-right: 0.5rem;">
+      <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+        <strong style="color: var(--secondary); font-size: 0.95rem;">PUBLIC SPEAKING EVENTS</strong>
+      </div>
       <div>
         <strong style="color: var(--primary);">Original Oratory (OO)</strong>
-        <p style="color: var(--text-muted); margin-top: 0.25rem;">A persuasive speech written by the student that attempts to convince or inspire. Maximum duration is 10 minutes, with a 30-second grace period. Exceeding 10:30 prevents a first-place rank. No more than 150 words of direct quotations are allowed in the entire speech.</p>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">A persuasive speech written by the student that attempts to convince or inspire. Maximum duration: 10 minutes (600s) + 30s grace. Exceeding 10:30 prevents a 1st-place rank. No more than 150 words of direct quotations allowed. Memorized (off-book). Visual Aids: <strong>Not Permitted</strong>.</p>
       </div>
       <div>
         <strong style="color: var(--primary);">Informative Speaking (INF)</strong>
-        <p style="color: var(--text-muted); margin-top: 0.25rem;">An informative speech written by the student designed to explain or describe a topic. Maximum duration is 10 minutes, with a 30-second grace period. Audio analysis is identical to Oratory, focusing on clarity, WPM pacing, and structural signposts.</p>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">An informative speech written by the student designed to explain or describe a topic. Maximum duration: 10 minutes (600s) + 30s grace. No more than 150 quoted words allowed. Memorized (off-book). Visual Aids: <strong style="color: #16a34a;">Permitted</strong> (Optional 2D/3D props up to 30s setup time; no live animals or weapons).</p>
       </div>
       <div>
-        <strong style="color: var(--primary);">Extemporaneous Speaking (USX/IX)</strong>
-        <p style="color: var(--text-muted); margin-top: 0.25rem;">Students draw a question on current events, prepare for 30 minutes, and speak for a maximum of 7 minutes (with a 30-second grace period). Key rules include strict time constraints (7:30 maximum) and heavy reliance on verbal source citations (e.g. "According to the New York Times of June 12th...").</p>
+        <strong style="color: var(--primary);">Declamation (DEC)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Delivery of a speech previously given by another public figure, preceded by an original student intro. Maximum duration: 10 minutes + 30s grace. Open to 9th/10th grade or middle school. Memorized (off-book). Visual Aids: <strong>Not Permitted</strong>.</p>
+      </div>
+      <div>
+        <strong style="color: var(--primary);">Expository Speaking (EXP)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">A 5-minute original informative speech explaining a topic or process. Maximum duration: 5 minutes (300s) + 30s grace. Memorized (off-book). Visual Aids: <strong style="color: #16a34a;">Permitted</strong> (Optional visual aids allowed).</p>
+      </div>
+
+      <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 0.5rem;">
+        <strong style="color: var(--secondary); font-size: 0.95rem;">LIMITED PREPARATION EVENTS</strong>
+      </div>
+      <div>
+        <strong style="color: var(--primary);">United States Extemporaneous Speaking (USX)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Contestants draw a question on US domestic policy, prepare for 30 minutes, and deliver a 7-minute speech (+30s grace). Key rules: 5-10 oral news citations required. Delivered from memory or brief notes. Visual Aids: <strong>Not Permitted</strong>.</p>
+      </div>
+      <div>
+        <strong style="color: var(--primary);">International Extemporaneous Speaking (IX)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Contestants draw a question on foreign affairs and international policy, prepare for 30 minutes, and deliver a 7-minute speech (+30s grace). 5-10 oral news citations required. Visual Aids: <strong>Not Permitted</strong>.</p>
       </div>
       <div>
         <strong style="color: var(--primary);">Impromptu Speaking (IMP)</strong>
-        <p style="color: var(--text-muted); margin-top: 0.25rem;">Contestants have a total of 7 minutes for both preparation and speaking (with a 30-second grace period). A common approach is 2 minutes of prep and 5 minutes of delivery. Pacing is critical to fit the entire topic analysis in the brief speaking window.</p>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Contestants have a total of 7 minutes (+30s grace) combined for both preparation and speaking on a drawn prompt (quote, word, abstract topic). Delivered from brief notes. Visual Aids: <strong>Not Permitted</strong>.</p>
+      </div>
+
+      <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 0.5rem;">
+        <strong style="color: var(--secondary); font-size: 0.95rem;">INTERPRETATION EVENTS</strong>
       </div>
       <div>
-        <strong style="color: var(--primary);">Interpretation (DI/HI)</strong>
-        <p style="color: var(--text-muted); margin-top: 0.25rem;">Performances of published literature. Maximum duration is 10 minutes (30s grace). Audio focus is heavily on character vocal distinctions, dramatic pacing, emotional pauses, and articulation.</p>
+        <strong style="color: var(--primary);">Dramatic Interpretation (DI)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Solo performance of a single published dramatic script. Maximum duration: 10 minutes + 30s grace. Memorized (off-book). Focus on character vocal splits, dramatic pacing, emotional depth. Visual Aids/Props: <strong>Not Permitted</strong>.</p>
+      </div>
+      <div>
+        <strong style="color: var(--primary);">Humorous Interpretation (HI)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Solo performance of a single published humorous script. Maximum duration: 10 minutes + 30s grace. Memorized (off-book). Focus on comedic timing, character popping, and physical comedy. Visual Aids/Props: <strong>Not Permitted</strong>.</p>
+      </div>
+      <div>
+        <strong style="color: var(--primary);">Duo Interpretation (DUO)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Two-person performance of published literature. Maximum duration: 10 minutes + 30s grace. Off-stage focal point (no direct eye contact except intro), no physical contact permitted. Visual Aids/Props: <strong>Not Permitted</strong>.</p>
+      </div>
+      <div>
+        <strong style="color: var(--primary);">Program Oral Interpretation (POI)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Multi-genre thematic program interweaving selections from at least TWO of Prose, Poetry, Drama. Maximum duration: 10 minutes + 30s grace. Handheld Manuscript Binder <strong>REQUIRED</strong>. Visual Aids: <strong>Not Permitted</strong> (except manuscript binder).</p>
+      </div>
+      <div>
+        <strong style="color: var(--primary);">Prose Interpretation (PROSE)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Performance of published prose literature (short story, novel excerpt, essay). Maximum duration: 5 minutes + 30s grace. Handheld Manuscript Binder <strong>REQUIRED</strong>. Visual Aids: <strong>Not Permitted</strong>.</p>
+      </div>
+      <div>
+        <strong style="color: var(--primary);">Poetry Interpretation (POETRY)</strong>
+        <p style="color: var(--text-muted); margin-top: 0.25rem;">Performance of published poetic literature (single poem or collection). Maximum duration: 5 minutes + 30s grace. Handheld Manuscript Binder <strong>REQUIRED</strong>. Visual Aids: <strong>Not Permitted</strong>.</p>
       </div>
     </div>
     <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
       <button id="close-rules-btn" class="btn btn-primary" style="flex: initial; width: 100px;">Close</button>
     </div>
   </dialog>
+
+  <!-- AUTHENTICATION MODAL (LOGIN / SIGN UP SCREEN) -->
+  <div id="auth-modal" class="auth-modal-overlay">
+    <div class="auth-card glass-panel">
+      
+      <div class="auth-header">
+        <div class="auth-logo">
+          <svg class="logo-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 44px; height: 44px;">
+            <path d="M2,21H22V23H2V21M20,3H4A1,1 0 0,0 3,4V8A1,1 0 0,0 4,9H5V18H3V20H21V18H19V9H20A1,1 0 0,0 21,8V4A1,1 0 0,0 20,3M7,9H11V18H7V9M17,18H13V9H17V18M19,7H5V5H19V7Z"/>
+          </svg>
+        </div>
+        <h2>NSDA Speech Evaluator</h2>
+        <p class="auth-subtitle">Sign in or create an account to access speech evaluation workspace</p>
+      </div>
+
+      <!-- Auth Mode Tabs: Log In vs Sign Up -->
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tab-login-btn">Log In</button>
+        <button class="auth-tab-btn" id="tab-signup-btn">Sign Up</button>
+      </div>
+
+      <!-- Feedback / Error Banner -->
+      <div id="auth-alert-msg" class="auth-alert" style="display: none;"></div>
+
+      <!-- LOG IN FORM -->
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="login-email">Email or Username</label>
+          <input type="text" id="login-email" class="custom-input" placeholder="e.g. speaker@nsda.org" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="custom-input" placeholder="••••••••" required>
+        </div>
+        <div class="form-actions" style="margin-top: 1.25rem;">
+          <button type="submit" class="btn btn-primary btn-block" id="login-submit-btn">
+            Log In to Workspace
+          </button>
+        </div>
+        <div class="demo-login-box">
+          <span>Quick Demo Access:</span>
+          <button type="button" class="btn-link" id="fill-demo-btn">Use Demo Credentials (speaker@nsda.org)</button>
+        </div>
+      </form>
+
+      <!-- SIGN UP FORM -->
+      <form id="signup-form" class="auth-form" style="display: none;">
+        <div class="form-group">
+          <label for="signup-name">Full Name</label>
+          <input type="text" id="signup-name" class="custom-input" placeholder="e.g. Alex Morgan" required>
+        </div>
+        <div class="form-group">
+          <label for="signup-email">Email Address</label>
+          <input type="email" id="signup-email" class="custom-input" placeholder="e.g. alex@speech.org" required>
+        </div>
+        <div class="form-group">
+          <label for="signup-password">Create Password</label>
+          <input type="password" id="signup-password" class="custom-input" placeholder="Minimum 6 characters" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <label for="signup-role">NSDA Event Specialty</label>
+          <select id="signup-role" class="custom-select">
+            <option value="Orator / Competitor">Speech Competitor / Student</option>
+            <option value="Speech Coach">Speech Coach / Educator</option>
+            <option value="Tournament Judge">Tournament Judge</option>
+          </select>
+        </div>
+        <div class="form-actions" style="margin-top: 1.25rem;">
+          <button type="submit" class="btn btn-primary btn-block" id="signup-submit-btn">
+            Create Account & Log In
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
 
   <script src="app.js?v=11"></script>
 </body>

@@ -46,59 +46,185 @@ const state = {
   recordStartTime: 0,
   elapsedRecordTime: 0,
   speechRecognition: null,
+  currentUser: null,
+  authMode: 'login',
   audioContext: null,
   sourceNode: null,
   analyserNode: null,
   animationFrameId: null,
-  audioElement: null
+  audioElement: null,
+  isSampleAudio: false,
+  synthAudioCtx: null,
+  activeSynthNodes: null
 };
 
 // Event Guidelines Configuration
 const eventRules = {
   oratory: {
     title: 'Original Oratory Rules',
+    category: 'Public Speaking',
     maxTime: 600, // 10 minutes
     gracePeriod: 30, // 30 seconds
     quoteLimit: 150, // 150 words
     requiresQuotesRule: true,
     visualAids: false,
-    desc: 'A persuasive speech written by the student to inspire, convince, or advocate for change. Focus on clear delivery, rhetoric, and structure.'
+    binder: 'Memorized (Off-Book)',
+    desc: 'A persuasive speech written by the student to inspire, convince, or advocate for change. Max 150 quoted words permitted. Focus on rhetoric, clear structure, and passionate delivery.'
   },
   informative: {
     title: 'Informative Speaking Rules',
+    category: 'Public Speaking',
     maxTime: 600, // 10 minutes
     gracePeriod: 30, // 30 seconds
     quoteLimit: 150, // 150 words
     requiresQuotesRule: true,
-    visualAids: true,
-    desc: 'An informative speech written by the student to explain or describe a topic. Focus on topic significance, detail clarity, and signposting.'
+    visualAids: true, // PERMITTED!
+    binder: 'Memorized (Off-Book)',
+    desc: 'An informative speech written by the student to explain, clarify, or describe a topic. Visual aids are permitted (optional 2D/3D props up to 30s setup time). Max 150 quoted words permitted.'
   },
-  extemp: {
-    title: 'Extemporaneous Speaking Rules',
+  usx: {
+    title: 'United States Extemporaneous Speaking Rules',
+    category: 'Limited Preparation',
     maxTime: 420, // 7 minutes
-    gracePeriod: 30, // 30 seconds
+    gracePeriod: 30,
     quoteLimit: 0,
     requiresQuotesRule: false,
+    quoteText: 'N/A (Oral Citations Required)',
     visualAids: false,
-    desc: 'Limited preparation event (30 minutes to prepare a 7-minute speech answering a current affairs question). Heavy focus on source citations.'
+    binder: 'Memory / Brief Prep Notes',
+    desc: 'Limited preparation event (30 minutes prep to answer a US domestic policy/current affairs topic). Must provide 5-10 oral source citations. Visual aids not permitted.'
+  },
+  extemp: { // Alias for USX
+    title: 'United States Extemporaneous Speaking Rules',
+    category: 'Limited Preparation',
+    maxTime: 420,
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'N/A (Oral Citations Required)',
+    visualAids: false,
+    binder: 'Memory / Brief Prep Notes',
+    desc: 'Limited preparation event (30 minutes prep to answer a US domestic policy/current affairs topic). Must provide 5-10 oral source citations. Visual aids not permitted.'
+  },
+  ix: {
+    title: 'International Extemporaneous Speaking Rules',
+    category: 'Limited Preparation',
+    maxTime: 420, // 7 minutes
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'N/A (Oral Citations Required)',
+    visualAids: false,
+    binder: 'Memory / Brief Prep Notes',
+    desc: 'Limited preparation event (30 minutes prep to answer an international foreign affairs topic). Must provide 5-10 oral source citations. Visual aids not permitted.'
   },
   impromptu: {
     title: 'Impromptu Speaking Rules',
+    category: 'Limited Preparation',
     maxTime: 420, // 7 minutes total prep + speak
     gracePeriod: 30,
     quoteLimit: 0,
     requiresQuotesRule: false,
+    quoteText: 'N/A',
     visualAids: false,
-    desc: 'Total of 7 minutes to draw a topic, prepare, and speak. Focus on structure, quick organization, and fluid delivery.'
+    binder: 'Prep Notes Only',
+    desc: 'Total of 7 minutes to draw a prompt (quote/word), prepare brief notes, and deliver a speech. Focus on structure, quick organization, and fluid delivery.'
   },
   dramatic: {
-    title: 'Dramatic/Humorous Interp Rules',
+    title: 'Dramatic Interpretation Rules',
+    category: 'Interpretation',
     maxTime: 600, // 10 minutes
     gracePeriod: 30,
     quoteLimit: 0,
     requiresQuotesRule: false,
+    quoteText: 'Published Script',
     visualAids: false,
-    desc: 'Interpretation of published literature. Audio analysis focuses heavily on vocal range, emotional pauses, character work, and pacing.'
+    binder: 'Memorized (Off-Book)',
+    desc: 'Solo interpretation of a single published dramatic literary script. Audio analysis focuses heavily on vocal range, character distinctions, emotional pauses, and dramatic pacing.'
+  },
+  humorous: {
+    title: 'Humorous Interpretation Rules',
+    category: 'Interpretation',
+    maxTime: 600, // 10 minutes
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'Published Script',
+    visualAids: false,
+    binder: 'Memorized (Off-Book)',
+    desc: 'Solo interpretation of a single published humorous literary script. Audio analysis focuses on comedic timing, character popping, energy, and animated vocal delivery.'
+  },
+  duo: {
+    title: 'Duo Interpretation Rules',
+    category: 'Interpretation',
+    maxTime: 600, // 10 minutes
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'Published Script',
+    visualAids: false,
+    binder: 'Memorized (Off-Book)',
+    desc: 'Two-person performance of published literature. Features off-stage focal point (performers do not make direct eye contact except intro) and no physical contact.'
+  },
+  poi: {
+    title: 'Program Oral Interpretation Rules',
+    category: 'Interpretation',
+    maxTime: 600, // 10 minutes
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'Multi-Genre Program',
+    visualAids: false,
+    binder: 'Handheld Manuscript Required',
+    desc: 'Multi-genre program using selections from at least TWO of three literature genres (Prose, Poetry, Drama). Handheld manuscript binder is REQUIRED and used as a stage prop.'
+  },
+  prose: {
+    title: 'Prose Interpretation Rules',
+    category: 'Interpretation (Supplemental)',
+    maxTime: 300, // 5 minutes (Supplemental standard)
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'Published Prose',
+    visualAids: false,
+    binder: 'Handheld Manuscript Required',
+    desc: 'Performance of published prose literature (short stories, novel excerpts, essays) using a handheld manuscript binder. 5-minute maximum limit with 30s grace.'
+  },
+  poetry: {
+    title: 'Poetry Interpretation Rules',
+    category: 'Interpretation (Supplemental)',
+    maxTime: 300, // 5 minutes
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'Published Poetry',
+    visualAids: false,
+    binder: 'Handheld Manuscript Required',
+    desc: 'Performance of published poetic literature (single poem or collection) using a handheld manuscript binder. 5-minute maximum limit with 30s grace.'
+  },
+  declamation: {
+    title: 'Declamation Rules',
+    category: 'Public Speaking (Supplemental)',
+    maxTime: 600, // 10 minutes
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'Full Speech (Published)',
+    visualAids: false,
+    binder: 'Memorized (Off-Book)',
+    desc: 'Delivery of a speech previously given by another public figure or orator, preceded by an original student introduction. 10-minute maximum limit with 30s grace.'
+  },
+  expository: {
+    title: 'Expository Speaking Rules',
+    category: 'Public Speaking (Supplemental)',
+    maxTime: 300, // 5 minutes
+    gracePeriod: 30,
+    quoteLimit: 0,
+    requiresQuotesRule: false,
+    quoteText: 'N/A',
+    visualAids: true, // PERMITTED!
+    binder: 'Memorized (Off-Book)',
+    desc: 'A 5-minute original informative speech written by the student to describe or explain a topic. Visual aids are permitted and optional.'
   }
 };
 
@@ -106,9 +232,39 @@ const eventRules = {
 const defaultTranscripts = {
   oratory: `In a society that demands constant optimization, we are taught to fear failure. From childhood, we are graded, ranked, and sorted. We learn to avoid risk and stay within our comfort zones. Today, I want to challenge this culture of perfectionism. First, let us look at how the fear of failure paralyzes creativity. When we are afraid to make mistakes, we replicate what is safe. Second, let us examine the psychological toll. The pressure to succeed has led to a dramatic increase in anxiety among young people. Finally, we must redefine failure not as an endpoint, but as an essential element of progress. As the philosopher Samuel Beckett once said, "Ever tried. Ever failed. No matter. Try again. Fail again. Fail better." Only when we accept failure can we truly learn, innovate, and grow as human beings.`,
   informative: `Biomimicry is the practice of looking to nature for solutions to complex human problems. For billions of years, nature has solved engineering, structural, and survival challenges. Today, we will explore three key innovations inspired by biology. First, consider the shinkansen bullet train in Japan. Its nose design was inspired by the kingfisher bird's beak, reducing noise pollution and increasing efficiency. Second, look at velcro, which was modeled after burrs sticking to dog fur. Finally, we see wind turbine blades designed like humpback whale flippers to reduce drag. By studying nature's time-tested designs, we can create sustainable, highly optimized technologies for our future.`,
+  usx: `Today, we must address the geopolitical tensions surrounding the global microchip supply chain. As technology advances, semiconductor chips have become the new oil of the twenty-first century. To understand the strategic implications, we must look at three critical fronts. First, Taiwan holds a virtual monopoly on high-end chip manufacturing through TSMC, making the region a focal point of US-China tensions. Second, the European Union and the United States have passed massive chip acts to subsidize domestic foundries, attempting to achieve semiconductor independence. Finally, export controls on critical raw materials like gallium and germanium have intensified trade friction. Ultimately, the quest for chip sovereignty will reshape global alliances and trade routes in the decade ahead.`,
   extemp: `Today, we must address the geopolitical tensions surrounding the global microchip supply chain. As technology advances, semiconductor chips have become the new oil of the twenty-first century. To understand the strategic implications, we must look at three critical fronts. First, Taiwan holds a virtual monopoly on high-end chip manufacturing through TSMC, making the region a focal point of US-China tensions. Second, the European Union and the United States have passed massive chip acts to subsidize domestic foundries, attempting to achieve semiconductor independence. Finally, export controls on critical raw materials like gallium and germanium have intensified trade friction. Ultimately, the quest for chip sovereignty will reshape global alliances and trade routes in the decade ahead.`,
+  ix: `The international community faces a decisive moment in addressing global food security across developing nations. Conflict, extreme weather events, and economic instability have combined to create unprecedented challenges for vulnerable populations. To understand the global response, we must examine three key developments. First, international aid organizations are shifting from reactive relief to climate-resilient agriculture investments. Second, regional trade pacts in Africa and Latin America are lowering tariffs to facilitate rapid food distribution. Third, international financial institutions are developing debt-for-food security swaps to relieve fiscal pressures on developing economies. Consequently, coordinated multilateral strategy is essential to preventing widespread famine.`,
   impromptu: `The classic proverb states that "smooth seas do not make skillful sailors." This reminds us that strength, wisdom, and capability are only forged in the face of adversity. A life without struggle may be comfortable, but it leaves us unprepared for the inevitable storms of existence. To understand this, let us look at two aspects. First, personal growth requires pressure. Just as carbon is compressed into diamonds under intense heat and pressure, our character is refined by our struggles. Second, collective resilience is built in crises. History shows that societies develop their greatest political and social breakthroughs not during times of ease, but during periods of profound instability. Therefore, we should not fear difficulties, but embrace them as our teachers.`,
-  dramatic: `I remember the kitchen. The smell of fresh bread and the sound of my mother humming. It was a simple life, but it was ours. And then, in a single night, everything changed. The sirens started, and we had to run. I didn't get to say goodbye to my books, my room, or my childhood. Now, standing here in this new, silent city, I realize that home is not a place with walls and a roof. Home is the memory of those voices, the laughter around the table, and the hope that one day, we will return. Until then, I carry that kitchen, that hum, and that light inside me, wherever I go.`
+  dramatic: `I remember the kitchen. The smell of fresh bread and the sound of my mother humming. It was a simple life, but it was ours. And then, in a single night, everything changed. The sirens started, and we had to run. I didn't get to say goodbye to my books, my room, or my childhood. Now, standing here in this new, silent city, I realize that home is not a place with walls and a roof. Home is the memory of those voices, the laughter around the table, and the hope that one day, we will return. Until then, I carry that kitchen, that hum, and that light inside me, wherever I go.`,
+  humorous: `Welcome to the annual meeting of the Neighborhood Watch Association! Before we begin, a quick update on Mr. Henderson's lawn flamingo. It has been moved three inches to the left. I repeat, three inches to the left without prior committee approval! We cannot stand by while anarchy reigns on Willow Street. Now, let us turn to item two on our urgent agenda: cat walking etiquette. If your feline refuses to wear high-visibility safety vests during twilight strolls, severe stern looks will be administered at the block party!`,
+  duo: `[Partner 1]: We've been lost in this cave for three hours, Marcus. You said you had a map!
+[Partner 2]: I DO have a map! It's right here... on my phone... which has zero percent battery.
+[Partner 1]: Brilliant. Absolutely brilliant. We are going to be discovered three hundred years from now as fossilized skeletons holding a dead Smartphone.
+[Partner 2]: Look on the bright side, Sarah! At least we won't have to take our calculus final tomorrow.
+[Partner 1]: Marcus, I would take ten calculus finals right now if it meant seeing daylight again! Now put down your useless phone and help me feel the left cavern wall for air currents.`,
+  poi: `(From 'The Wasteland' by T.S. Eliot) "April is the cruellest month, breeding lilacs out of the dead land, mixing memory and desire." 
+(Transition to Prose: 'Silent Spring' by Rachel Carson) "A grim spectre has crept upon us almost unnoticed, and this imagined tragedy may soon become a stark reality we all face."
+(Transition to Drama: 'An Enemy of the People' by Henrik Ibsen) "The strongest man in the world is he who stands most alone! You see, the water is poisoned, but nobody wants to hear the truth when profit is on the line."
+Through poetry, prose, and drama, we witness the recurring human conflict between environmental truth and societal denial.`,
+  prose: `The train rattled along the tracks as the rain beat against the glass. Old Mr. Abernathy looked out at the passing hills, clutching a worn leather notebook. For forty years, he had recorded the stories of travelers he met on this line—the young student traveling to college, the retired soldier returning home, the musician chasing a dream. Each entry was a fragment of a life, a testament to human connection. As the conductor announced the final station, Abernathy smiled, knowing that every journey ends, but the stories endure forever.`,
+  poetry: `Two roads diverged in a yellow wood,
+And sorry I could not travel both
+And be one traveler, long I stood
+And looked down one as far as I could
+To where it bent in the undergrowth;
+Then took the other, as just as fair,
+And having perhaps the better claim,
+Because it was grassy and wanted wear;
+Though as for that the passing there
+Had worn them really about the same,
+I shall be telling this with a sigh
+Somewhere ages and ages hence:
+Two roads diverged in a wood, and I—
+I took the one less traveled by,
+And that has made all the difference.`,
+  declamation: `In his famous address to the nation, President John F. Kennedy proclaimed: "We choose to go to the Moon in this decade and do the other things, not because they are easy, but because they are hard; because that goal will serve to organize and measure the best of our energies and skills, because that challenge is one that we are willing to accept, one we are unwilling to postpone, and one we intend to win." Today, as we face new frontiers in technology, science, and human equality, these words call us to rise above complacency and embrace the bold challenges of our time.`,
+  expository: `Have you ever wondered how honeybees communicate the location of flowers to their hive mates miles away? The answer lies in one of nature's most fascinating behaviors: the waggle dance. When a scout bee finds a rich source of nectar, she returns to the hive and performs a figure-eight dance pattern on the honeycomb. The angle of the dance relative to vertical indicates the direction of the flowers relative to the sun, while the duration of the waggle run communicates the exact distance. Through this intricate movement, bees efficiently coordinate food gathering for tens of thousands of hive members.`
 };
 
 // Competitive Speech Samples
@@ -171,6 +327,8 @@ const fillerWordsList = ['um', 'uh', 'ah', 'like', 'you know', 'basically', 'act
 // Initialize Page Elements
 document.addEventListener('DOMContentLoaded', () => {
   initDOMElements();
+  setupAuthEventListeners();
+  updateAuthUI();
   setupEventListeners();
   loadEventGuidelines();
   drawEmptyWaveform();
@@ -181,12 +339,35 @@ let DOM = {};
 
 function initDOMElements() {
   DOM = {
+    workspace: document.querySelector('.workspace'),
+    userHeaderProfile: document.getElementById('user-header-profile'),
+    userDisplayName: document.getElementById('user-display-name'),
+    signoutBtn: document.getElementById('signout-btn'),
+    headerLoginBtn: document.getElementById('header-login-btn'),
+    
+    authModal: document.getElementById('auth-modal'),
+    tabLoginBtn: document.getElementById('tab-login-btn'),
+    tabSignupBtn: document.getElementById('tab-signup-btn'),
+    authAlertMsg: document.getElementById('auth-alert-msg'),
+    loginForm: document.getElementById('login-form'),
+    loginEmail: document.getElementById('login-email'),
+    loginPassword: document.getElementById('login-password'),
+    fillDemoBtn: document.getElementById('fill-demo-btn'),
+    signupForm: document.getElementById('signup-form'),
+    signupName: document.getElementById('signup-name'),
+    signupEmail: document.getElementById('signup-email'),
+    signupPassword: document.getElementById('signup-password'),
+    signupRole: document.getElementById('signup-role'),
+
     eventSelector: document.getElementById('event-selector'),
     guidelinesCard: document.getElementById('guidelines-card'),
     eventTitle: document.getElementById('guideline-event-title'),
     ruleMaxTime: document.getElementById('rule-max-time'),
     ruleGrace: document.getElementById('rule-grace'),
     ruleQuotes: document.getElementById('rule-quotes'),
+    ruleBinder: document.getElementById('rule-binder'),
+    ruleVisualAids: document.getElementById('rule-visual-aids'),
+    ruleDesc: document.getElementById('rule-desc'),
     guidelineDetails: document.getElementById('guideline-details'),
     
     tabUpload: document.getElementById('tab-upload'),
@@ -375,14 +556,6 @@ function setupEventListeners() {
   DOM.recResetBtn.addEventListener('click', resetRecording);
   DOM.recSaveBtn.addEventListener('click', saveRecording);
 
-  // Quick Speech Samples
-  document.querySelectorAll('.sample-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const sampleKey = card.getAttribute('data-sample');
-      loadSpeechSample(sampleKey);
-    });
-  });
-
   // Audio Playback operations
   DOM.playBtn.addEventListener('click', togglePlayback);
   DOM.timelineBar.addEventListener('click', seekPlayback);
@@ -407,23 +580,29 @@ function setupEventListeners() {
   });
 
   // Grading sliders
-  DOM.rubricDelivery.addEventListener('input', (e) => {
-    state.scores.delivery = parseFloat(e.target.value);
-    DOM.scoreDeliveryVal.textContent = state.scores.delivery.toFixed(1) + ' / 10';
-    updateOverallScore();
-  });
+  if (DOM.rubricDelivery) {
+    DOM.rubricDelivery.addEventListener('input', (e) => {
+      state.scores.delivery = parseFloat(e.target.value);
+      if (DOM.scoreDeliveryVal) DOM.scoreDeliveryVal.textContent = state.scores.delivery.toFixed(1) + ' / 10';
+      updateOverallScore();
+    });
+  }
 
-  DOM.rubricContent.addEventListener('input', (e) => {
-    state.scores.content = parseFloat(e.target.value);
-    DOM.scoreContentVal.textContent = state.scores.content.toFixed(1) + ' / 10';
-    updateOverallScore();
-  });
+  if (DOM.rubricContent) {
+    DOM.rubricContent.addEventListener('input', (e) => {
+      state.scores.content = parseFloat(e.target.value);
+      if (DOM.scoreContentVal) DOM.scoreContentVal.textContent = state.scores.content.toFixed(1) + ' / 10';
+      updateOverallScore();
+    });
+  }
 
-  DOM.rubricOrg.addEventListener('input', (e) => {
-    state.scores.org = parseFloat(e.target.value);
-    DOM.scoreOrgVal.textContent = state.scores.org.toFixed(1) + ' / 10';
-    updateOverallScore();
-  });
+  if (DOM.rubricOrg) {
+    DOM.rubricOrg.addEventListener('input', (e) => {
+      state.scores.org = parseFloat(e.target.value);
+      if (DOM.scoreOrgVal) DOM.scoreOrgVal.textContent = state.scores.org.toFixed(1) + ' / 10';
+      updateOverallScore();
+    });
+  }
 
   // Reset and Print Action Buttons
   DOM.resetAppBtn.addEventListener('click', resetApplication);
@@ -435,9 +614,187 @@ function setupEventListeners() {
     preparePrintLayout();
     window.print();
   });
-  
-  // Initialize Expressive Voice Clone Synthesis
-  initVoiceSynthesis();
+}
+
+// ==========================================
+// User Authentication & Session Subsystem
+// ==========================================
+function getStoredUsers() {
+  const defaultUsers = [
+    { name: 'Speaker Competitor', email: 'speaker@nsda.org', password: 'password123', role: 'Orator / Competitor' }
+  ];
+  const stored = localStorage.getItem('nsda_users');
+  if (!stored) {
+    localStorage.setItem('nsda_users', JSON.stringify(defaultUsers));
+    return defaultUsers;
+  }
+  try {
+    return JSON.parse(stored);
+  } catch (e) {
+    return defaultUsers;
+  }
+}
+
+function saveStoredUsers(users) {
+  localStorage.setItem('nsda_users', JSON.stringify(users));
+}
+
+function getCurrentUser() {
+  const session = localStorage.getItem('nsda_user_session');
+  if (!session) return null;
+  try {
+    return JSON.parse(session);
+  } catch (e) {
+    return null;
+  }
+}
+
+function setCurrentUser(user) {
+  if (user) {
+    localStorage.setItem('nsda_user_session', JSON.stringify(user));
+    state.currentUser = user;
+  } else {
+    localStorage.removeItem('nsda_user_session');
+    state.currentUser = null;
+  }
+}
+
+function updateAuthUI() {
+  const user = getCurrentUser();
+  state.currentUser = user;
+
+  if (user) {
+    if (DOM.authModal) DOM.authModal.style.display = 'none';
+    if (DOM.workspace) DOM.workspace.style.display = 'flex';
+    if (DOM.userHeaderProfile) DOM.userHeaderProfile.style.display = 'flex';
+    if (DOM.headerLoginBtn) DOM.headerLoginBtn.style.display = 'none';
+    if (DOM.userDisplayName) DOM.userDisplayName.textContent = user.name || user.email;
+  } else {
+    if (DOM.authModal) DOM.authModal.style.display = 'flex';
+    if (DOM.workspace) DOM.workspace.style.display = 'none';
+    if (DOM.userHeaderProfile) DOM.userHeaderProfile.style.display = 'none';
+    if (DOM.headerLoginBtn) DOM.headerLoginBtn.style.display = 'inline-flex';
+  }
+}
+
+function showAuthAlert(msg, type = 'error') {
+  if (!DOM.authAlertMsg) return;
+  DOM.authAlertMsg.textContent = msg;
+  DOM.authAlertMsg.className = `auth-alert alert-${type}`;
+  DOM.authAlertMsg.style.display = 'block';
+}
+
+function hideAuthAlert() {
+  if (DOM.authAlertMsg) {
+    DOM.authAlertMsg.style.display = 'none';
+  }
+}
+
+function switchAuthTab(mode) {
+  state.authMode = mode;
+  hideAuthAlert();
+  if (mode === 'login') {
+    if (DOM.tabLoginBtn) DOM.tabLoginBtn.classList.add('active');
+    if (DOM.tabSignupBtn) DOM.tabSignupBtn.classList.remove('active');
+    if (DOM.loginForm) DOM.loginForm.style.display = 'flex';
+    if (DOM.signupForm) DOM.signupForm.style.display = 'none';
+  } else {
+    if (DOM.tabSignupBtn) DOM.tabSignupBtn.classList.add('active');
+    if (DOM.tabLoginBtn) DOM.tabLoginBtn.classList.remove('active');
+    if (DOM.signupForm) DOM.signupForm.style.display = 'flex';
+    if (DOM.loginForm) DOM.loginForm.style.display = 'none';
+  }
+}
+
+function setupAuthEventListeners() {
+  // Header buttons
+  if (DOM.headerLoginBtn) {
+    DOM.headerLoginBtn.addEventListener('click', () => {
+      switchAuthTab('login');
+      if (DOM.authModal) DOM.authModal.style.display = 'flex';
+    });
+  }
+
+  if (DOM.signoutBtn) {
+    DOM.signoutBtn.addEventListener('click', () => {
+      setCurrentUser(null);
+      updateAuthUI();
+      switchAuthTab('login');
+      showAuthAlert('You have signed out successfully.', 'success');
+    });
+  }
+
+  // Auth Mode Tabs
+  if (DOM.tabLoginBtn) {
+    DOM.tabLoginBtn.addEventListener('click', () => switchAuthTab('login'));
+  }
+  if (DOM.tabSignupBtn) {
+    DOM.tabSignupBtn.addEventListener('click', () => switchAuthTab('signup'));
+  }
+
+  // Quick Demo credentials button
+  if (DOM.fillDemoBtn) {
+    DOM.fillDemoBtn.addEventListener('click', () => {
+      if (DOM.loginEmail) DOM.loginEmail.value = 'speaker@nsda.org';
+      if (DOM.loginPassword) DOM.loginPassword.value = 'password123';
+      hideAuthAlert();
+    });
+  }
+
+  // Login form submission
+  if (DOM.loginForm) {
+    DOM.loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = DOM.loginEmail.value.trim().toLowerCase();
+      const password = DOM.loginPassword.value;
+
+      const users = getStoredUsers();
+      const matched = users.find(u => (u.email.toLowerCase() === email || u.name.toLowerCase() === email) && u.password === password);
+
+      if (matched) {
+        setCurrentUser(matched);
+        hideAuthAlert();
+        updateAuthUI();
+      } else {
+        showAuthAlert('Invalid email/username or password. Try using demo credentials speaker@nsda.org / password123.', 'error');
+      }
+    });
+  }
+
+  // Sign up form submission
+  if (DOM.signupForm) {
+    DOM.signupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = DOM.signupName.value.trim();
+      const email = DOM.signupEmail.value.trim().toLowerCase();
+      const password = DOM.signupPassword.value;
+      const role = DOM.signupRole ? DOM.signupRole.value : 'Orator / Competitor';
+
+      if (!name || !email || !password) {
+        showAuthAlert('Please fill out all required fields.', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        showAuthAlert('Password must be at least 6 characters.', 'error');
+        return;
+      }
+
+      const users = getStoredUsers();
+      const exists = users.some(u => u.email.toLowerCase() === email);
+      if (exists) {
+        showAuthAlert('An account with this email already exists. Please log in.', 'error');
+        return;
+      }
+
+      const newUser = { name, email, password, role };
+      users.push(newUser);
+      saveStoredUsers(users);
+      setCurrentUser(newUser);
+      hideAuthAlert();
+      updateAuthUI();
+    });
+  }
 }
 
 // Controller logic implementations
@@ -458,25 +815,49 @@ function switchInputTab(tab) {
 }
 
 function loadEventGuidelines() {
-  const rule = eventRules[state.selectedEvent];
-  DOM.eventTitle.textContent = rule.title;
-  DOM.ruleMaxTime.textContent = formatDuration(rule.maxTime) + ' mins';
-  DOM.ruleGrace.textContent = rule.gracePeriod + ' seconds';
+  const rule = eventRules[state.selectedEvent] || eventRules.oratory;
+  if (DOM.eventTitle) DOM.eventTitle.textContent = rule.title;
+  if (DOM.ruleMaxTime) DOM.ruleMaxTime.textContent = formatDuration(rule.maxTime) + ' mins';
+  if (DOM.ruleGrace) DOM.ruleGrace.textContent = rule.gracePeriod + ' seconds';
   
   if (rule.requiresQuotesRule) {
-    DOM.ruleQuotes.textContent = 'Max ' + rule.quoteLimit + ' words';
-    DOM.quoteCounterContainer.style.display = 'flex';
+    if (DOM.ruleQuotes) DOM.ruleQuotes.textContent = 'Max ' + rule.quoteLimit + ' words';
+    if (DOM.quoteCounterContainer) DOM.quoteCounterContainer.style.display = 'flex';
   } else {
-    DOM.ruleQuotes.textContent = 'No Quote Limit';
-    DOM.quoteCounterContainer.style.display = 'none';
+    if (DOM.ruleQuotes) DOM.ruleQuotes.textContent = rule.quoteText || 'No Quote Limit';
+    if (DOM.quoteCounterContainer) DOM.quoteCounterContainer.style.display = 'none';
+  }
+
+  if (DOM.ruleBinder) {
+    DOM.ruleBinder.textContent = rule.binder || 'Memorized';
+  }
+
+  if (DOM.ruleVisualAids) {
+    if (rule.visualAids) {
+      DOM.ruleVisualAids.textContent = 'Permitted';
+      DOM.ruleVisualAids.style.color = '#16a34a'; // Green
+      DOM.ruleVisualAids.style.fontWeight = '700';
+    } else {
+      DOM.ruleVisualAids.textContent = 'Not Permitted';
+      DOM.ruleVisualAids.style.color = '#dc2626'; // Red
+      DOM.ruleVisualAids.style.fontWeight = '700';
+    }
+  }
+
+  if (DOM.ruleDesc) {
+    DOM.ruleDesc.textContent = rule.desc || '';
   }
 
   // Update label on duration gauge
-  DOM.statsDuration.innerHTML = formatDuration(state.audioDuration) + ` <span>/ ${formatDuration(rule.maxTime)}</span>`;
+  if (DOM.statsDuration) {
+    DOM.statsDuration.innerHTML = formatDuration(state.audioDuration) + ` <span>/ ${formatDuration(rule.maxTime)}</span>`;
+  }
 }
 
 // Audio File Loader
 function handleAudioFile(file) {
+  pauseSampleAudio();
+  state.isSampleAudio = false;
   state.lastSampleKey = null;
   state.audioFile = file;
   DOM.fileInfo.style.display = 'block';
@@ -491,7 +872,7 @@ function handleAudioFile(file) {
   DOM.waveformTime.textContent = '0:00 / ' + formatDuration(state.audioDuration);
   
   // Set up audio playback source
-  if (state.audioElement) {
+  if (state.audioElement && typeof state.audioElement.pause === 'function') {
     state.audioElement.pause();
   }
   
@@ -1120,14 +1501,16 @@ function loadSpeechSample(key) {
   const sample = speechSamples[key];
   if (!sample) return;
 
+  pauseSampleAudio();
   resetRecording();
   state.lastSampleKey = key;
+  state.isSampleAudio = true;
   
   // Set UI event matching sample category
   if (key === 'oratory' || key === 'oratory-excessive') {
     state.selectedEvent = 'oratory';
   } else if (key === 'extemp') {
-    state.selectedEvent = 'extemp';
+    state.selectedEvent = 'usx';
   } else if (key === 'impromptu') {
     state.selectedEvent = 'impromptu';
   }
@@ -1142,34 +1525,141 @@ function loadSpeechSample(key) {
   // Draw static waveform
   generateStaticWaveform();
   
-  // Enable audio controls (mocked)
+  // Enable audio controls
   DOM.playBtn.disabled = false;
   DOM.waveformTime.textContent = '0:00 / ' + formatDuration(state.audioDuration);
   DOM.fileInfo.style.display = 'block';
   DOM.fileInfo.classList.add('visible');
   DOM.infoFilename.textContent = 'sample_' + key + '.mp3';
   DOM.infoDuration.textContent = formatDuration(state.audioDuration);
-  DOM.infoFilesize.textContent = 'Size: Sample Audio File';
+  DOM.infoFilesize.textContent = 'Size: Competitive Speech Sample';
 
-  // Instantiate mockup audio element
-  if (state.audioElement) {
-    state.audioElement.pause();
+  // Instantiate audio element wrapper for sample audio
+  if (state.audioElement && typeof state.audioElement.pause === 'function') {
+    try { state.audioElement.pause(); } catch(e) {}
   }
   state.audioElement = {
-    play: () => {
-      state.isPlaying = true;
-      updatePlaybackUI();
-    },
-    pause: () => {
-      state.isPlaying = false;
-      updatePlaybackUI();
-    },
     currentTime: 0,
-    duration: sample.duration
+    duration: sample.duration,
+    pause: () => {
+      pauseSampleAudio();
+    }
   };
 
   evaluateSpeech();
   switchTranscriptView('highlight');
+}
+
+// Sample Speech Audio Synthesizer & Player (Produces real audible sound out loud!)
+function playSampleAudio() {
+  state.isPlaying = true;
+  updatePlaybackUI();
+
+  const transcript = state.transcript || '';
+  const currentOffset = (state.audioElement && state.audioElement.currentTime) || 0;
+  const duration = state.audioDuration || 600;
+
+  // 1. Web Speech Synthesis (Speaks the transcript out loud in natural English voice!)
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    
+    let startCharIndex = 0;
+    if (duration > 0 && currentOffset > 0) {
+      const ratio = Math.min(1, currentOffset / duration);
+      startCharIndex = Math.floor(ratio * transcript.length);
+    }
+    const textToSpeak = transcript.substring(startCharIndex) || transcript;
+    
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+    
+    const voices = window.speechSynthesis.getVoices();
+    const engVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Alex')));
+    if (engVoice) {
+      utterance.voice = engVoice;
+    }
+
+    utterance.onend = () => {
+      if (state.isPlaying && state.isSampleAudio) {
+        pauseSampleAudio();
+        if (state.audioElement) state.audioElement.currentTime = 0;
+        DOM.timelineFill.style.width = '0%';
+        highlightWaveformPlayback(0);
+      }
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // 2. Web Audio API Formant Sound Synthesizer (Generates active vocal tone frequencies to guarantee sound output)
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      if (!state.synthAudioCtx) {
+        state.synthAudioCtx = new AudioCtx();
+      }
+      if (state.synthAudioCtx.state === 'suspended') {
+        state.synthAudioCtx.resume();
+      }
+
+      const now = state.synthAudioCtx.currentTime;
+      const osc1 = state.synthAudioCtx.createOscillator();
+      const osc2 = state.synthAudioCtx.createOscillator();
+      const gainNode = state.synthAudioCtx.createGain();
+      const filter = state.synthAudioCtx.createBiquadFilter();
+
+      osc1.type = 'sawtooth';
+      osc2.type = 'sine';
+
+      // Vocal pitch fundamental (~140Hz) and harmonic overtone (~280Hz)
+      osc1.frequency.setValueAtTime(140, now);
+      osc2.frequency.setValueAtTime(280, now);
+
+      // Bandpass filter for vocal formant simulation (~850Hz)
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(850, now);
+      filter.Q.setValueAtTime(2.5, now);
+
+      // Audible gain level
+      gainNode.gain.setValueAtTime(0.06, now);
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(state.synthAudioCtx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+
+      state.activeSynthNodes = { osc1, osc2, gainNode, filter };
+    }
+  } catch (e) {
+    console.warn("Web Audio API synth fallback notice:", e);
+  }
+}
+
+function pauseSampleAudio() {
+  state.isPlaying = false;
+  updatePlaybackUI();
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+
+  if (state.activeSynthNodes) {
+    try {
+      const { osc1, osc2, gainNode } = state.activeSynthNodes;
+      if (gainNode && state.synthAudioCtx) {
+        gainNode.gain.linearRampToValueAtTime(0.001, state.synthAudioCtx.currentTime + 0.05);
+      }
+      setTimeout(() => {
+        try { osc1.stop(); } catch(e) {}
+        try { osc2.stop(); } catch(e) {}
+      }, 60);
+    } catch (e) {}
+    state.activeSynthNodes = null;
+  }
 }
 
 // Audio Playback UI Managers
@@ -1177,12 +1667,17 @@ function togglePlayback() {
   if (!state.audioElement) return;
 
   if (state.isPlaying) {
-    state.audioElement.pause();
+    if (state.isSampleAudio) {
+      pauseSampleAudio();
+    } else if (typeof state.audioElement.pause === 'function') {
+      state.audioElement.pause();
+    }
     state.isPlaying = false;
     DOM.playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
   } else {
-    // Check if it's standard HTML5 element or mock structure
-    if (typeof state.audioElement.play === 'function') {
+    if (state.isSampleAudio) {
+      playSampleAudio();
+    } else if (typeof state.audioElement.play === 'function') {
       state.audioElement.play();
     }
     state.isPlaying = true;
@@ -1202,8 +1697,8 @@ function updatePlaybackUI() {
 function updatePlaybackProgress() {
   if (!state.isPlaying || !state.audioElement) return;
 
-  const current = state.audioElement.currentTime;
-  const total = state.audioDuration;
+  const current = state.audioElement.currentTime || 0;
+  const total = state.audioDuration || 600;
   
   DOM.playbackTime.textContent = formatDuration(current);
   DOM.waveformTime.textContent = formatDuration(current) + ' / ' + formatDuration(total);
@@ -1215,7 +1710,7 @@ function updatePlaybackProgress() {
   highlightWaveformPlayback(pct);
 
   if (current >= total || (state.audioElement.ended)) {
-    state.isPlaying = false;
+    pauseSampleAudio();
     state.audioElement.currentTime = 0;
     DOM.playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
     DOM.timelineFill.style.width = '0%';
@@ -1223,8 +1718,8 @@ function updatePlaybackProgress() {
     return;
   }
 
-  // If mock object, increment time manually
-  if (!state.audioElement.addEventListener) {
+  // If sample audio or mock element, increment time manually
+  if (state.isSampleAudio || !state.audioElement.addEventListener) {
     state.audioElement.currentTime += 0.1;
     setTimeout(updatePlaybackProgress, 100);
   } else {
@@ -1291,6 +1786,10 @@ function seekPlayback(e) {
   DOM.timelineFill.style.width = (percentage * 100) + '%';
   DOM.playbackTime.textContent = formatDuration(targetTime);
   highlightWaveformPlayback(percentage * 100);
+
+  if (state.isSampleAudio && state.isPlaying) {
+    playSampleAudio();
+  }
 }
 
 
@@ -1543,15 +2042,19 @@ function evaluateSpeechEmotions(text) {
   const expectedTag = DOM.emotionExpectedTag;
   const suggestionsList = DOM.emotionSuggestionsList;
 
-  if (!existingTag || !expectedTag || !suggestionsList) return;
-
   // 1. No Audio at all
   if (state.audioDuration === 0) {
-    existingTag.textContent = 'No audio analyzed';
-    existingTag.className = 'emotion-tag tag-neutral';
-    expectedTag.textContent = 'Select an event';
-    expectedTag.className = 'emotion-tag tag-primary';
-    suggestionsList.innerHTML = '<li>Provide speech audio or select a sample to generate vocal suggestions.</li>';
+    if (existingTag) {
+      existingTag.textContent = 'No audio analyzed';
+      existingTag.className = 'emotion-tag tag-neutral';
+    }
+    if (expectedTag) {
+      expectedTag.textContent = 'Select an event';
+      expectedTag.className = 'emotion-tag tag-primary';
+    }
+    if (suggestionsList) {
+      suggestionsList.innerHTML = '<li>Provide speech audio or select a sample to generate vocal suggestions.</li>';
+    }
     
     if (DOM.matrixGivenAudioView) {
       DOM.matrixGivenAudioView.innerHTML = `<span style="color: var(--text-muted); font-style: italic;">Provide speech audio to analyze expressed voice emotions.</span>`;
@@ -1580,11 +2083,17 @@ function evaluateSpeechEmotions(text) {
 
   // 2. Audio loaded, but Transcript is empty
   if (!text) {
-    existingTag.textContent = 'Audio Loaded';
-    existingTag.className = 'emotion-tag tag-warning';
-    expectedTag.textContent = 'Awaiting Script';
-    expectedTag.className = 'emotion-tag tag-neutral';
-    suggestionsList.innerHTML = '<li>Provide your speech script in the transcript box to receive vocal delivery elevation tips.</li>';
+    if (existingTag) {
+      existingTag.textContent = 'Audio Loaded';
+      existingTag.className = 'emotion-tag tag-warning';
+    }
+    if (expectedTag) {
+      expectedTag.textContent = 'Awaiting Script';
+      expectedTag.className = 'emotion-tag tag-neutral';
+    }
+    if (suggestionsList) {
+      suggestionsList.innerHTML = '<li>Provide your speech script in the transcript box to receive vocal delivery elevation tips.</li>';
+    }
     
     if (DOM.matrixGivenAudioView) {
       DOM.matrixGivenAudioView.innerHTML = `<span style="color: var(--text-muted); font-style: italic;">Awaiting transcript script to map voice emotions to text.</span>`;
@@ -1612,9 +2121,13 @@ function evaluateSpeechEmotions(text) {
   }
 
   // Show "Thinking..." status for expected emotions while loading from Agentic AI
-  expectedTag.textContent = 'Analyzing...';
-  expectedTag.className = 'emotion-tag tag-neutral';
-  suggestionsList.innerHTML = '<li>Analyzing speech with Agentic AI...</li>';
+  if (expectedTag) {
+    expectedTag.textContent = 'Analyzing...';
+    expectedTag.className = 'emotion-tag tag-neutral';
+  }
+  if (suggestionsList) {
+    suggestionsList.innerHTML = '<li>Analyzing speech with Agentic AI...</li>';
+  }
   if (DOM.audioExpectedEmotionName) {
     DOM.audioExpectedEmotionName.textContent = 'Analyzing...';
     DOM.audioExpectedEmotionName.className = 'emotion-tag tag-neutral';
@@ -1701,10 +2214,14 @@ function evaluateSpeechEmotions(text) {
     }
 
     // Update Main Dashboard UI Elements
-    existingTag.textContent = existingEmotion;
-    existingTag.className = `emotion-tag ${existingClass}`;
-    expectedTag.textContent = expectedEmotion;
-    expectedTag.className = `emotion-tag ${expectedClass}`;
+    if (existingTag) {
+      existingTag.textContent = existingEmotion;
+      existingTag.className = `emotion-tag ${existingClass}`;
+    }
+    if (expectedTag) {
+      expectedTag.textContent = expectedEmotion;
+      expectedTag.className = `emotion-tag ${expectedClass}`;
+    }
 
     // Update printable layout fields
     const printExisting = DOM.printExistingEmotion;
@@ -1726,16 +2243,18 @@ function evaluateSpeechEmotions(text) {
     }
 
     // Populate main suggestions list
-    suggestionsList.innerHTML = '';
-    const transitionLi = document.createElement('li');
-    transitionLi.innerHTML = `<strong>Tone Shift Tip:</strong> ${transitionTip}`;
-    suggestionsList.appendChild(transitionLi);
+    if (suggestionsList) {
+      suggestionsList.innerHTML = '';
+      const transitionLi = document.createElement('li');
+      transitionLi.innerHTML = `<strong>Tone Shift Tip:</strong> ${transitionTip}`;
+      suggestionsList.appendChild(transitionLi);
 
-    expectedSuggestions.forEach(suggestion => {
-      const li = document.createElement('li');
-      li.textContent = suggestion;
-      suggestionsList.appendChild(li);
-    });
+      expectedSuggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.textContent = suggestion;
+        suggestionsList.appendChild(li);
+      });
+    }
 
     // Update Audio Section Emotion Matrix
     if (DOM.audioEmotionMatrixPanel && DOM.audioExistingEmotionName && DOM.audioExistingEmotionDetail && DOM.audioExpectedEmotionGuidance) {
@@ -2361,7 +2880,9 @@ function generateJudgeBallot(timePass, quotesPass, pacingPass, fillerPass, struc
     // No content defaults
     state.scores = { delivery: 7.0, content: 7.0, org: 7.0 };
     updateSlidersAndReadouts();
-    DOM.ballotCommentsBox.innerHTML = '<p style="color: var(--text-muted); font-style: italic;">Provide speech audio and script to generate official judge recommendations...</p>';
+    if (DOM.ballotCommentsBox) {
+      DOM.ballotCommentsBox.innerHTML = '<p style="color: var(--text-muted); font-style: italic;">Provide speech audio and script to generate official judge recommendations...</p>';
+    }
     updateOverallScore();
     return;
   }
@@ -2438,25 +2959,27 @@ function generateJudgeBallot(timePass, quotesPass, pacingPass, fillerPass, struc
     feedbackComments.push(`<li><strong>Structure & Organization:</strong> Superb rhetorical organization. Hook transitions well into the thesis statement, and body paragraphs signpost cleanly.</li>`);
   }
 
-  DOM.ballotCommentsBox.innerHTML = `
-    <ul class="comment-list">
-      ${feedbackComments.join('')}
-    </ul>
-    <p style="margin-top:0.75rem; font-size:0.85rem; font-weight:600; color:var(--secondary)">
-      Suggested Ballot Rank: ${maxPossibleRank === 'Superior' && (state.scores.delivery + state.scores.content + state.scores.org > 26) ? 'Superior' : (maxPossibleRank.startsWith('Rule Penalty') ? maxPossibleRank : 'Excellent')}
-    </p>
-  `;
+  if (DOM.ballotCommentsBox) {
+    DOM.ballotCommentsBox.innerHTML = `
+      <ul class="comment-list">
+        ${feedbackComments.join('')}
+      </ul>
+      <p style="margin-top:0.75rem; font-size:0.85rem; font-weight:600; color:var(--secondary)">
+        Suggested Ballot Rank: ${maxPossibleRank === 'Superior' && (state.scores.delivery + state.scores.content + state.scores.org > 26) ? 'Superior' : (maxPossibleRank.startsWith('Rule Penalty') ? maxPossibleRank : 'Excellent')}
+      </p>
+    `;
+  }
 }
 
 function updateSlidersAndReadouts() {
-  DOM.rubricDelivery.value = state.scores.delivery;
-  DOM.scoreDeliveryVal.textContent = state.scores.delivery.toFixed(1) + ' / 10';
+  if (DOM.rubricDelivery) DOM.rubricDelivery.value = state.scores.delivery;
+  if (DOM.scoreDeliveryVal) DOM.scoreDeliveryVal.textContent = state.scores.delivery.toFixed(1) + ' / 10';
 
-  DOM.rubricContent.value = state.scores.content;
-  DOM.scoreContentVal.textContent = state.scores.content.toFixed(1) + ' / 10';
+  if (DOM.rubricContent) DOM.rubricContent.value = state.scores.content;
+  if (DOM.scoreContentVal) DOM.scoreContentVal.textContent = state.scores.content.toFixed(1) + ' / 10';
 
-  DOM.rubricOrg.value = state.scores.org;
-  DOM.scoreOrgVal.textContent = state.scores.org.toFixed(1) + ' / 10';
+  if (DOM.rubricOrg) DOM.rubricOrg.value = state.scores.org;
+  if (DOM.scoreOrgVal) DOM.scoreOrgVal.textContent = state.scores.org.toFixed(1) + ' / 10';
 }
 
 function updateOverallScore(customRank = null) {
@@ -2550,7 +3073,9 @@ function preparePrintLayout() {
 
   DOM.printBallotRating.textContent = DOM.scoreGaugeRating.textContent + ` (${percentage}%)`;
   DOM.printBallotRank.textContent = DOM.ballotRankReadout.textContent;
-  DOM.printBallotComments.innerHTML = DOM.ballotCommentsBox.innerHTML;
+  if (DOM.printBallotComments) {
+    DOM.printBallotComments.innerHTML = DOM.ballotCommentsBox ? DOM.ballotCommentsBox.innerHTML : 'Standard tournament evaluation complete.';
+  }
 }
 
 // Reset Entire Workspace
@@ -2599,494 +3124,4 @@ function formatRecordTime(seconds) {
   return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs + '.' + tenths;
 }
 
-// Voice Synthesis Module
-function initVoiceSynthesis() {
-  const generateBtn = document.getElementById('generate-clone-btn');
-  const statusText = document.getElementById('clone-status-text');
-  const playerContainer = document.getElementById('clone-player-container');
-  const playBtn = document.getElementById('clone-play-btn');
-  const playIcon = document.getElementById('clone-play-icon');
-  const timelineBar = document.getElementById('clone-timeline-bar');
-  const timelineFill = document.getElementById('clone-timeline-fill');
-  const playbackTime = document.getElementById('clone-playback-time');
 
-  let isSynthesized = false;
-  let isPlaying = false;
-  let useFallback = false;
-  let segments = [];
-  let totalLength = 0;
-  let currentUtteranceIndex = -1;
-
-  // Local HTML5 Audio elements
-  let cloneAudio = new Audio();
-  
-  // Fallback WebSpeech variables
-  let synthUtterances = [];
-  let spokenLength = 0;
-
-  generateBtn.addEventListener('click', () => {
-    if (!state.audioFile && !state.audioBuffer) {
-      alert('Please upload or record an audio file first so we can extract its acoustic voice profile for cloning.');
-      return;
-    }
-
-    generateBtn.disabled = true;
-    generateBtn.textContent = 'Cloning Voice...';
-    statusText.textContent = 'Extracting acoustic features (pitch, formant, tempo)...';
-
-    setTimeout(() => {
-      statusText.textContent = 'Mapping vocal timbre model to corrected script phonemes...';
-      
-      setTimeout(() => {
-        statusText.textContent = 'Synthesizing conversational emotional prosody via language model...';
-
-        setTimeout(() => {
-          // Parse corrected script segments
-          parseSegments();
-          
-          // Generate SSML
-          const ssml = generateSsml();
-          
-          // Determine if we are hosted on WordPress / live without python server
-          const isWordPress = window.location.hostname.includes('shastamudda.com') || window.location.pathname.includes('/wp-content/');
-          
-          if (isWordPress) {
-            // Live WordPress has no local /synthesize endpoint, default directly to fallback
-            setupBrowserSpeechFallback();
-          } else {
-            // Attempt server-side neural synthesis
-            const formData = new FormData();
-            formData.append('ssml', ssml);
-            formData.append('voice', 'en-US-JennyNeural');
-            formData.append('event', state.selectedEvent || 'oratory');
-
-            if (state.audioFile) {
-              formData.append('audio', state.audioFile);
-            } else if (state.audioChunks && state.audioChunks.length > 0) {
-              const recordedBlob = new Blob(state.audioChunks, { type: 'audio/wav' });
-              formData.append('audio', recordedBlob, 'recorded_voice.wav');
-            }
-
-            fetch('/synthesize', {
-              method: 'POST',
-              body: formData
-            })
-            .then(res => {
-              if (!res.ok) throw new Error("Server synthesis failed");
-              return res.blob();
-            })
-            .then(blob => {
-              const audioUrl = URL.createObjectURL(blob);
-              setupAudioPlayer(audioUrl);
-            })
-            .catch(err => {
-              console.warn("Local server synthesis failed, falling back to WebSpeech:", err);
-              setupBrowserSpeechFallback();
-            });
-          }
-        }, 1000);
-      }, 1000);
-    }, 1000);
-  });
-
-  function parseSegments() {
-    segments = [];
-    const container = document.getElementById('matrix-correct-script-view');
-    if (!container) return;
-    
-    const children = Array.from(container.childNodes);
-    let rawSegments = [];
-    
-    children.forEach(node => {
-      if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
-        const text = node.textContent;
-        if (text) {
-          let emotion = 'neutral';
-          if (node.classList.contains('word-sorrow') || node.classList.contains('word-grief')) emotion = 'sorrow';
-          else if (node.classList.contains('word-anger')) emotion = 'anger';
-          else if (node.classList.contains('word-joy')) emotion = 'joy';
-          else if (node.classList.contains('word-fear') || node.classList.contains('word-anxiety')) emotion = 'fear';
-          else if (node.classList.contains('word-nostalgia')) emotion = 'nostalgia';
-          else if (node.classList.contains('word-relief') || node.classList.contains('word-acceptance')) emotion = 'relief';
-          
-          rawSegments.push({ text, emotion, originalNodes: [node] });
-        }
-      } else if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent;
-        if (text && text.trim()) {
-          rawSegments.push({ text, emotion: 'neutral', originalNodes: [node] });
-        }
-      }
-    });
-
-    rawSegments.forEach(seg => {
-      if (segments.length > 0 && segments[segments.length - 1].emotion === seg.emotion) {
-        segments[segments.length - 1].text += seg.text;
-        segments[segments.length - 1].originalNodes.push(...seg.originalNodes);
-      } else {
-        segments.push({
-          text: seg.text,
-          emotion: seg.emotion,
-          originalNodes: [...seg.originalNodes]
-        });
-      }
-    });
-
-    if (segments.length === 0) {
-      segments.push({ text: container.textContent || "No script text found", emotion: 'neutral', originalNodes: [] });
-    }
-
-    totalLength = segments.reduce((sum, seg) => sum + seg.text.length, 0);
-  }
-
-  function escapeXml(unsafe) {
-    return unsafe.replace(/[<>&'"]/g, function (c) {
-      switch (c) {
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '&': return '&amp;';
-        case '\'': return '&apos;';
-        case '"': return '&quot;';
-      }
-    });
-  }
-
-  function generateSsml() {
-    let ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>`;
-    ssml += `<voice name='en-US-JennyNeural'>`;
-    
-    segments.forEach(seg => {
-      let pitch = "+0%";
-      let rate = "+0%";
-      let volume = "+0dB";
-      let preBreak = "";
-      let postBreak = "";
-      let emphasisStart = "";
-      let emphasisEnd = "";
-      
-      switch (seg.emotion) {
-        case 'sorrow':
-          pitch = "-15%";
-          rate = "-20%";
-          volume = "-4dB";
-          preBreak = "<break time='600ms'/>";
-          postBreak = "<break time='800ms'/>";
-          break;
-        case 'anger':
-          pitch = "-2%";
-          rate = "+18%";
-          volume = "+4dB";
-          emphasisStart = "<emphasis level='strong'>";
-          emphasisEnd = "</emphasis>";
-          break;
-        case 'joy':
-          pitch = "+15%";
-          rate = "+10%";
-          volume = "+2dB";
-          break;
-        case 'fear':
-          pitch = "+12%";
-          rate = "+25%";
-          volume = "-2dB";
-          preBreak = "<break time='300ms'/>";
-          break;
-        case 'nostalgia':
-          pitch = "-8%";
-          rate = "-12%";
-          volume = "-3dB";
-          preBreak = "<break time='400ms'/>";
-          break;
-        case 'relief':
-          pitch = "+2%";
-          rate = "-5%";
-          volume = "-1dB";
-          preBreak = "<break time='500ms'/>";
-          break;
-      }
-      
-      ssml += `${preBreak}<prosody pitch='${pitch}' rate='${rate}' volume='${volume}'>${emphasisStart}${escapeXml(seg.text)}${emphasisEnd}</prosody>${postBreak}`;
-    });
-    
-    ssml += `</voice></speak>`;
-    return ssml;
-  }
-
-  window.generateSSMLFromMatrix = function() {
-    parseSegments();
-    return generateSsml();
-  };
-
-  function setupAudioPlayer(audioUrl) {
-    useFallback = false;
-    isSynthesized = true;
-    isPlaying = false;
-    
-    window.speechSynthesis.cancel();
-    cloneAudio.pause();
-    cloneAudio.src = audioUrl;
-    
-    generateBtn.disabled = false;
-    generateBtn.textContent = 'Regenerate Voice Clone';
-    statusText.textContent = 'Conversational neural voice clone synthesized successfully!';
-    playerContainer.style.display = 'flex';
-    playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
-    timelineFill.style.width = '0%';
-    playbackTime.textContent = '0:00';
-    clearActiveSpeechHighlight();
-    currentUtteranceIndex = -1;
-  }
-
-  // Audio elements listeners
-  cloneAudio.addEventListener('timeupdate', () => {
-    if (useFallback) return;
-    const currentTime = cloneAudio.currentTime;
-    const duration = cloneAudio.duration || 0;
-    
-    if (duration > 0) {
-      const progress = (currentTime / duration) * 100;
-      timelineFill.style.width = `${progress}%`;
-      playbackTime.textContent = formatDuration(currentTime) + ' / ' + formatDuration(duration);
-      
-      // Dynamic highlighting sync based on characters proportion
-      let cumulativeChars = 0;
-      let activeIdx = -1;
-      
-      for (let i = 0; i < segments.length; i++) {
-        const segDuration = (segments[i].text.length / totalLength) * duration;
-        if (currentTime >= cumulativeChars && currentTime < cumulativeChars + segDuration) {
-          activeIdx = i;
-          break;
-        }
-        cumulativeChars += segDuration;
-      }
-      
-      if (activeIdx !== -1 && activeIdx !== currentUtteranceIndex) {
-        currentUtteranceIndex = activeIdx;
-        highlightActiveSpeechSegment(activeIdx);
-      }
-    }
-  });
-
-  cloneAudio.addEventListener('ended', () => {
-    if (useFallback) return;
-    isPlaying = false;
-    playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
-    timelineFill.style.width = '0%';
-    playbackTime.textContent = '0:00';
-    clearActiveSpeechHighlight();
-    currentUtteranceIndex = -1;
-  });
-
-  function setupBrowserSpeechFallback() {
-    useFallback = true;
-    isSynthesized = true;
-    isPlaying = false;
-    
-    window.speechSynthesis.cancel();
-    cloneAudio.pause();
-    
-    generateBtn.disabled = false;
-    generateBtn.textContent = 'Regenerate Voice Clone';
-    statusText.textContent = 'Using browser SpeechSynthesis fallback...';
-    playerContainer.style.display = 'flex';
-    playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
-    timelineFill.style.width = '0%';
-    playbackTime.textContent = '0:00';
-    clearActiveSpeechHighlight();
-    currentUtteranceIndex = -1;
-    
-    prepareFallbackUtterances();
-  }
-
-  function prepareFallbackUtterances() {
-    synthUtterances = [];
-    spokenLength = 0;
-
-    segments.forEach((seg, idx) => {
-      const u = new SpeechSynthesisUtterance(seg.text);
-      
-      let pitch = 1.0;
-      let rate = 1.0;
-      let volume = 1.0;
-      
-      switch (seg.emotion) {
-        case 'sorrow':
-          pitch = 0.8;
-          rate = 0.75;
-          volume = 0.7;
-          break;
-        case 'anger':
-          pitch = 0.95;
-          rate = 1.25;
-          volume = 1.0;
-          break;
-        case 'joy':
-          pitch = 1.25;
-          rate = 1.1;
-          volume = 0.95;
-          break;
-        case 'fear':
-          pitch = 1.15;
-          rate = 1.25;
-          volume = 0.85;
-          break;
-        case 'nostalgia':
-          pitch = 0.9;
-          rate = 0.85;
-          volume = 0.8;
-          break;
-        case 'relief':
-          pitch = 1.05;
-          rate = 0.9;
-          volume = 0.9;
-          break;
-      }
-      
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-        const englishVoice = voices.find(v => v.lang.startsWith('en'));
-        if (englishVoice) u.voice = englishVoice;
-      }
-      
-      u.pitch = pitch;
-      u.rate = rate;
-      u.volume = volume;
-      
-      u.onstart = () => {
-        currentUtteranceIndex = idx;
-        highlightActiveSpeechSegment(idx);
-      };
-      
-      u.onend = () => {
-        let tempSpoken = 0;
-        for (let i = 0; i <= idx; i++) {
-          tempSpoken += segments[i].text.length;
-        }
-        spokenLength = tempSpoken;
-        
-        const progress = Math.min(100, (spokenLength / totalLength) * 100);
-        timelineFill.style.width = `${progress}%`;
-        
-        const totalDurationSec = totalLength / 15;
-        const currentSec = (spokenLength / totalLength) * totalDurationSec;
-        playbackTime.textContent = formatDuration(currentSec) + ' / ' + formatDuration(totalDurationSec);
-        
-        if (idx === segments.length - 1) {
-          isPlaying = false;
-          playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
-          timelineFill.style.width = '0%';
-          playbackTime.textContent = '0:00';
-          clearActiveSpeechHighlight();
-          currentUtteranceIndex = -1;
-          spokenLength = 0;
-        }
-      };
-      
-      synthUtterances.push(u);
-    });
-  }
-
-  function highlightActiveSpeechSegment(activeIdx) {
-    clearActiveSpeechHighlight();
-    const seg = segments[activeIdx];
-    if (seg && seg.originalNodes) {
-      seg.originalNodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN') {
-          node.style.borderBottom = '2px solid var(--secondary)';
-          node.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
-        }
-      });
-    }
-  }
-
-  function clearActiveSpeechHighlight() {
-    const container = document.getElementById('matrix-correct-script-view');
-    if (!container) return;
-    const spans = container.querySelectorAll('span');
-    spans.forEach(span => {
-      span.style.borderBottom = 'none';
-      span.style.backgroundColor = 'transparent';
-    });
-  }
-
-  playBtn.addEventListener('click', () => {
-    if (!isSynthesized) return;
-    
-    if (useFallback) {
-      if (isPlaying) {
-        window.speechSynthesis.pause();
-        isPlaying = false;
-        playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
-        statusText.textContent = 'Playback paused.';
-      } else {
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-          isPlaying = true;
-          playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
-          statusText.textContent = 'Playing fallback voice clone...';
-        } else {
-          window.speechSynthesis.cancel();
-          isPlaying = true;
-          playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
-          statusText.textContent = 'Playing fallback voice clone...';
-          
-          for (let i = Math.max(0, currentUtteranceIndex); i < synthUtterances.length; i++) {
-            window.speechSynthesis.speak(synthUtterances[i]);
-          }
-        }
-      }
-    } else {
-      // Normal HTML5 Audio controls
-      if (isPlaying) {
-        cloneAudio.pause();
-        isPlaying = false;
-        playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
-        statusText.textContent = 'Playback paused.';
-      } else {
-        cloneAudio.play()
-        .then(() => {
-          isPlaying = true;
-          playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
-          statusText.textContent = 'Playing conversational neural voice clone...';
-        })
-        .catch(err => {
-          console.error("Audio playback failed:", err);
-        });
-      }
-    }
-  });
-
-  timelineBar.addEventListener('click', (e) => {
-    if (!isSynthesized) return;
-    const rect = timelineBar.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percentage = clickX / rect.width;
-    
-    if (useFallback) {
-      const targetIdx = Math.min(synthUtterances.length - 1, Math.max(0, Math.floor(percentage * synthUtterances.length)));
-      window.speechSynthesis.cancel();
-      currentUtteranceIndex = targetIdx;
-      
-      spokenLength = 0;
-      for (let i = 0; i < currentUtteranceIndex; i++) {
-        spokenLength += segments[i].text.length;
-      }
-      
-      if (isPlaying) {
-        for (let i = currentUtteranceIndex; i < synthUtterances.length; i++) {
-          window.speechSynthesis.speak(synthUtterances[i]);
-        }
-      } else {
-        const progress = (spokenLength / totalLength) * 100;
-        timelineFill.style.width = `${progress}%`;
-        const totalDurationSec = totalLength / 15;
-        const currentSec = (spokenLength / totalLength) * totalDurationSec;
-        playbackTime.textContent = formatDuration(currentSec) + ' / ' + formatDuration(totalDurationSec);
-      }
-    } else {
-      if (cloneAudio.duration) {
-        cloneAudio.currentTime = percentage * cloneAudio.duration;
-      }
-    }
-  });
-}

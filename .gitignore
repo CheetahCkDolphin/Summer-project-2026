@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+temp_transcribe.wav
+*.wav
+*.mp3
+.DS_Store

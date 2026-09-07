@@ -16,6 +16,17 @@ class TestMCPServer(unittest.TestCase):
         self.assertIn("Original Oratory", rules)
         self.assertIn("Time Limit", rules)
 
+    def test_get_nsda_guidelines_informative_visual_aids(self):
+        rules = mcp_server.get_nsda_guidelines("informative")
+        self.assertIn("Informative Speaking", rules)
+        self.assertIn("Visual Aids: PERMITTED", rules)
+
+    def test_get_nsda_guidelines_all_events(self):
+        events = ["usx", "ix", "impromptu", "dramatic", "humorous", "duo", "poi", "prose", "poetry", "declamation", "expository"]
+        for event in events:
+            rules = mcp_server.get_nsda_guidelines(event)
+            self.assertNotIn("Unknown event", rules, f"Event {event} should be recognized in NSDA database")
+
     def test_get_nsda_guidelines_invalid(self):
         rules = mcp_server.get_nsda_guidelines("nonexistent_event")
         self.assertIn("Unknown event", rules)
@@ -81,35 +92,7 @@ class TestAgenticAI(unittest.TestCase):
             audio = agentic_ai.synthesize_speech_audio("<speak>Test</speak>", "Aoede")
             self.assertEqual(audio, b"fake_wav_bytes")
 
-    @patch('agentic_ai.genai.Client')
-    def test_synthesize_speech_audio_with_clone(self, mock_genai_client_class):
-        mock_client = MagicMock()
-        mock_genai_client_class.return_value = mock_client
-        
-        # Mock File upload and Content generation
-        mock_file = MagicMock()
-        mock_file.name = "files/testfile"
-        mock_client.files.upload.return_value = mock_file
-        
-        mock_response = MagicMock()
-        mock_part = MagicMock()
-        mock_part.inline_data.data = b"fake_cloned_wav_bytes"
-        mock_response.candidates = [MagicMock(content=MagicMock(parts=[mock_part]))]
-        mock_client.models.generate_content.return_value = mock_response
 
-        with patch.dict(os.environ, {"GEMINI_API_KEY": "fake_key"}):
-            # Mock file operations
-            with patch('builtins.open', mock_open()):
-                with patch('os.path.exists', return_value=True):
-                    with patch('os.remove') as mock_remove:
-                        audio = agentic_ai.synthesize_speech_audio(
-                            "<speak>Test</speak>", 
-                            "Aoede", 
-                            reference_audio_bytes=b"fake_ref_bytes"
-                        )
-                        self.assertEqual(audio, b"fake_cloned_wav_bytes")
-                        mock_client.files.upload.assert_called_once()
-                        mock_client.files.delete.assert_called_once_with(name="files/testfile")
 
 
 class TestWebServer(unittest.TestCase):
@@ -189,14 +172,6 @@ class TestWebServer(unittest.TestCase):
             
             h.send_response.assert_called_once_with(200)
             self.assertIn(b"status", res)
-
-            # Test POST /synthesize
-            body = json.dumps({"ssml": "Hello", "voice": "Aoede"}).encode('utf-8')
-            headers = {'Content-Length': str(len(body)), 'Content-Type': 'application/json'}
-            h, res = run_handler('POST', '/synthesize', body, headers)
-            
-            h.send_response.assert_called_once_with(200)
-            self.assertEqual(res, b"wav_response")
 
             # Test POST /analyze-emotions with invalid JSON
             body = b"{invalid_json"

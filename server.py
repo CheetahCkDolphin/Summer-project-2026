@@ -91,67 +91,13 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-Length', str(len(response_data)))
                 self.end_headers()
                 self.wfile.write(response_data)
-        elif self.path == '/synthesize':
-            try:
-                content_type = self.headers.get('Content-Type', '')
-                content_length = int(self.headers['Content-Length'])
-                post_data = self.rfile.read(content_length)
-
-                ssml = ""
-                voice = "Aoede"
-                event_type = "oratory"
-                reference_audio_bytes = None
-
-                if 'multipart/form-data' in content_type:
-                    # Construct message bytes for standard email library parser
-                    msg_bytes = f"Content-Type: {content_type}\n\n".encode('utf-8') + post_data
-                    from email.parser import BytesParser
-                    msg = BytesParser().parsebytes(msg_bytes)
-
-                    for part in msg.walk():
-                        if part.get_content_maintype() == 'multipart':
-                            continue
-                        name = part.get_param('name', header='content-disposition')
-                        if name == 'ssml':
-                            ssml = part.get_payload()
-                        elif name == 'voice':
-                            voice = part.get_payload()
-                        elif name == 'event':
-                            event_type = part.get_payload()
-                        elif name == 'audio':
-                            reference_audio_bytes = part.get_payload(decode=True)
-                else:
-                    # Fallback to json parsing
-                    request_data = json.loads(post_data.decode('utf-8'))
-                    ssml = request_data.get('ssml', '')
-                    voice = request_data.get('voice', 'Aoede')
-                    event_type = request_data.get('event', 'oratory')
-
-                # Import and call Agentic AI audio synthesis using the custom MCP pipeline
-                import agentic_ai
-                audio_bytes = agentic_ai.synthesize_speech_audio_agentic(ssml, voice, reference_audio_bytes, event_type)
-
-                # Send response
-                self.send_response(200)
-                self.send_header('Content-Type', 'audio/wav')
-                self.send_header('Content-Length', str(len(audio_bytes)))
-                self.end_headers()
-                self.wfile.write(audio_bytes)
-            except Exception as e:
-                # Handle general error
-                response_data = json.dumps({"error": str(e)}).encode('utf-8')
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json')
-                self.send_header('Content-Length', str(len(response_data)))
-                self.end_headers()
-                self.wfile.write(response_data)
         else:
             self.send_response(404)
             self.end_headers()
 
 if __name__ == '__main__':
     with socketserver.TCPServer(("", PORT), NoCacheHTTPRequestHandler) as httpd:
-        print(f"Serving at port {PORT} with caching disabled, /transcribe, /analyze-emotions, and /synthesize POST endpoints ready...")
+        print(f"Serving at port {PORT} with caching disabled, /transcribe, and /analyze-emotions POST endpoints ready...")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
