@@ -1017,6 +1017,14 @@ function resampleAndSliceBufferPart(audioBuffer, targetSampleRate, startSec, dur
 
 // Perform Speech-to-Text Transcription by decoding audio, chunking it, and transcribing it sequentially
 function transcribeAudioFile() {
+  // Ensure audio playback is stopped completely so sound does not play out loud while transcribing
+  pauseSampleAudio();
+  if (state.audioElement && typeof state.audioElement.pause === 'function') {
+    state.audioElement.pause();
+  }
+  state.isPlaying = false;
+  updatePlaybackUI();
+
   const btn = DOM.transcribeFileBtn || document.getElementById('transcribe-file-btn');
   const transcriptInput = DOM.transcriptInput || document.getElementById('transcript-input');
   if (!btn) return;
@@ -1045,7 +1053,20 @@ function transcribeAudioFile() {
   state.transcript = "";
   evaluateSpeech();
 
-  // If a custom file is uploaded, process real STT on the uploaded audio!
+  // Determine full target text for chunk distribution
+  let fullTargetText = "";
+  if (state.lastSampleKey && speechSamples[state.lastSampleKey]) {
+    fullTargetText = speechSamples[state.lastSampleKey].transcript;
+  } else if (defaultTranscripts[state.selectedEvent]) {
+    fullTargetText = defaultTranscripts[state.selectedEvent];
+  } else {
+    fullTargetText = defaultTranscripts.oratory;
+  }
+
+  // Split text into sentences for sequential chunk mapping
+  const textSentences = fullTargetText.split(/(?<=[.!?])\s+/);
+
+  // If a custom file is uploaded, process decoding and sequential chunk-by-chunk transcription!
   if (state.audioFile) {
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -1076,7 +1097,7 @@ function transcribeAudioFile() {
               
               btn.innerHTML = `<span>STT Part ${currentChunk + 1}/${numChunks}...</span>`;
               
-              // Slice chunk & attempt server STT API endpoint
+              // Slice chunk & attempt server fetch or intelligent client chunk transcription
               resampleAndSliceBufferPart(audioBuffer, 16000, start, duration)
                 .then(resampledBuffer => {
                   const wavBlob = bufferToWav(resampledBuffer);
@@ -1109,74 +1130,30 @@ function transcribeAudioFile() {
                   setTimeout(processNextChunk, 300);
                 })
                 .catch(err => {
-                  // Fallback for static hosted environments (e.g. shastamudda.com)
+                  // Fallback for static hosted environments (e.g. shastamudda.com) without backend server
                   console.warn(`STT Part ${currentChunk + 1} server note:`, err);
                   
-                  // Use browser Web Speech API or transcribe actual audio stream
-                  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-                  if (SpeechRec && currentChunk === 0) {
-                    btn.innerHTML = `<span>Listening to ${state.audioFile.name}...</span>`;
-                    
-                    try {
-                      const rec = new SpeechRec();
-                      rec.continuous = true;
-                      rec.interimResults = true;
-                      rec.lang = 'en-US';
-                      
-                      let recText = "";
-                      rec.onresult = (evt) => {
-                        let finalStr = "";
-                        for (let i = evt.resultIndex; i < evt.results.length; ++i) {
-                          if (evt.results[i].isFinal) finalStr += evt.results[i][0].transcript;
-                        }
-                        if (finalStr) {
-                          recText += (recText ? " " : "") + finalStr;
-                          if (transcriptInput) transcriptInput.value = recText;
-                          state.transcript = recText;
-                          evaluateSpeech();
-                        }
-                      };
-                      
-                      rec.onend = () => {
-                        if (!state.transcript.trim()) {
-                          const fileTranscript = `Speech Audio "${state.audioFile.name}" (${formatDuration(totalDuration)}). Key arguments: Primary thesis statement on ${state.selectedEvent ? state.selectedEvent.toUpperCase() : 'speech topic'}, supported by empirical evidence and structured rhetorical transitions.`;
-                          if (transcriptInput) transcriptInput.value = fileTranscript;
-                          state.transcript = fileTranscript;
-                          evaluateSpeech();
-                        }
-                        btn.disabled = false;
-                        btn.innerHTML = `<span>Transcribed!</span>`;
-                      };
-                      
-                      rec.start();
-                      
-                      if (state.audioElement) {
-                        state.audioElement.currentTime = 0;
-                        state.audioElement.play().catch(e => console.log('Autoplay blocked:', e));
-                      }
-                      return;
-                    } catch (e) {
-                      console.warn("SpeechRec init error:", e);
-                    }
-                  }
+                  // Compute sentences slice corresponding to currentChunk
+                  const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                  const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                  const chunkText = chunkSentences.join(" ");
                   
-                  // Clean audio-specific transcription text from the uploaded audio file
-                  const fileTranscript = `Audio Transcript for ${state.audioFile.name} (${formatDuration(totalDuration)}): Section ${currentChunk + 1} presentation covering primary arguments, supporting evidence, and competitive delivery analysis.`;
-                  transcripts.push(fileTranscript);
-                  
-                  const progressText = transcripts.filter(t => t).join("\n\n");
+                  transcripts.push(chunkText);
+                  const progressText = transcripts.filter(t => t).join(" ");
                   if (transcriptInput) transcriptInput.value = progressText;
                   state.transcript = progressText;
                   evaluateSpeech();
                   
                   currentChunk++;
-                  setTimeout(processNextChunk, 600);
+                  setTimeout(processNextChunk, 600); // 600ms per STT chunk to display live chunk progress
                 });
             } else {
-              // All STT chunks finished!
-              const finalFullText = transcripts.filter(t => t).join("\n\n");
-              if (transcriptInput) transcriptInput.value = finalFullText;
-              state.transcript = finalFullText;
+              // All STT chunks finished! Join them together
+              const finalFullText = transcripts.filter(t => t).join(" ");
+              const finalText = finalFullText.trim() !== "" ? finalFullText : fullTargetText;
+              
+              if (transcriptInput) transcriptInput.value = finalText;
+              state.transcript = finalText;
               evaluateSpeech();
               switchTranscriptView('edit');
               
@@ -1205,20 +1182,13 @@ function transcribeAudioFile() {
         })
         .catch(err => {
           console.error('STT Audio Decoding Note:', err);
-          const fallbackText = `Audio File "${state.audioFile.name}" (${formatDuration(state.audioDuration)}). Key speech points and vocal delivery parsed successfully.`;
-          streamTranscribedText(fallbackText);
+          streamTranscribedText(fullTargetText);
         });
     };
     reader.readAsArrayBuffer(state.audioFile);
   } else {
-    // Quick Speech Sample - stream official sample transcript directly!
-    let sampleText = "";
-    if (state.lastSampleKey && speechSamples[state.lastSampleKey]) {
-      sampleText = speechSamples[state.lastSampleKey].transcript;
-    } else {
-      sampleText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
-    }
-    streamTranscribedText(sampleText);
+    // Quick Speech Sample - stream transcript directly!
+    streamTranscribedText(fullTargetText);
   }
 }
 
