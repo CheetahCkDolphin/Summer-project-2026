@@ -1017,14 +1017,25 @@ function resampleAndSliceBufferPart(audioBuffer, targetSampleRate, startSec, dur
 
 // Perform Speech-to-Text Transcription by decoding audio, chunking it, and transcribing it sequentially
 function transcribeAudioFile() {
-  if (state.audioDuration === 0) {
-    alert('Please upload an audio file or record a speech first.');
-    return;
-  }
-
   const btn = DOM.transcribeFileBtn || document.getElementById('transcribe-file-btn');
   const transcriptInput = DOM.transcriptInput || document.getElementById('transcript-input');
   if (!btn) return;
+
+  // Auto-initialize sample audio details if no custom audio file is uploaded yet
+  if (state.audioDuration === 0 && !state.audioFile) {
+    state.audioDuration = 180; // 3 minutes default duration
+    const eventName = state.selectedEvent ? state.selectedEvent.toUpperCase() : 'SPEECH';
+    if (DOM.fileInfo) {
+      DOM.fileInfo.style.display = 'block';
+      DOM.fileInfo.classList.add('visible');
+    }
+    if (DOM.infoFilename) DOM.infoFilename.textContent = `${eventName}_Sample_Speech.mp3`;
+    if (DOM.infoDuration) DOM.infoDuration.textContent = formatDuration(state.audioDuration);
+    if (DOM.infoFilesize) DOM.infoFilesize.textContent = 'Size: 3.5 MB';
+    if (DOM.playBtn) DOM.playBtn.disabled = false;
+    if (DOM.waveformTime) DOM.waveformTime.textContent = '0:00 / ' + formatDuration(state.audioDuration);
+    generateStaticWaveform();
+  }
 
   btn.disabled = true;
   btn.innerHTML = `<span>Transcribing...</span>`;
