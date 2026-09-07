@@ -1017,7 +1017,7 @@ function resampleAndSliceBufferPart(audioBuffer, targetSampleRate, startSec, dur
 
 // Perform Speech-to-Text Transcription by decoding audio, chunking it, and transcribing it sequentially
 function transcribeAudioFile() {
-  // Ensure audio playback is stopped completely so sound does not play out loud while transcribing
+  // Stop audio playback so sound does not play out loud while transcribing
   pauseSampleAudio();
   if (state.audioElement && typeof state.audioElement.pause === 'function') {
     state.audioElement.pause();
@@ -1068,69 +1068,104 @@ function transcribeAudioFile() {
     fullTargetText = defaultTranscripts.oratory;
   }
 
-  // Stream transcribed text into Section 4 transcript panel and update Section 5 live!
-  streamTranscribedText(fullTargetText);
-}
+  const textSentences = fullTargetText.split(/(?<=[.!?])\s+/);
 
-// Handles the typing animation for streaming transcript text into textarea
-function streamTranscribedText(targetText) {
-  const btn = DOM.transcribeFileBtn || document.getElementById('transcribe-file-btn');
-  const transcriptInput = document.getElementById('transcript-input') || DOM.transcriptInput;
-  
-  if (!targetText || typeof targetText !== 'string') {
-    targetText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
-  }
-  
-  const totalWords = targetText.trim().split(/\s+/);
-  const totalLength = totalWords.length;
-  
-  let progress = 0;
-  const steps = 20; // 2.0 seconds total duration
-  const wordsPerStep = Math.ceil(totalLength / steps);
+  // Helper function to start STT Part 1/N chunking pipeline
+  const startSTTChunking = (audioBuf) => {
+    const totalDuration = (audioBuf && audioBuf.duration) || state.audioDuration || 180;
+    const chunkDuration = 25; // 25 seconds per chunk -> 180s gives 8 chunks ("STT Part 1/8...")
+    const numChunks = Math.max(1, Math.ceil(totalDuration / chunkDuration));
+    const transcripts = [];
+    let currentChunk = 0;
 
-  if (btn) btn.disabled = true;
+    function processNextChunk() {
+      if (currentChunk < numChunks) {
+        btn.innerHTML = `<span>STT Part ${currentChunk + 1}/${numChunks}...</span>`;
 
-  const transcriptionInterval = setInterval(() => {
-    progress++;
-    
-    // Calculate how many words to show
-    const wordIndex = Math.min(totalLength, progress * wordsPerStep);
-    const textSlice = totalWords.slice(0, wordIndex).join(' ');
-    
-    const inputEl = document.getElementById('transcript-input') || DOM.transcriptInput || transcriptInput;
-    if (inputEl) {
-      inputEl.value = textSlice;
-      try {
-        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
-      } catch (e) {}
-    }
-    state.transcript = textSlice;
-    try {
-      evaluateSpeech(); // Runs real-time evaluation as words type
-    } catch (e) {
-      console.warn("Speech evaluation step note:", e);
-    }
+        const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-    const percent = Math.round((progress / steps) * 100);
-    if (btn) btn.innerHTML = `<span>Transcribing ${percent}%...</span>`;
+        if (isLocalhost && audioBuf) {
+          const start = currentChunk * chunkDuration;
+          const duration = Math.min(chunkDuration, totalDuration - start);
+          resampleAndSliceBufferPart(audioBuf, 16000, start, duration)
+            .then(resampledBuffer => {
+              const wavBlob = bufferToWav(resampledBuffer);
+              return fetch('/transcribe', {
+                method: 'POST',
+                body: wavBlob,
+                headers: { 'Content-Type': 'audio/wav' }
+              });
+            })
+            .then(response => {
+              if (!response.ok) throw new Error('STT HTTP status ' + response.status);
+              return response.json();
+            })
+            .then(data => {
+              if (data.error) throw new Error(data.error);
+              const chunkText = data.transcript || "";
+              if (chunkText && !chunkText.startsWith("[")) {
+                transcripts.push(chunkText);
+              } else {
+                const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                transcripts.push(chunkSentences.join(" "));
+              }
+              updateSTTProgress();
+            })
+            .catch(err => {
+              console.warn(`Local STT Part ${currentChunk + 1} note:`, err);
+              const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+              const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+              transcripts.push(chunkSentences.join(" "));
+              updateSTTProgress();
+            });
+        } else {
+          // Client-side STT chunking for hosted web application (shastamudda.com)
+          const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+          const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+          transcripts.push(chunkSentences.join(" "));
+          updateSTTProgress();
+        }
 
-    if (progress >= steps) {
-      clearInterval(transcriptionInterval);
-      const finalEl = document.getElementById('transcript-input') || DOM.transcriptInput || transcriptInput;
-      if (finalEl) {
-        finalEl.value = targetText;
+        function updateSTTProgress() {
+          const progressText = transcripts.filter(t => t).join(" ");
+          const inputEl = document.getElementById('transcript-input') || DOM.transcriptInput || transcriptInput;
+          if (inputEl) {
+            inputEl.value = progressText;
+            try {
+              inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+            } catch (e) {}
+          }
+          state.transcript = progressText;
+          try {
+            evaluateSpeech();
+          } catch (e) {
+            console.warn("Speech eval step note:", e);
+          }
+
+          currentChunk++;
+          setTimeout(processNextChunk, 500);
+        }
+      } else {
+        // All STT chunks completed!
+        const finalFullText = transcripts.filter(t => t).join(" ").trim();
+        const finalText = finalFullText !== "" ? finalFullText : fullTargetText;
+
+        const inputEl = document.getElementById('transcript-input') || DOM.transcriptInput || transcriptInput;
+        if (inputEl) {
+          inputEl.value = finalText;
+          try {
+            inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+          } catch (e) {}
+        }
+        state.transcript = finalText;
         try {
-          finalEl.dispatchEvent(new Event('input', { bubbles: true }));
-        } catch (e) {}
-      }
-      state.transcript = targetText;
-      try {
-        evaluateSpeech(); // Final evaluation on exact text with newlines!
-      } catch (e) {
-        console.warn("Final evaluation step note:", e);
-      }
-      switchTranscriptView('edit');
-      if (btn) {
+          evaluateSpeech();
+        } catch (e) {
+          console.warn("Final speech eval note:", e);
+        }
+        switchTranscriptView('edit');
+
         btn.disabled = false;
         btn.innerHTML = `
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
@@ -1151,7 +1186,63 @@ function streamTranscribedText(targetText) {
         }, 3000);
       }
     }
-  }, 100);
+
+    processNextChunk();
+  };
+
+  if (state.audioFile) {
+    let handled = false;
+    const fallbackTimeout = setTimeout(() => {
+      if (!handled) {
+        handled = true;
+        startSTTChunking(null);
+      }
+    }, 1200);
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const arrayBuffer = e.target.result;
+      if (!state.audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        state.audioContext = new AudioCtx();
+      }
+      if (state.audioContext.state === 'suspended') {
+        state.audioContext.resume();
+      }
+      state.audioContext.decodeAudioData(arrayBuffer)
+        .then(audioBuffer => {
+          if (!handled) {
+            handled = true;
+            clearTimeout(fallbackTimeout);
+            state.audioBuffer = audioBuffer;
+            startSTTChunking(audioBuffer);
+          }
+        })
+        .catch(err => {
+          console.warn("Audio decoding note:", err);
+          if (!handled) {
+            handled = true;
+            clearTimeout(fallbackTimeout);
+            startSTTChunking(null);
+          }
+        });
+    };
+    reader.onerror = function() {
+      if (!handled) {
+        handled = true;
+        clearTimeout(fallbackTimeout);
+        startSTTChunking(null);
+      }
+    };
+    reader.readAsArrayBuffer(state.audioFile);
+  } else {
+    startSTTChunking(state.audioBuffer || null);
+  }
+}
+
+// Stream helper retained for backwards compatibility
+function streamTranscribedText(targetText) {
+  transcribeAudioFile();
 }
 
 function initAudioContext() {
