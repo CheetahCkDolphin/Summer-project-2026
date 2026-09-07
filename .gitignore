@@ -4,3 +4,4 @@ temp_transcribe.wav
 *.wav
 *.mp3
 .DS_Store
+smartspeech_v3_standalone.html

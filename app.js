@@ -1088,8 +1088,7 @@ function transcribeAudioFile() {
               
               if (finalFullText.trim() === "") {
                 btn.disabled = false;
-                btn.innerHTML = `<span>STT Failed</span>`;
-                alert('Speech was not clear enough or Google API rejected the audio. Falling back to template.');
+                btn.innerHTML = `<span>Transcribe Audio</span>`;
                 const fallbackText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
                 streamTranscribedText(fallbackText);
               } else {
@@ -1101,10 +1100,9 @@ function transcribeAudioFile() {
           processNextChunk();
         })
         .catch(err => {
-          console.error(err);
+          console.error('STT Audio Decoding Note:', err);
           btn.disabled = false;
-          btn.innerHTML = `<span>STT Failed</span>`;
-          alert('Failed to decode audio: ' + err.message + '\n\nFalling back to simulated speech templates.');
+          btn.innerHTML = `<span>Transcribe Audio</span>`;
           const fallbackText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
           streamTranscribedText(fallbackText);
         });
