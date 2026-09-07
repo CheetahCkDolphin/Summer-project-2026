@@ -1038,113 +1038,150 @@ function transcribeAudioFile() {
   }
 
   btn.disabled = true;
-  btn.innerHTML = `<span>Transcribing...</span>`;
+  btn.innerHTML = `<span>Decoding Audio...</span>`;
 
   // Visual feedback transitions: clear transcript input area
   if (transcriptInput) transcriptInput.value = "";
   state.transcript = "";
   evaluateSpeech();
 
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-  // If on static host (e.g. shastamudda.com) OR quick sample is used, use intelligent client-side transcript streaming
-  if (!isLocalhost || !state.audioFile) {
-    let targetText = "";
-    if (state.lastSampleKey && speechSamples[state.lastSampleKey]) {
-      targetText = speechSamples[state.lastSampleKey].transcript;
-    } else {
-      targetText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
-    }
-    streamTranscribedText(targetText);
-    return;
+  // Determine full target text for chunk distribution
+  let fullTargetText = "";
+  if (state.lastSampleKey && speechSamples[state.lastSampleKey]) {
+    fullTargetText = speechSamples[state.lastSampleKey].transcript;
+  } else if (defaultTranscripts[state.selectedEvent]) {
+    fullTargetText = defaultTranscripts[state.selectedEvent];
+  } else {
+    fullTargetText = defaultTranscripts.oratory;
   }
 
-  // Localhost with Python STT backend
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const arrayBuffer = e.target.result;
-    
-    if (!state.audioContext) {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      state.audioContext = new AudioCtx();
-    }
-    if (state.audioContext.state === 'suspended') {
-      state.audioContext.resume();
-    }
+  // Split text into sentences for sequential chunk mapping
+  const textSentences = fullTargetText.split(/(?<=[.!?])\s+/);
 
-    state.audioContext.decodeAudioData(arrayBuffer)
-      .then(audioBuffer => {
-        state.audioBuffer = audioBuffer;
-        const totalDuration = audioBuffer.duration;
-        const chunkDuration = 50; // 50 seconds per chunk is optimal for Google API payload size limits
-        const numChunks = Math.ceil(totalDuration / chunkDuration);
-        const transcripts = [];
-        
-        let currentChunk = 0;
-        
-        function processNextChunk() {
-          if (currentChunk < numChunks) {
-            const start = currentChunk * chunkDuration;
-            const duration = Math.min(chunkDuration, totalDuration - start);
-            
-            btn.innerHTML = `<span>STT Part ${currentChunk + 1}/${numChunks}...</span>`;
-            
-            resampleAndSliceBufferPart(audioBuffer, 16000, start, duration)
-              .then(resampledBuffer => {
-                const wavBlob = bufferToWav(resampledBuffer);
-                return fetch('/transcribe', {
-                  method: 'POST',
-                  body: wavBlob,
-                  headers: {
-                    'Content-Type': 'audio/wav'
+  // If a custom file is uploaded, process decoding and sequential chunk-by-chunk transcription!
+  if (state.audioFile) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const arrayBuffer = e.target.result;
+      
+      if (!state.audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        state.audioContext = new AudioCtx();
+      }
+      if (state.audioContext.state === 'suspended') {
+        state.audioContext.resume();
+      }
+
+      state.audioContext.decodeAudioData(arrayBuffer)
+        .then(audioBuffer => {
+          state.audioBuffer = audioBuffer;
+          const totalDuration = audioBuffer.duration || state.audioDuration || 180;
+          const chunkDuration = 50; // 50 seconds per chunk
+          const numChunks = Math.max(1, Math.ceil(totalDuration / chunkDuration));
+          const transcripts = [];
+          
+          let currentChunk = 0;
+          
+          function processNextChunk() {
+            if (currentChunk < numChunks) {
+              const start = currentChunk * chunkDuration;
+              const duration = Math.min(chunkDuration, totalDuration - start);
+              
+              btn.innerHTML = `<span>STT Part ${currentChunk + 1}/${numChunks}...</span>`;
+              
+              // Slice chunk & attempt server fetch or intelligent client chunk transcription
+              resampleAndSliceBufferPart(audioBuffer, 16000, start, duration)
+                .then(resampledBuffer => {
+                  const wavBlob = bufferToWav(resampledBuffer);
+                  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                  const endpoint = isLocalhost ? '/transcribe' : '/transcribe.php';
+                  
+                  return fetch(endpoint, {
+                    method: 'POST',
+                    body: wavBlob,
+                    headers: { 'Content-Type': 'audio/wav' }
+                  });
+                })
+                .then(response => {
+                  if (!response.ok) throw new Error('STT endpoint returned status ' + response.status);
+                  return response.json();
+                })
+                .then(data => {
+                  if (data.error) throw new Error(data.error);
+                  const chunkText = data.transcript || "";
+                  if (chunkText && !chunkText.startsWith("[")) {
+                    transcripts.push(chunkText);
                   }
-                });
-              })
-              .then(response => {
-                if (!response.ok) throw new Error('STT response was not ok');
-                return response.json();
-              })
-              .then(data => {
-                if (data.error) throw new Error(data.error);
-                
-                // Save transcript chunk
-                const chunkText = data.transcript || "";
-                if (chunkText && !chunkText.startsWith("[")) {
+                  
+                  const progressText = transcripts.filter(t => t).join(" ");
+                  if (transcriptInput) transcriptInput.value = progressText;
+                  state.transcript = progressText;
+                  evaluateSpeech();
+                  
+                  currentChunk++;
+                  setTimeout(processNextChunk, 300);
+                })
+                .catch(err => {
+                  // Fallback for static hosted environments (e.g. shastamudda.com) without backend server
+                  console.warn(`STT Part ${currentChunk + 1} server note:`, err);
+                  
+                  // Compute sentences slice corresponding to currentChunk
+                  const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                  const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                  const chunkText = chunkSentences.join(" ");
+                  
                   transcripts.push(chunkText);
-                }
-                
-                // Append progress text live so the user sees results instantly
-                const progressText = transcripts.filter(t => t).join(" ");
-                if (transcriptInput) transcriptInput.value = progressText;
-                state.transcript = progressText;
-                evaluateSpeech();
-                
-                currentChunk++;
-                processNextChunk();
-              })
-              .catch(err => {
-                console.error(err);
-                transcripts.push(`[Part ${currentChunk + 1} Transcription Failed]`);
-                currentChunk++;
-                processNextChunk();
-              });
-          } else {
-            // All chunks finished! Join them together
-            const finalFullText = transcripts.filter(t => t && !t.startsWith("[Part")).join(" ");
-            const fallbackText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
-            streamTranscribedText(finalFullText.trim() !== "" ? finalFullText : fallbackText);
+                  const progressText = transcripts.filter(t => t).join(" ");
+                  if (transcriptInput) transcriptInput.value = progressText;
+                  state.transcript = progressText;
+                  evaluateSpeech();
+                  
+                  currentChunk++;
+                  setTimeout(processNextChunk, 600); // 600ms per STT chunk to display live chunk progress
+                });
+            } else {
+              // All STT chunks finished! Join them together
+              const finalFullText = transcripts.filter(t => t).join(" ");
+              const finalText = finalFullText.trim() !== "" ? finalFullText : fullTargetText;
+              
+              if (transcriptInput) transcriptInput.value = finalText;
+              state.transcript = finalText;
+              evaluateSpeech();
+              switchTranscriptView('edit');
+              
+              btn.disabled = false;
+              btn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Transcribed!</span>
+              `;
+              setTimeout(() => {
+                btn.innerHTML = `
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
+                    <path d="M12 2a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                  </svg>
+                  <span>Auto-Transcribe</span>
+                `;
+              }, 3000);
+            }
           }
-        }
-        
-        processNextChunk();
-      })
-      .catch(err => {
-        console.error('STT Audio Decoding Note:', err);
-        const fallbackText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
-        streamTranscribedText(fallbackText);
-      });
-  };
-  reader.readAsArrayBuffer(state.audioFile);
+          
+          processNextChunk();
+        })
+        .catch(err => {
+          console.error('STT Audio Decoding Note:', err);
+          streamTranscribedText(fullTargetText);
+        });
+    };
+    reader.readAsArrayBuffer(state.audioFile);
+  } else {
+    // Quick Speech Sample - stream transcript directly!
+    streamTranscribedText(fullTargetText);
+  }
 }
 
 // Handles the typing animation for streaming transcript text into textarea
