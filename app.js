@@ -494,54 +494,66 @@ function initDOMElements() {
 
 function setupEventListeners() {
   // Event category selector
-  DOM.eventSelector.addEventListener('change', (e) => {
-    state.selectedEvent = e.target.value;
-    loadEventGuidelines();
-    evaluateSpeech();
-  });
+  if (DOM.eventSelector) {
+    DOM.eventSelector.addEventListener('change', (e) => {
+      state.selectedEvent = e.target.value;
+      loadEventGuidelines();
+      evaluateSpeech();
+    });
+  }
 
   // Modal rules dialog
-  DOM.showRulesBtn.addEventListener('click', () => {
-    DOM.rulesDialog.showModal();
-  });
-  DOM.closeRulesBtn.addEventListener('click', () => {
-    DOM.rulesDialog.close();
-  });
+  if (DOM.showRulesBtn) {
+    DOM.showRulesBtn.addEventListener('click', () => {
+      if (DOM.rulesDialog) DOM.rulesDialog.showModal();
+    });
+  }
+  if (DOM.closeRulesBtn) {
+    DOM.closeRulesBtn.addEventListener('click', () => {
+      if (DOM.rulesDialog) DOM.rulesDialog.close();
+    });
+  }
 
   // Tabs upload vs record
-  DOM.tabUpload.addEventListener('click', () => {
-    switchInputTab('upload');
-  });
-  DOM.tabRecord.addEventListener('click', () => {
-    switchInputTab('record');
-  });
+  if (DOM.tabUpload) {
+    DOM.tabUpload.addEventListener('click', () => {
+      switchInputTab('upload');
+    });
+  }
+  if (DOM.tabRecord) {
+    DOM.tabRecord.addEventListener('click', () => {
+      switchInputTab('record');
+    });
+  }
 
   // Visual feedback for drag-and-drop on the topmost transparent file input
-  DOM.fileInput.addEventListener('dragenter', (e) => {
-    e.preventDefault();
-    DOM.dropZone.classList.add('dragover');
-  });
-  DOM.fileInput.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    DOM.dropZone.classList.add('dragover');
-  });
-  DOM.fileInput.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    DOM.dropZone.classList.remove('dragover');
-  });
-  DOM.fileInput.addEventListener('drop', (e) => {
-    e.preventDefault();
-    DOM.dropZone.classList.remove('dragover');
-    if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-      handleAudioFile(e.dataTransfer.files[0]);
-    }
-  });
+  if (DOM.fileInput) {
+    DOM.fileInput.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      if (DOM.dropZone) DOM.dropZone.classList.add('dragover');
+    });
+    DOM.fileInput.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (DOM.dropZone) DOM.dropZone.classList.add('dragover');
+    });
+    DOM.fileInput.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      if (DOM.dropZone) DOM.dropZone.classList.remove('dragover');
+    });
+    DOM.fileInput.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (DOM.dropZone) DOM.dropZone.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+        handleAudioFile(e.dataTransfer.files[0]);
+      }
+    });
 
-  DOM.fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      handleAudioFile(e.target.files[0]);
-    }
-  });
+    DOM.fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleAudioFile(e.target.files[0]);
+      }
+    });
+  }
 
   // Prevent browser default redirect behavior when files are dropped outside the dropzone
   window.addEventListener('dragover', (e) => {
@@ -552,32 +564,37 @@ function setupEventListeners() {
   }, false);
 
   // Recording actions
-  DOM.recordBtn.addEventListener('click', toggleRecording);
-  DOM.recResetBtn.addEventListener('click', resetRecording);
-  DOM.recSaveBtn.addEventListener('click', saveRecording);
+  if (DOM.recordBtn) DOM.recordBtn.addEventListener('click', toggleRecording);
+  if (DOM.recResetBtn) DOM.recResetBtn.addEventListener('click', resetRecording);
+  if (DOM.recSaveBtn) DOM.recSaveBtn.addEventListener('click', saveRecording);
 
   // Audio Playback operations
-  DOM.playBtn.addEventListener('click', togglePlayback);
-  DOM.timelineBar.addEventListener('click', seekPlayback);
+  if (DOM.playBtn) DOM.playBtn.addEventListener('click', togglePlayback);
+  if (DOM.timelineBar) DOM.timelineBar.addEventListener('click', seekPlayback);
 
   // Transcript edits
-  DOM.transcriptInput.addEventListener('input', (e) => {
-    state.transcript = e.target.value;
-    evaluateSpeech();
-  });
+  if (DOM.transcriptInput) {
+    DOM.transcriptInput.addEventListener('input', (e) => {
+      state.transcript = e.target.value;
+      evaluateSpeech();
+    });
+  }
 
+  if (DOM.countQuotesBtn) {
+    DOM.countQuotesBtn.addEventListener('click', () => {
+      countQuotesManual();
+    });
+  }
 
-  DOM.countQuotesBtn.addEventListener('click', () => {
-    countQuotesManual();
-  });
-
-  DOM.clearTranscriptBtn.addEventListener('click', () => {
-    DOM.transcriptInput.value = '';
-    DOM.transcriptHighlightView.innerHTML = '';
-    state.transcript = '';
-    evaluateSpeech();
-    switchTranscriptView('edit');
-  });
+  if (DOM.clearTranscriptBtn) {
+    DOM.clearTranscriptBtn.addEventListener('click', () => {
+      if (DOM.transcriptInput) DOM.transcriptInput.value = '';
+      if (DOM.transcriptHighlightView) DOM.transcriptHighlightView.innerHTML = '';
+      state.transcript = '';
+      evaluateSpeech();
+      switchTranscriptView('edit');
+    });
+  }
 
   // Grading sliders
   if (DOM.rubricDelivery) {
@@ -605,15 +622,19 @@ function setupEventListeners() {
   }
 
   // Reset and Print Action Buttons
-  DOM.resetAppBtn.addEventListener('click', resetApplication);
-  DOM.transcribeFileBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    transcribeAudioFile();
-  });
-  DOM.printBallotBtn.addEventListener('click', () => {
-    preparePrintLayout();
-    window.print();
-  });
+  if (DOM.resetAppBtn) DOM.resetAppBtn.addEventListener('click', resetApplication);
+  if (DOM.transcribeFileBtn) {
+    DOM.transcribeFileBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      transcribeAudioFile();
+    });
+  }
+  if (DOM.printBallotBtn) {
+    DOM.printBallotBtn.addEventListener('click', () => {
+      preparePrintLayout();
+      window.print();
+    });
+  }
 }
 
 // ==========================================
@@ -1001,115 +1022,22 @@ function transcribeAudioFile() {
     return;
   }
 
-  const btn = DOM.transcribeFileBtn;
+  const btn = DOM.transcribeFileBtn || document.getElementById('transcribe-file-btn');
+  const transcriptInput = DOM.transcriptInput || document.getElementById('transcript-input');
   if (!btn) return;
 
   btn.disabled = true;
-  btn.innerHTML = `<span>Decoding Audio...</span>`;
+  btn.innerHTML = `<span>Transcribing...</span>`;
 
   // Visual feedback transitions: clear transcript input area
-  DOM.transcriptInput.value = "";
+  if (transcriptInput) transcriptInput.value = "";
   state.transcript = "";
   evaluateSpeech();
 
-  // If a custom file is uploaded, perform real sequential chunk-by-chunk transcription!
-  if (state.audioFile) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const arrayBuffer = e.target.result;
-      
-      if (!state.audioContext) {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        state.audioContext = new AudioCtx();
-      }
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-      state.audioContext.decodeAudioData(arrayBuffer)
-        .then(audioBuffer => {
-          state.audioBuffer = audioBuffer;
-          const totalDuration = audioBuffer.duration;
-          const chunkDuration = 50; // 50 seconds per chunk is optimal for Google API payload size limits
-          const numChunks = Math.ceil(totalDuration / chunkDuration);
-          const transcripts = [];
-          
-          let currentChunk = 0;
-          
-          function processNextChunk() {
-            if (currentChunk < numChunks) {
-              const start = currentChunk * chunkDuration;
-              const duration = Math.min(chunkDuration, totalDuration - start);
-              
-              btn.innerHTML = `<span>STT Part ${currentChunk + 1}/${numChunks}...</span>`;
-              
-              resampleAndSliceBufferPart(audioBuffer, 16000, start, duration)
-                .then(resampledBuffer => {
-                  const wavBlob = bufferToWav(resampledBuffer);
-                  const isWordPress = window.location.hostname.includes('shastamudda.com') || window.location.pathname.includes('/wp-content/');
-                  const endpoint = isWordPress ? '/transcribe.php' : '/transcribe';
-                  return fetch(endpoint, {
-                    method: 'POST',
-                    body: wavBlob,
-                    headers: {
-                      'Content-Type': 'audio/wav'
-                    }
-                  });
-                })
-                .then(response => {
-                  if (!response.ok) throw new Error('STT response was not ok');
-                  return response.json();
-                })
-                .then(data => {
-                  if (data.error) throw new Error(data.error);
-                  
-                  // Save transcript chunk
-                  const chunkText = data.transcript || "";
-                  if (chunkText && !chunkText.startsWith("[")) {
-                    transcripts.push(chunkText);
-                  }
-                  
-                  // Append progress text live so the user sees results instantly
-                  const progressText = transcripts.filter(t => t).join(" ");
-                  DOM.transcriptInput.value = progressText;
-                  state.transcript = progressText;
-                  evaluateSpeech();
-                  
-                  currentChunk++;
-                  processNextChunk();
-                })
-                .catch(err => {
-                  console.error(err);
-                  // Push a fallback note or empty string and proceed to prevent halting
-                  transcripts.push(`[Part ${currentChunk + 1} Transcription Failed]`);
-                  currentChunk++;
-                  processNextChunk();
-                });
-            } else {
-              // All chunks finished! Join them together
-              const finalFullText = transcripts.filter(t => t && !t.startsWith("[Part")).join(" ");
-              
-              if (finalFullText.trim() === "") {
-                btn.disabled = false;
-                btn.innerHTML = `<span>Transcribe Audio</span>`;
-                const fallbackText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
-                streamTranscribedText(fallbackText);
-              } else {
-                streamTranscribedText(finalFullText);
-              }
-            }
-          }
-          
-          processNextChunk();
-        })
-        .catch(err => {
-          console.error('STT Audio Decoding Note:', err);
-          btn.disabled = false;
-          btn.innerHTML = `<span>Transcribe Audio</span>`;
-          const fallbackText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
-          streamTranscribedText(fallbackText);
-        });
-    };
-    reader.readAsArrayBuffer(state.audioFile);
-  } else {
-    // Quick Speech Sample - stream the official sample transcript directly!
+  // If on static host (e.g. shastamudda.com) OR quick sample is used, use intelligent client-side transcript streaming
+  if (!isLocalhost || !state.audioFile) {
     let targetText = "";
     if (state.lastSampleKey && speechSamples[state.lastSampleKey]) {
       targetText = speechSamples[state.lastSampleKey].transcript;
@@ -1117,12 +1045,106 @@ function transcribeAudioFile() {
       targetText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
     }
     streamTranscribedText(targetText);
+    return;
   }
+
+  // Localhost with Python STT backend
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const arrayBuffer = e.target.result;
+    
+    if (!state.audioContext) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      state.audioContext = new AudioCtx();
+    }
+    if (state.audioContext.state === 'suspended') {
+      state.audioContext.resume();
+    }
+
+    state.audioContext.decodeAudioData(arrayBuffer)
+      .then(audioBuffer => {
+        state.audioBuffer = audioBuffer;
+        const totalDuration = audioBuffer.duration;
+        const chunkDuration = 50; // 50 seconds per chunk is optimal for Google API payload size limits
+        const numChunks = Math.ceil(totalDuration / chunkDuration);
+        const transcripts = [];
+        
+        let currentChunk = 0;
+        
+        function processNextChunk() {
+          if (currentChunk < numChunks) {
+            const start = currentChunk * chunkDuration;
+            const duration = Math.min(chunkDuration, totalDuration - start);
+            
+            btn.innerHTML = `<span>STT Part ${currentChunk + 1}/${numChunks}...</span>`;
+            
+            resampleAndSliceBufferPart(audioBuffer, 16000, start, duration)
+              .then(resampledBuffer => {
+                const wavBlob = bufferToWav(resampledBuffer);
+                return fetch('/transcribe', {
+                  method: 'POST',
+                  body: wavBlob,
+                  headers: {
+                    'Content-Type': 'audio/wav'
+                  }
+                });
+              })
+              .then(response => {
+                if (!response.ok) throw new Error('STT response was not ok');
+                return response.json();
+              })
+              .then(data => {
+                if (data.error) throw new Error(data.error);
+                
+                // Save transcript chunk
+                const chunkText = data.transcript || "";
+                if (chunkText && !chunkText.startsWith("[")) {
+                  transcripts.push(chunkText);
+                }
+                
+                // Append progress text live so the user sees results instantly
+                const progressText = transcripts.filter(t => t).join(" ");
+                if (transcriptInput) transcriptInput.value = progressText;
+                state.transcript = progressText;
+                evaluateSpeech();
+                
+                currentChunk++;
+                processNextChunk();
+              })
+              .catch(err => {
+                console.error(err);
+                transcripts.push(`[Part ${currentChunk + 1} Transcription Failed]`);
+                currentChunk++;
+                processNextChunk();
+              });
+          } else {
+            // All chunks finished! Join them together
+            const finalFullText = transcripts.filter(t => t && !t.startsWith("[Part")).join(" ");
+            const fallbackText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
+            streamTranscribedText(finalFullText.trim() !== "" ? finalFullText : fallbackText);
+          }
+        }
+        
+        processNextChunk();
+      })
+      .catch(err => {
+        console.error('STT Audio Decoding Note:', err);
+        const fallbackText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
+        streamTranscribedText(fallbackText);
+      });
+  };
+  reader.readAsArrayBuffer(state.audioFile);
 }
 
 // Handles the typing animation for streaming transcript text into textarea
 function streamTranscribedText(targetText) {
-  const btn = DOM.transcribeFileBtn;
+  const btn = DOM.transcribeFileBtn || document.getElementById('transcribe-file-btn');
+  const transcriptInput = DOM.transcriptInput || document.getElementById('transcript-input');
+  
+  if (!targetText || typeof targetText !== 'string') {
+    targetText = defaultTranscripts[state.selectedEvent] || defaultTranscripts.oratory;
+  }
+  
   const totalWords = targetText.trim().split(/\s+/);
   const totalLength = totalWords.length;
   
@@ -1137,37 +1159,39 @@ function streamTranscribedText(targetText) {
     const wordIndex = Math.min(totalLength, progress * wordsPerStep);
     const textSlice = totalWords.slice(0, wordIndex).join(' ');
     
-    DOM.transcriptInput.value = textSlice;
+    if (transcriptInput) transcriptInput.value = textSlice;
     state.transcript = textSlice;
     evaluateSpeech(); // Runs real-time evaluation as words type
 
     const percent = Math.round((progress / steps) * 100);
-    btn.innerHTML = `<span>Transcribing ${percent}%...</span>`;
+    if (btn) btn.innerHTML = `<span>Transcribing ${percent}%...</span>`;
 
     if (progress >= steps) {
       clearInterval(transcriptionInterval);
-      DOM.transcriptInput.value = targetText;
+      if (transcriptInput) transcriptInput.value = targetText;
       state.transcript = targetText;
       evaluateSpeech(); // Final evaluation on exact text with newlines!
-      switchTranscriptView('highlight');
-      btn.disabled = false;
-      btn.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <span>Transcribed!</span>
-      `;
-      setTimeout(() => {
+      switchTranscriptView('edit');
+      if (btn) {
+        btn.disabled = false;
         btn.innerHTML = `
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
-            <path d="M12 2a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-            <line x1="12" y1="19" x2="12" y2="23"></line>
-            <line x1="8" y1="23" x2="16" y2="23"></line>
+            <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          <span>Auto-Transcribe</span>
+          <span>Transcribed!</span>
         `;
-      }, 3000);
+        setTimeout(() => {
+          btn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
+              <path d="M12 2a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+            <span>Auto-Transcribe</span>
+          `;
+        }, 3000);
+      }
     }
   }, 100);
 }
@@ -2849,7 +2873,9 @@ function wordCountMatches(text, keywords) {
 
 // Checklist icon visual modifier
 function updateChecklistStatus(element, status) {
+  if (!element) return;
   const icon = element.querySelector('.checklist-icon');
+  if (!icon) return;
   if (status === true) {
     element.className = 'checklist-item pass';
     icon.className = 'checklist-icon pass';
@@ -2984,12 +3010,14 @@ function updateOverallScore(customRank = null) {
   const total = state.scores.delivery + state.scores.content + state.scores.org;
   const percentage = Math.round((total / 30) * 100);
   
-  DOM.scoreGaugeVal.textContent = percentage + '%';
+  if (DOM.scoreGaugeVal) DOM.scoreGaugeVal.textContent = percentage + '%';
 
   // Circle stroke offset math
   // Stroke array limit = 377 (circumference of r=60)
   const offset = 377 - (377 * percentage) / 100;
-  DOM.scoreGaugeFill.style.strokeDashoffset = offset;
+  if (DOM.scoreGaugeFill) {
+    DOM.scoreGaugeFill.style.strokeDashoffset = offset;
+  }
 
   // Determine Rating Classes
   let rating = 'Good';
@@ -3021,9 +3049,16 @@ function updateOverallScore(customRank = null) {
     rank = customRank;
   }
 
-  DOM.scoreGaugeRating.textContent = rating;
-  DOM.scoreGaugeFill.className.baseVal = `gauge-fill ${ratingClass}`;
-  DOM.ballotRankReadout.textContent = `Ballot Rank: ${rank}`;
+  if (DOM.scoreGaugeRating) {
+    DOM.scoreGaugeRating.textContent = rating;
+    DOM.scoreGaugeRating.className = `score-rating ${ratingClass}`;
+  }
+  if (DOM.scoreGaugeFill && DOM.scoreGaugeFill.className && typeof DOM.scoreGaugeFill.className.baseVal !== 'undefined') {
+    DOM.scoreGaugeFill.className.baseVal = `gauge-fill ${ratingClass}`;
+  }
+  if (DOM.ballotRankReadout) {
+    DOM.ballotRankReadout.textContent = `Ballot Rank: ${rank}`;
+  }
 }
 
 // Count Quote words inside quotation marks
