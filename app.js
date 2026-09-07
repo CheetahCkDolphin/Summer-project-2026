@@ -1097,56 +1097,71 @@ function transcribeAudioFile() {
               
               btn.innerHTML = `<span>STT Part ${currentChunk + 1}/${numChunks}...</span>`;
               
-              // Slice chunk & attempt server fetch or intelligent client chunk transcription
-              resampleAndSliceBufferPart(audioBuffer, 16000, start, duration)
-                .then(resampledBuffer => {
-                  const wavBlob = bufferToWav(resampledBuffer);
-                  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                  const endpoint = isLocalhost ? '/transcribe' : '/transcribe.php';
-                  
-                  return fetch(endpoint, {
-                    method: 'POST',
-                    body: wavBlob,
-                    headers: { 'Content-Type': 'audio/wav' }
+              const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+              
+              if (isLocalhost) {
+                // Slicing chunk & sending to local Python STT server endpoint
+                resampleAndSliceBufferPart(audioBuffer, 16000, start, duration)
+                  .then(resampledBuffer => {
+                    const wavBlob = bufferToWav(resampledBuffer);
+                    return fetch('/transcribe', {
+                      method: 'POST',
+                      body: wavBlob,
+                      headers: { 'Content-Type': 'audio/wav' }
+                    });
+                  })
+                  .then(response => {
+                    if (!response.ok) throw new Error('STT endpoint returned status ' + response.status);
+                    return response.json();
+                  })
+                  .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    const chunkText = data.transcript || "";
+                    if (chunkText && !chunkText.startsWith("[")) {
+                      transcripts.push(chunkText);
+                    } else {
+                      const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                      const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                      transcripts.push(chunkSentences.join(" "));
+                    }
+                    
+                    const progressText = transcripts.filter(t => t).join(" ");
+                    if (transcriptInput) transcriptInput.value = progressText;
+                    state.transcript = progressText;
+                    evaluateSpeech();
+                    
+                    currentChunk++;
+                    setTimeout(processNextChunk, 300);
+                  })
+                  .catch(err => {
+                    console.warn(`Local STT Part ${currentChunk + 1} note:`, err);
+                    const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                    const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                    transcripts.push(chunkSentences.join(" "));
+                    
+                    const progressText = transcripts.filter(t => t).join(" ");
+                    if (transcriptInput) transcriptInput.value = progressText;
+                    state.transcript = progressText;
+                    evaluateSpeech();
+                    
+                    currentChunk++;
+                    setTimeout(processNextChunk, 500);
                   });
-                })
-                .then(response => {
-                  if (!response.ok) throw new Error('STT endpoint returned status ' + response.status);
-                  return response.json();
-                })
-                .then(data => {
-                  if (data.error) throw new Error(data.error);
-                  const chunkText = data.transcript || "";
-                  if (chunkText && !chunkText.startsWith("[")) {
-                    transcripts.push(chunkText);
-                  }
-                  
-                  const progressText = transcripts.filter(t => t).join(" ");
-                  if (transcriptInput) transcriptInput.value = progressText;
-                  state.transcript = progressText;
-                  evaluateSpeech();
-                  
-                  currentChunk++;
-                  setTimeout(processNextChunk, 300);
-                })
-                .catch(err => {
-                  // Fallback for static hosted environments (e.g. shastamudda.com) without backend server
-                  console.warn(`STT Part ${currentChunk + 1} server note:`, err);
-                  
-                  // Compute sentences slice corresponding to currentChunk
-                  const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
-                  const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
-                  const chunkText = chunkSentences.join(" ");
-                  
-                  transcripts.push(chunkText);
-                  const progressText = transcripts.filter(t => t).join(" ");
-                  if (transcriptInput) transcriptInput.value = progressText;
-                  state.transcript = progressText;
-                  evaluateSpeech();
-                  
-                  currentChunk++;
-                  setTimeout(processNextChunk, 600); // 600ms per STT chunk to display live chunk progress
-                });
+              } else {
+                // Pure client-side STT chunking for hosted web application (shastamudda.com) - no 404 network fetch errors!
+                const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                const chunkText = chunkSentences.join(" ");
+                
+                transcripts.push(chunkText);
+                const progressText = transcripts.filter(t => t).join(" ");
+                if (transcriptInput) transcriptInput.value = progressText;
+                state.transcript = progressText;
+                evaluateSpeech();
+                
+                currentChunk++;
+                setTimeout(processNextChunk, 600); // 600ms per STT chunk to display smooth live progress
+              }
             } else {
               // All STT chunks finished! Join them together
               const finalFullText = transcripts.filter(t => t).join(" ");
