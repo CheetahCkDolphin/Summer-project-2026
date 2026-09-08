@@ -1085,14 +1085,16 @@ function transcribeAudioFile() {
 
         const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-        if (isLocalhost && audioBuf) {
+        if (audioBuf) {
           const start = currentChunk * chunkDuration;
           const duration = Math.min(chunkDuration, totalDuration - start);
           
+          const endpointUrl = window.STT_API_URL || (isLocalhost ? '/transcribe' : 'https://api.shastamudda.com/transcribe');
+
           resampleAndSliceBufferPart(audioBuf, 16000, start, duration)
             .then(resampledBuffer => {
               const wavBlob = bufferToWav(resampledBuffer);
-              return fetch('/transcribe', {
+              return fetch(endpointUrl, {
                 method: 'POST',
                 body: wavBlob,
                 headers: { 'Content-Type': 'audio/wav' }
