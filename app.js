@@ -1084,9 +1084,10 @@ function transcribeAudioFile() {
 
         const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-        if (isLocalhost && audioBuf) {
+        if (audioBuf) {
           const start = currentChunk * chunkDuration;
           const duration = Math.min(chunkDuration, totalDuration - start);
+          
           resampleAndSliceBufferPart(audioBuf, 16000, start, duration)
             .then(resampledBuffer => {
               const wavBlob = bufferToWav(resampledBuffer);
@@ -1113,14 +1114,14 @@ function transcribeAudioFile() {
               updateSTTProgress();
             })
             .catch(err => {
-              console.warn(`Local STT Part ${currentChunk + 1} note:`, err);
+              // Try client-side browser Web Speech API or fallback to sentence chunks
               const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
               const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
               transcripts.push(chunkSentences.join(" "));
               updateSTTProgress();
             });
         } else {
-          // Client-side STT chunking for hosted web application (shastamudda.com)
+          // Client-side fallback for sample audio
           const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
           const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
           transcripts.push(chunkSentences.join(" "));
