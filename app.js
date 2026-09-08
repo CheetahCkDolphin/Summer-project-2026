@@ -1126,7 +1126,14 @@ function transcribeAudioFile() {
                   } catch (e) {}
                 });
               }
-              if (chunkText && (!chunkText.startsWith("[") || state.audioFile)) {
+              const isError = !chunkText || 
+                              chunkText.startsWith("[Speech Recognition API error") || 
+                              chunkText.startsWith("[Error") || 
+                              chunkText.startsWith("[Exception") || 
+                              chunkText.includes("nodename nor servname provided") ||
+                              chunkText.includes("connection failed");
+
+              if (chunkText && !isError) {
                 transcripts.push(chunkText.trim());
               } else {
                 const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);

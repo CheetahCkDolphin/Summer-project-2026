@@ -41,13 +41,14 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 with sr.AudioFile(temp_filename) as source:
                     audio = r.record(source)
                 
-                # Transcribe using Google's free API
+                # Transcribe using Google's free API with graceful error handling
                 try:
                     text = r.recognize_google(audio)
                 except sr.UnknownValueError:
-                    text = "[Speech was not clear enough to transcribe]"
+                    text = ""
                 except sr.RequestError as e:
-                    text = f"[Speech Recognition API error: {e}]"
+                    print(f"Speech recognition network notice: {e}")
+                    text = ""
 
                 # Delete temp file
                 if os.path.exists(temp_filename):
