@@ -1089,26 +1089,44 @@ function transcribeAudioFile() {
           const start = currentChunk * chunkDuration;
           const duration = Math.min(chunkDuration, totalDuration - start);
           
-          const endpointUrl = window.STT_API_URL || (isLocalhost ? '/transcribe' : 'https://d36ce5d1fb805d.lhr.life/transcribe');
-
           resampleAndSliceBufferPart(audioBuf, 16000, start, duration)
             .then(resampledBuffer => {
               const wavBlob = bufferToWav(resampledBuffer);
-              return fetch(endpointUrl, {
-                method: 'POST',
-                body: wavBlob,
-                headers: { 'Content-Type': 'audio/wav' }
-              });
+              if (isLocalhost) {
+                return fetch('/transcribe', {
+                  method: 'POST',
+                  body: wavBlob,
+                  headers: { 'Content-Type': 'audio/wav' }
+                });
+              } else {
+                return fetch('https://www.google.com/speech-api/v2/recognize?client=chromium&lang=en-US', {
+                  method: 'POST',
+                  body: wavBlob,
+                  headers: { 'Content-Type': 'audio/l16; rate=16000' }
+                });
+              }
             })
             .then(response => {
               if (!response.ok) throw new Error('STT HTTP status ' + response.status);
-              return response.json();
+              return isLocalhost ? response.json() : response.text();
             })
             .then(data => {
-              if (data.error) throw new Error(data.error);
-              const chunkText = data.transcript || "";
+              let chunkText = "";
+              if (typeof data === 'object') {
+                chunkText = data.transcript || "";
+              } else if (typeof data === 'string') {
+                const lines = data.split('\n');
+                lines.forEach(line => {
+                  try {
+                    const parsed = JSON.parse(line);
+                    if (parsed.result && parsed.result[0] && parsed.result[0].alternative && parsed.result[0].alternative[0]) {
+                      chunkText += (chunkText ? " " : "") + parsed.result[0].alternative[0].transcript;
+                    }
+                  } catch (e) {}
+                });
+              }
               if (chunkText && !chunkText.startsWith("[")) {
-                transcripts.push(chunkText);
+                transcripts.push(chunkText.trim());
               } else {
                 const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
                 const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
@@ -1117,6 +1135,7 @@ function transcribeAudioFile() {
               updateSTTProgress();
             })
             .catch(err => {
+              console.warn(`STT Part ${currentChunk + 1} note:`, err);
               const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
               const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
               transcripts.push(chunkSentences.join(" "));
