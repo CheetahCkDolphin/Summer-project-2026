@@ -881,6 +881,7 @@ function handleAudioFile(file) {
   state.isSampleAudio = false;
   state.lastSampleKey = null;
   state.audioFile = file;
+  state.audioBuffer = null;
   DOM.fileInfo.style.display = 'block';
   DOM.fileInfo.classList.add('visible');
   DOM.infoFilename.textContent = file.name;
@@ -1125,7 +1126,7 @@ function transcribeAudioFile() {
                   } catch (e) {}
                 });
               }
-              if (chunkText && !chunkText.startsWith("[")) {
+              if (chunkText && (!chunkText.startsWith("[") || state.audioFile)) {
                 transcripts.push(chunkText.trim());
               } else {
                 const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
@@ -1213,50 +1214,44 @@ function transcribeAudioFile() {
   }
 
   if (state.audioFile) {
-    let handled = false;
-    const fallbackTimeout = setTimeout(() => {
-      if (!handled) {
-        handled = true;
-        startSTTChunking(null);
-      }
-    }, 1200);
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const arrayBuffer = e.target.result;
-      if (!state.audioContext) {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        state.audioContext = new AudioCtx();
-      }
-      if (state.audioContext.state === 'suspended') {
-        state.audioContext.resume();
-      }
-      state.audioContext.decodeAudioData(arrayBuffer)
-        .then(audioBuffer => {
-          if (!handled) {
-            handled = true;
-            clearTimeout(fallbackTimeout);
-            state.audioBuffer = audioBuffer;
-            startSTTChunking(audioBuffer);
-          }
-        })
-        .catch(err => {
-          console.warn("Audio decoding note:", err);
-          if (!handled) {
-            handled = true;
-            clearTimeout(fallbackTimeout);
-            startSTTChunking(null);
-          }
-        });
-    };
-    reader.onerror = function() {
-      if (!handled) {
-        handled = true;
-        clearTimeout(fallbackTimeout);
-        startSTTChunking(null);
-      }
-    };
-    reader.readAsArrayBuffer(state.audioFile);
+    if (state.audioBuffer) {
+      startSTTChunking(state.audioBuffer);
+    } else {
+      let handled = false;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+        if (!state.audioContext) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          state.audioContext = new AudioCtx();
+        }
+        if (state.audioContext.state === 'suspended') {
+          state.audioContext.resume();
+        }
+        state.audioContext.decodeAudioData(arrayBuffer)
+          .then(audioBuffer => {
+            if (!handled) {
+              handled = true;
+              state.audioBuffer = audioBuffer;
+              startSTTChunking(audioBuffer);
+            }
+          })
+          .catch(err => {
+            console.warn("Audio decoding note:", err);
+            if (!handled) {
+              handled = true;
+              startSTTChunking(null);
+            }
+          });
+      };
+      reader.onerror = function() {
+        if (!handled) {
+          handled = true;
+          startSTTChunking(null);
+        }
+      };
+      reader.readAsArrayBuffer(state.audioFile);
+    }
   } else {
     startSTTChunking(state.audioBuffer || null);
   }

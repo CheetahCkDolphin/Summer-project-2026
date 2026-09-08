@@ -103,10 +103,22 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
 
 if __name__ == '__main__':
-    with socketserver.TCPServer(("", PORT), NoCacheHTTPRequestHandler) as httpd:
+    socketserver.TCPServer.allow_reuse_address = True
+    ports_to_try = [int(os.environ.get("PORT", 8080)), 8080, 8000, 8085, 9000]
+    httpd = None
+    for port in ports_to_try:
+        try:
+            httpd = socketserver.TCPServer(("127.0.0.1", port), NoCacheHTTPRequestHandler)
+            PORT = port
+            break
+        except OSError:
+            continue
+    if httpd:
         print(f"Serving at port {PORT} with caching disabled, /transcribe, and /analyze-emotions POST endpoints ready...")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
             print("\nServer stopped.")
+    else:
+        print("Error: Could not bind to any port.")
 
