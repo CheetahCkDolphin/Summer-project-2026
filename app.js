@@ -1089,7 +1089,7 @@ function transcribeAudioFile() {
           const start = currentChunk * chunkDuration;
           const duration = Math.min(chunkDuration, totalDuration - start);
           
-          const endpointUrl = window.STT_API_URL || (isLocalhost ? '/transcribe' : 'https://api.shastamudda.com/transcribe');
+          const endpointUrl = window.STT_API_URL || (isLocalhost ? '/transcribe' : 'https://d36ce5d1fb805d.lhr.life/transcribe');
 
           resampleAndSliceBufferPart(audioBuf, 16000, start, duration)
             .then(resampledBuffer => {
