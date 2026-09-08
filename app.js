@@ -1070,6 +1070,84 @@ function transcribeAudioFile() {
 
   const textSentences = fullTargetText.split(/(?<=[.!?])\s+/);
 
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  // If on a hosted website (like shastamudda.com) with custom audio and Web Speech API is supported in browser
+  if (state.audioFile && !isLocalhost && SpeechRec) {
+    const recognition = new SpeechRec();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    let transcribedText = "";
+    btn.innerHTML = `<span>STT Transcribing Real Audio...</span>`;
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          transcribedText += (transcribedText ? " " : "") + event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      const liveText = transcribedText + (interim ? " " + interim : "");
+      if (liveText.trim()) {
+        const inputEl = document.getElementById('transcript-input') || DOM.transcriptInput;
+        if (inputEl) {
+          inputEl.value = liveText;
+          try { inputEl.dispatchEvent(new Event('input', { bubbles: true })); } catch(e){}
+        }
+        state.transcript = liveText;
+        try { evaluateSpeech(); } catch(e){}
+      }
+    };
+
+    recognition.onerror = (err) => {
+      console.warn("Browser Speech API note:", err);
+      // Fallback to STT Part chunking if microphone/browser permission fails
+      startSTTChunking(state.audioBuffer || null);
+    };
+
+    recognition.onend = () => {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Transcribed!</span>
+      `;
+      switchTranscriptView('edit');
+      setTimeout(() => {
+        btn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
+            <path d="M12 2a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+          <span>Auto-Transcribe</span>
+        `;
+      }, 3000);
+    };
+
+    if (state.audioElement) {
+      state.audioElement.currentTime = 0;
+      state.audioElement.play().then(() => {
+        try { recognition.start(); } catch(e){}
+      }).catch(e => {
+        try { recognition.start(); } catch(e){}
+      });
+      state.audioElement.onended = () => {
+        try { recognition.stop(); } catch(e){}
+      };
+    } else {
+      try { recognition.start(); } catch(e){}
+    }
+    return;
+  }
+
   // Helper function to start STT Part 1/N chunking pipeline
   const startSTTChunking = (audioBuf) => {
     const totalDuration = (audioBuf && audioBuf.duration) || state.audioDuration || 180;
@@ -1081,8 +1159,6 @@ function transcribeAudioFile() {
     function processNextChunk() {
       if (currentChunk < numChunks) {
         btn.innerHTML = `<span>STT Part ${currentChunk + 1}/${numChunks}...</span>`;
-
-        const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
         if (audioBuf) {
           const start = currentChunk * chunkDuration;
@@ -1114,7 +1190,6 @@ function transcribeAudioFile() {
               updateSTTProgress();
             })
             .catch(err => {
-              // Try client-side browser Web Speech API or fallback to sentence chunks
               const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
               const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
               transcripts.push(chunkSentences.join(" "));
