@@ -1179,7 +1179,10 @@ function transcribeAudioFile() {
           setTimeout(processNextChunk, 500);
         }
       } else {
-        // All STT chunks completed!
+        // All STT chunks completed! Restore audio unmuted state for playback
+        if (state.audioElement) {
+          state.audioElement.muted = false;
+        }
         const finalFullText = transcripts.filter(t => t).join(" ").trim();
         const finalText = finalFullText !== "" ? finalFullText : fullTargetText;
 
@@ -1775,7 +1778,9 @@ function togglePlayback() {
     if (state.isSampleAudio) {
       playSampleAudio();
     } else if (typeof state.audioElement.play === 'function') {
-      state.audioElement.play();
+      state.audioElement.muted = false;
+      state.audioElement.volume = 1.0;
+      state.audioElement.play().catch(e => console.warn("Audio playback note:", e));
     }
     state.isPlaying = true;
     DOM.playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
