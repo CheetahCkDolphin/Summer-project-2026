@@ -356,6 +356,14 @@
             </p>
           </div>
           <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <button class="sf-btn sf-btn-primary sf-btn-sm" onclick="app.openCreateProjectModal()" title="Create a new community project">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 2px;"><path d="M12 5v14M5 12h14"/></svg>
+              Create Project
+            </button>
+            <button class="sf-btn sf-btn-success sf-btn-sm" onclick="app.openAddVolunteerModal()" title="Register a new youth volunteer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 2px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+              Add Volunteer
+            </button>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <label for="ca-chapter-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Chapter:</label>
               <select id="ca-chapter-select" class="sf-form-control" style="width: auto;" onchange="app.switchChapter(this.value)">
@@ -654,7 +662,11 @@
               Chirag Hope National Headquarters — Consolidated overview across 12 chapters, raised funds, withdrawals, and balances.
             </p>
           </div>
-          <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="sf-btn sf-btn-primary sf-btn-sm" onclick="app.openCreateChapterModal()" title="Establish a new regional chapter">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 2px;"><path d="M12 5v14M5 12h14"/></svg>
+              Create Chapter
+            </button>
             <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.exportDataCSV()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -733,9 +745,15 @@
           <h2 class="sf-section-title">
             <span>🏛️ Chirag Hope Chapters Fund Overview</span>
           </h2>
-          <span style="font-size: 0.8rem; color: var(--text-secondary);">
-            Grounded in Google Sheet 2: Chirag Hope Chapters Fund Overview
-          </span>
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">
+              Grounded in Google Sheet 2: Chirag Hope Chapters Fund Overview
+            </span>
+            <button class="sf-btn sf-btn-primary sf-btn-sm" onclick="app.openCreateChapterModal()" title="Add a new chapter">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 2px;"><path d="M12 5v14M5 12h14"/></svg>
+              Create Chapter
+            </button>
+          </div>
         </div>
 
         <div class="sf-table-responsive">
@@ -913,8 +931,140 @@
     </div>
   </div>
 
+  <!-- MODAL 4: CREATE PROJECT (CHAPTER ADMIN) -->
+  <div class="sf-modal-backdrop" id="modal-create-project">
+    <div class="sf-modal">
+      <div class="sf-modal-header">
+        <h3 class="sf-modal-title">🚀 Create New Community Project</h3>
+        <button class="sf-modal-close" onclick="app.closeModals()">&times;</button>
+      </div>
+      <form id="create-project-form" onsubmit="app.handleCreateProject(event)">
+        <div class="sf-modal-body">
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cp-name">Project Title</label>
+            <input type="text" id="cp-name" class="sf-form-control" placeholder="e.g. Solar Lamp Kits for Rural Classrooms" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cp-chapter">Chapter</label>
+            <select id="cp-chapter" class="sf-form-control" onchange="app.updateCreateProjectVolunteerDropdown(this.value)" required>
+              <!-- Populated dynamically with all chapters -->
+            </select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cp-target">Fundraising Target Amount ($)</label>
+            <input type="number" id="cp-target" class="sf-form-control" min="1" step="0.01" placeholder="e.g. 2500.00" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cp-volunteer">Assign Initial Lead Volunteer (Optional)</label>
+            <select id="cp-volunteer" class="sf-form-control">
+              <option value="none">-- Unassigned / Open to All Chapter Volunteers --</option>
+              <!-- Populated dynamically with chapter volunteers -->
+            </select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cp-status">Initial Status</label>
+            <select id="cp-status" class="sf-form-control">
+              <option value="Planning" selected>Planning</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Execution">Execution</option>
+            </select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cp-desc">Project Scope &amp; Objectives</label>
+            <textarea id="cp-desc" class="sf-form-control" rows="3" placeholder="Provide background, community beneficiaries, and execution objectives..."></textarea>
+          </div>
+        </div>
+        <div class="sf-modal-footer">
+          <button type="button" class="sf-btn sf-btn-outline" onclick="app.closeModals()">Cancel</button>
+          <button type="submit" class="sf-btn sf-btn-primary">Create Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 5: ADD VOLUNTEER (CHAPTER ADMIN) -->
+  <div class="sf-modal-backdrop" id="modal-add-volunteer">
+    <div class="sf-modal">
+      <div class="sf-modal-header">
+        <h3 class="sf-modal-title">🤝 Register New Youth Volunteer</h3>
+        <button class="sf-modal-close" onclick="app.closeModals()">&times;</button>
+      </div>
+      <form id="add-volunteer-form" onsubmit="app.handleAddVolunteer(event)">
+        <div class="sf-modal-body">
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="av-name">Volunteer Full Name</label>
+            <input type="text" id="av-name" class="sf-form-control" placeholder="e.g. Aarav Sharma" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="av-email">Email Address</label>
+            <input type="email" id="av-email" class="sf-form-control" placeholder="e.g. aarav.sharma@chiraghope.org">
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="av-chapter">Assigned Chapter</label>
+            <select id="av-chapter" class="sf-form-control" onchange="app.updateAddVolunteerProjectDropdown(this.value)" required>
+              <!-- Populated dynamically with all chapters -->
+            </select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="av-tab">Google Sheet Tab Name</label>
+            <input type="text" id="av-tab" class="sf-form-control" placeholder="Defaults to volunteer name (e.g. Aarav Sharma)">
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="av-project">Initial Assigned Project (Optional)</label>
+            <select id="av-project" class="sf-form-control">
+              <option value="none">-- None / Allocate Later --</option>
+              <!-- Populated dynamically with chapter projects -->
+            </select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="av-target">Initial Individual Target Amount ($)</label>
+            <input type="number" id="av-target" class="sf-form-control" min="0" step="0.01" placeholder="e.g. 500.00">
+          </div>
+        </div>
+        <div class="sf-modal-footer">
+          <button type="button" class="sf-btn sf-btn-outline" onclick="app.closeModals()">Cancel</button>
+          <button type="submit" class="sf-btn sf-btn-success">Add Volunteer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 6: CREATE CHAPTER (NON-PROFIT ADMIN) -->
+  <div class="sf-modal-backdrop" id="modal-create-chapter">
+    <div class="sf-modal">
+      <div class="sf-modal-header">
+        <h3 class="sf-modal-title">🏛️ Establish New Regional Chapter</h3>
+        <button class="sf-modal-close" onclick="app.closeModals()">&times;</button>
+      </div>
+      <form id="create-chapter-form" onsubmit="app.handleCreateChapter(event)">
+        <div class="sf-modal-body">
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cc-name">Chapter Name</label>
+            <input type="text" id="cc-name" class="sf-form-control" placeholder="e.g. Austin Chapter" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cc-location">State / Metropolitan Area</label>
+            <input type="text" id="cc-location" class="sf-form-control" placeholder="e.g. Texas, USA" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cc-target">Initial Annual Fundraising Goal ($)</label>
+            <input type="number" id="cc-target" class="sf-form-control" min="0" step="0.01" placeholder="e.g. 10000.00">
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cc-notes">Leadership / Launch Notes</label>
+            <textarea id="cc-notes" class="sf-form-control" rows="2" placeholder="Chapter president, launch date, initial high school partners..."></textarea>
+          </div>
+        </div>
+        <div class="sf-modal-footer">
+          <button type="button" class="sf-btn sf-btn-outline" onclick="app.closeModals()">Cancel</button>
+          <button type="submit" class="sf-btn sf-btn-primary">Establish Chapter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Load Smart Funds Core Engine & UI Controller -->
-  <script src="smart_funds.js?v=3"></script>
+  <script src="smart_funds.js?v=4"></script>
   <script>
     // App UI Controller
     const app = {
@@ -943,6 +1093,9 @@
         document.getElementById('logout-btn').addEventListener('click', () => {
           SmartFunds.logout();
         });
+
+        // Ensure chapter dropdown options are in sync across app
+        this.refreshChapterDropdowns();
 
         // Pre-populate Chapter Admin view data so all dropdowns and tables are populated immediately
         const defaultChapter = (SmartFunds.state.activeUser && SmartFunds.state.activeUser.chapter) ||
@@ -992,6 +1145,16 @@
       },
 
       switchView(viewId) {
+        const user = SmartFunds.getActiveUser();
+        // Strict portal authorization guard: enforce that logged-in users only access their persona view
+        if (user && viewId !== 'login-view') {
+          const allowedView = user.role === 'volunteer' ? 'volunteer-view' :
+                              user.role === 'chapter_admin' ? 'chapter-admin-view' : 'nonprofit-admin-view';
+          if (viewId !== allowedView) {
+            viewId = allowedView;
+          }
+        }
+
         // Update navbar tabs
         document.querySelectorAll('.sf-nav-tab').forEach(tab => {
           if (tab.getAttribute('data-target') === viewId) {
@@ -1015,9 +1178,9 @@
                                 (document.getElementById('ca-chapter-select') ? document.getElementById('ca-chapter-select').value : 'Evergreen Bay Area Chapter');
           this.renderChapterAdmin(activeChapter);
         } else if (viewId === 'volunteer-view') {
-          const user = SmartFunds.getActiveUser();
-          if (user) {
-            this.renderVolunteer(user);
+          const u = SmartFunds.getActiveUser();
+          if (u) {
+            this.renderVolunteer(u);
           } else {
             this.renderVolunteer({ name: 'Shasta Mudda', role: 'volunteer', chapter: 'Evergreen Bay Area Chapter' });
           }
@@ -1033,6 +1196,9 @@
         const userBadge = document.getElementById('header-user-badge');
         const logoutBtn = document.getElementById('logout-btn');
         const navBar = document.getElementById('sf-role-nav');
+        const tabVol = document.getElementById('tab-volunteer');
+        const tabCA = document.getElementById('tab-chapter-admin');
+        const tabNP = document.getElementById('tab-nonprofit-admin');
 
         if (!user) {
           userBadge.style.display = 'none';
@@ -1052,14 +1218,23 @@
           user.role === 'chapter_admin' ? 'Chapter Admin' : 'Non-Profit Admin';
         document.getElementById('active-chapter-name').textContent = user.chapter;
 
-        // Route to active persona view
+        // Strict Persona Portal Visibility: Show ONLY the active persona's portal tab in navigation
         if (user.role === 'volunteer') {
+          if (tabVol) tabVol.style.display = 'inline-flex';
+          if (tabCA) tabCA.style.display = 'none';
+          if (tabNP) tabNP.style.display = 'none';
           this.switchView('volunteer-view');
           this.renderVolunteer(user);
         } else if (user.role === 'chapter_admin') {
+          if (tabVol) tabVol.style.display = 'none';
+          if (tabCA) tabCA.style.display = 'inline-flex';
+          if (tabNP) tabNP.style.display = 'none';
           this.switchView('chapter-admin-view');
           this.renderChapterAdmin(user.chapter);
         } else {
+          if (tabVol) tabVol.style.display = 'none';
+          if (tabCA) tabCA.style.display = 'none';
+          if (tabNP) tabNP.style.display = 'inline-flex';
           this.switchView('nonprofit-admin-view');
           this.renderNonprofitAdmin();
         }
@@ -1661,6 +1836,146 @@
           alert(`Success: Withdrew $${Number(amount).toFixed(2)} for "${purpose}" on "${project}"!`);
         } catch (err) {
           alert("Withdrawal Failed: " + err.message);
+        }
+      },
+
+      refreshChapterDropdowns() {
+        const chapterSelectIds = ['ca-chapter-select', 'login-chapter', 'cp-chapter', 'av-chapter'];
+        chapterSelectIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            const currentVal = el.value;
+            el.innerHTML = '';
+            SmartFunds.state.chapters.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c.name;
+              opt.textContent = c.name;
+              if (c.name === currentVal) {
+                opt.selected = true;
+              }
+              el.appendChild(opt);
+            });
+            if (!el.value && el.options.length > 0) {
+              el.selectedIndex = 0;
+            }
+          }
+        });
+      },
+
+      openCreateProjectModal() {
+        this.refreshChapterDropdowns();
+        const activeChapter = (SmartFunds.state.activeUser && SmartFunds.state.activeUser.chapter) ||
+                              (document.getElementById('ca-chapter-select') ? document.getElementById('ca-chapter-select').value : 'Evergreen Bay Area Chapter');
+        const chapSelect = document.getElementById('cp-chapter');
+        if (chapSelect) chapSelect.value = activeChapter;
+        this.updateCreateProjectVolunteerDropdown(activeChapter);
+        document.getElementById('cp-name').value = '';
+        document.getElementById('cp-target').value = '';
+        document.getElementById('cp-desc').value = '';
+        document.getElementById('cp-status').value = 'Planning';
+        document.getElementById('modal-create-project').classList.add('open');
+      },
+
+      updateCreateProjectVolunteerDropdown(chapterName) {
+        const vSelect = document.getElementById('cp-volunteer');
+        if (!vSelect) return;
+        vSelect.innerHTML = '<option value="none">-- Unassigned / Open to All Chapter Volunteers --</option>';
+        const chapterVols = SmartFunds.state.volunteers.filter(v => (v.chapter || '').toLowerCase() === (chapterName || '').toLowerCase());
+        chapterVols.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.name;
+          opt.textContent = `${v.name} (${v.assignments ? v.assignments.length : 0} projects)`;
+          vSelect.appendChild(opt);
+        });
+      },
+
+      handleCreateProject(e) {
+        e.preventDefault();
+        const name = document.getElementById('cp-name').value.trim();
+        const chapter = document.getElementById('cp-chapter').value;
+        const target = document.getElementById('cp-target').value;
+        const volunteer = document.getElementById('cp-volunteer').value;
+        const status = document.getElementById('cp-status').value;
+        const desc = document.getElementById('cp-desc').value.trim();
+
+        try {
+          SmartFunds.createProject(chapter, name, target, desc, volunteer, status);
+          this.closeModals();
+          alert(`Success: Created project "${name}" for ${chapter} with a target of ${SmartFunds.formatCurrency(target)}!`);
+          this.renderChapterAdmin(chapter);
+        } catch (err) {
+          alert("Error creating project: " + err.message);
+        }
+      },
+
+      openAddVolunteerModal() {
+        this.refreshChapterDropdowns();
+        const activeChapter = (SmartFunds.state.activeUser && SmartFunds.state.activeUser.chapter) ||
+                              (document.getElementById('ca-chapter-select') ? document.getElementById('ca-chapter-select').value : 'Evergreen Bay Area Chapter');
+        const chapSelect = document.getElementById('av-chapter');
+        if (chapSelect) chapSelect.value = activeChapter;
+        this.updateAddVolunteerProjectDropdown(activeChapter);
+        document.getElementById('av-name').value = '';
+        document.getElementById('av-email').value = '';
+        document.getElementById('av-tab').value = '';
+        document.getElementById('av-target').value = '';
+        document.getElementById('modal-add-volunteer').classList.add('open');
+      },
+
+      updateAddVolunteerProjectDropdown(chapterName) {
+        const pSelect = document.getElementById('av-project');
+        if (!pSelect) return;
+        pSelect.innerHTML = '<option value="none">-- None / Allocate Later --</option>';
+        const chapterProjects = SmartFunds.state.projects.filter(p => (p.chapter || '').toLowerCase() === (chapterName || '').toLowerCase());
+        chapterProjects.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.textContent = `${p.name} (Target: ${SmartFunds.formatCurrency(p.target)})`;
+          pSelect.appendChild(opt);
+        });
+      },
+
+      handleAddVolunteer(e) {
+        e.preventDefault();
+        const name = document.getElementById('av-name').value.trim();
+        const email = document.getElementById('av-email').value.trim();
+        const chapter = document.getElementById('av-chapter').value;
+        const tabName = document.getElementById('av-tab').value.trim();
+        const initProject = document.getElementById('av-project').value;
+        const initTarget = document.getElementById('av-target').value;
+
+        try {
+          SmartFunds.addVolunteer(chapter, name, email, tabName, initProject, initTarget);
+          this.closeModals();
+          alert(`Success: Registered volunteer "${name}" under ${chapter}!`);
+          this.renderChapterAdmin(chapter);
+        } catch (err) {
+          alert("Error registering volunteer: " + err.message);
+        }
+      },
+
+      openCreateChapterModal() {
+        document.getElementById('cc-name').value = '';
+        document.getElementById('cc-location').value = '';
+        document.getElementById('cc-target').value = '';
+        document.getElementById('cc-notes').value = '';
+        document.getElementById('modal-create-chapter').classList.add('open');
+      },
+
+      handleCreateChapter(e) {
+        e.preventDefault();
+        const name = document.getElementById('cc-name').value.trim();
+        const location = document.getElementById('cc-location').value.trim();
+        const target = document.getElementById('cc-target').value;
+
+        try {
+          SmartFunds.createChapter(name, location, target);
+          this.refreshChapterDropdowns();
+          this.closeModals();
+          alert(`Success: Established new regional chapter "${name}" (${location})!`);
+          this.renderNonprofitAdmin();
+        } catch (err) {
+          alert("Error creating chapter: " + err.message);
         }
       },
 

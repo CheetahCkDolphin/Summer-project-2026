@@ -342,6 +342,166 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(res)
             return
 
+        # 4. API: Create Project
+        elif clean_path == '/api/funds/create_project':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                project_name = body.get('name', '').strip()
+                chapter_name = body.get('chapter', 'Evergreen Bay Area Chapter').strip()
+                target_amount = float(body.get('target', 0))
+                description = body.get('description', '')
+                assigned_volunteer = body.get('assignedVolunteer', '').strip()
+                status = body.get('status', 'Planning')
+
+                if not project_name:
+                    raise ValueError("Project name is required")
+                if target_amount < 0:
+                    raise ValueError("Target amount must be non-negative")
+
+                if any(p['name'].lower() == project_name.lower() for p in FUNDS_STORE['projects']):
+                    raise ValueError(f"Project '{project_name}' already exists")
+
+                # Ensure chapter exists
+                chap = next((c for c in FUNDS_STORE['chapters'] if c['name'].lower() == chapter_name.lower()), None)
+                if not chap:
+                    chap = {"name": chapter_name, "raised": 0.0, "withdrawals": 0.0, "balance": 0.0}
+                    FUNDS_STORE['chapters'].append(chap)
+
+                new_proj = {
+                    "name": project_name,
+                    "chapter": chap['name'],
+                    "target": target_amount,
+                    "raised": 0.0,
+                    "withdrawn": 0.0,
+                    "status": status,
+                    "progress": 0,
+                    "description": description or f"Community initiative under {chap['name']}"
+                }
+                FUNDS_STORE['projects'].append(new_proj)
+
+                # Link volunteer assignment if specified
+                if assigned_volunteer and assigned_volunteer != 'none':
+                    v = next((vol for vol in FUNDS_STORE['volunteers'] if vol['name'].lower() == assigned_volunteer.lower()), None)
+                    if not v:
+                        v = {
+                            "name": assigned_volunteer,
+                            "chapter": chap['name'],
+                            "email": f"{assigned_volunteer.lower().replace(' ', '.')}@chiraghope.org",
+                            "assignments": []
+                        }
+                        FUNDS_STORE['volunteers'].append(v)
+                    v.setdefault('assignments', []).append({
+                        "project": project_name,
+                        "target": target_amount,
+                        "raised": 0.0,
+                        "withdrawn": 0.0
+                    })
+
+                res = json.dumps({"success": True, "project": new_proj}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(res)))
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(err)))
+                self.end_headers()
+                self.wfile.write(err)
+            return
+
+        # 5. API: Add Volunteer
+        elif clean_path == '/api/funds/add_volunteer':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                vol_name = body.get('name', '').strip()
+                chapter_name = body.get('chapter', 'Evergreen Bay Area Chapter').strip()
+                email = body.get('email', '').strip()
+                tab_name = body.get('tabName', '').strip() or vol_name
+                init_proj = body.get('initialProject', '').strip()
+                init_target = float(body.get('initialTarget', 0))
+
+                if not vol_name:
+                    raise ValueError("Volunteer name is required")
+
+                if any(v['name'].lower() == vol_name.lower() for v in FUNDS_STORE['volunteers']):
+                    raise ValueError(f"Volunteer '{vol_name}' already exists")
+
+                v_email = email or f"{vol_name.lower().replace(' ', '.')}@chiraghope.org"
+                new_vol = {
+                    "name": vol_name,
+                    "tabName": tab_name,
+                    "chapter": chapter_name,
+                    "email": v_email,
+                    "assignments": []
+                }
+                if init_proj and init_proj != 'none':
+                    new_vol['assignments'].append({
+                        "project": init_proj,
+                        "target": init_target,
+                        "raised": 0.0,
+                        "withdrawn": 0.0
+                    })
+
+                FUNDS_STORE['volunteers'].append(new_vol)
+                res = json.dumps({"success": True, "volunteer": new_vol}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(res)))
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(err)))
+                self.end_headers()
+                self.wfile.write(err)
+            return
+
+        # 6. API: Create Chapter
+        elif clean_path == '/api/funds/create_chapter':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                chap_name = body.get('name', '').strip()
+                location = body.get('location', '').strip() or "United States"
+                init_target = float(body.get('initialTarget', 0))
+
+                if not chap_name:
+                    raise ValueError("Chapter name is required")
+
+                if any(c['name'].lower() == chap_name.lower() for c in FUNDS_STORE['chapters']):
+                    raise ValueError(f"Chapter '{chap_name}' already exists")
+
+                new_chap = {
+                    "name": chap_name,
+                    "location": location,
+                    "raised": 0.0,
+                    "withdrawals": 0.0,
+                    "balance": 0.0,
+                    "initialTarget": init_target
+                }
+                FUNDS_STORE['chapters'].append(new_chap)
+                res = json.dumps({"success": True, "chapter": new_chap}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(res)))
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(err)))
+                self.end_headers()
+                self.wfile.write(err)
+            return
+
         # 4. Transcribe Endpoint
         elif self.path == '/transcribe':
             try:

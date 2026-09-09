@@ -299,6 +299,97 @@
           }
           return true;
         }
+      },
+      {
+        id: 11,
+        name: "Chapter Admin Create Project Operation",
+        desc: "Verifies creating a new project establishes target amount, chapter assignment, and volunteer linkage.",
+        run() {
+          SmartFunds.resetToDefault();
+          const initCount = SmartFunds.state.projects.length;
+          const res = SmartFunds.createProject('Evergreen Bay Area Chapter', 'Solar Lamps for Rural Schools', 1500, 'Solar lighting kits', 'Shasta Mudda', 'Planning');
+          if (!res.success) throw new Error("Project creation failed");
+          if (SmartFunds.state.projects.length !== initCount + 1) {
+            throw new Error(`Expected ${initCount + 1} projects, found ${SmartFunds.state.projects.length}`);
+          }
+          const created = SmartFunds.state.projects.find(p => p.name === 'Solar Lamps for Rural Schools');
+          if (!created) throw new Error("Created project not found in state");
+          if (created.target !== 1500) throw new Error(`Expected target 1500, got ${created.target}`);
+          
+          const shasta = SmartFunds.state.volunteers.find(v => v.name === 'Shasta Mudda');
+          const hasAssignment = shasta.assignments.some(a => a.project === 'Solar Lamps for Rural Schools');
+          if (!hasAssignment) throw new Error("Volunteer assignment was not linked to Shasta Mudda");
+          return true;
+        }
+      },
+      {
+        id: 12,
+        name: "Chapter Admin Add Volunteer Operation",
+        desc: "Verifies registering a new youth volunteer updates chapter roster and assigns initial project.",
+        run() {
+          SmartFunds.resetToDefault();
+          const initVols = SmartFunds.getChapterVolunteersOverview('Evergreen Bay Area Chapter').length;
+          const res = SmartFunds.addVolunteer('Evergreen Bay Area Chapter', 'Aarav Sharma', 'aarav@chiraghope.org', 'Aarav Sharma', 'Mini-Library & Sports Club', 500);
+          if (!res.success) throw new Error("Add volunteer failed");
+          
+          const updatedVols = SmartFunds.getChapterVolunteersOverview('Evergreen Bay Area Chapter');
+          if (updatedVols.length !== initVols + 1) {
+            throw new Error(`Expected ${initVols + 1} volunteers, found ${updatedVols.length}`);
+          }
+          const aarav = updatedVols.find(v => v.name === 'Aarav Sharma');
+          if (!aarav) throw new Error("Aarav Sharma not found in chapter roster overview");
+          if (aarav.projectsCount !== 1) throw new Error(`Expected 1 assigned project for Aarav, got ${aarav.projectsCount}`);
+          if (aarav.totalTarget !== 500) throw new Error(`Expected target 500, got ${aarav.totalTarget}`);
+          return true;
+        }
+      },
+      {
+        id: 13,
+        name: "Non-Profit Org Admin Create Chapter Operation",
+        desc: "Verifies establishing a new regional chapter updates national aggregation metrics and chapter count.",
+        run() {
+          SmartFunds.resetToDefault();
+          const initChapCount = SmartFunds.state.chapters.length;
+          const res = SmartFunds.createChapter('Austin Chapter', 'Texas, USA', 12000);
+          if (!res.success) throw new Error("Create chapter failed");
+          if (SmartFunds.state.chapters.length !== initChapCount + 1) {
+            throw new Error(`Expected ${initChapCount + 1} chapters, found ${SmartFunds.state.chapters.length}`);
+          }
+          const austin = SmartFunds.state.chapters.find(c => c.name === 'Austin Chapter');
+          if (!austin) throw new Error("Austin Chapter not found in chapters state");
+          if (austin.location !== 'Texas, USA') throw new Error(`Expected Texas, USA, got ${austin.location}`);
+          return true;
+        }
+      },
+      {
+        id: 14,
+        name: "Persona Portal Isolation Authentication & Routing Guard",
+        desc: "Verifies that signing in as a volunteer, chapter admin, or non-profit admin isolates permissions and active persona context.",
+        run() {
+          SmartFunds.resetToDefault();
+          // Volunteer login
+          SmartFunds.login('volunteer', 'Shasta Mudda', 'Evergreen Bay Area Chapter');
+          let user = SmartFunds.getActiveUser();
+          if (!user || user.role !== 'volunteer') throw new Error("Expected active role volunteer");
+          if (user.name !== 'Shasta Mudda') throw new Error("Expected active user Shasta Mudda");
+
+          // Chapter Admin login
+          SmartFunds.login('chapter_admin', 'Evergreen Admin', 'Evergreen Bay Area Chapter');
+          user = SmartFunds.getActiveUser();
+          if (!user || user.role !== 'chapter_admin') throw new Error("Expected active role chapter_admin");
+
+          // Non-Profit Admin login
+          SmartFunds.login('nonprofit_admin', 'National Executive', 'National Office');
+          user = SmartFunds.getActiveUser();
+          if (!user || user.role !== 'nonprofit_admin') throw new Error("Expected active role nonprofit_admin");
+
+          // Logout
+          SmartFunds.logout();
+          user = SmartFunds.getActiveUser();
+          if (user !== null) throw new Error("Expected activeUser to be null after logout");
+
+          return true;
+        }
       }
     ];
 

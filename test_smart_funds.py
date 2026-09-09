@@ -299,5 +299,107 @@ class TestSmartFundsManager(unittest.TestCase):
         shasta_txs = [t for t in data["transactions"] if t.get("volunteer") == "Shasta Mudda"]
         self.assertGreaterEqual(len(shasta_txs), 1)
 
+    def test_create_project_api(self):
+        """Tests POST /api/funds/create_project creates project and links volunteer."""
+        handler_class = server.NoCacheHTTPRequestHandler
+        mock_req = MagicMock()
+        mock_client_addr = ('127.0.0.1', 8888)
+        mock_srv = MagicMock()
+
+        payload = json.dumps({
+            "name": "Solar Lamps for Rural Classrooms",
+            "chapter": "Evergreen Bay Area Chapter",
+            "target": 2500.0,
+            "assignedVolunteer": "Shasta Mudda",
+            "description": "Solar lighting kits for off-grid schools",
+            "status": "Planning"
+        }).encode('utf-8')
+
+        inst = handler_class.__new__(handler_class)
+        inst.command = 'POST'
+        inst.path = '/api/funds/create_project'
+        inst.headers = {'Content-Length': str(len(payload))}
+        inst.rfile = io.BytesIO(payload)
+        inst.wfile = io.BytesIO()
+        inst.send_response = MagicMock()
+        inst.send_header = MagicMock()
+        inst.end_headers = MagicMock()
+
+        inst.do_POST()
+        inst.send_response.assert_called_with(200)
+
+        data = server.FUNDS_STORE
+        p = next((p for p in data["projects"] if p["name"] == "Solar Lamps for Rural Classrooms"), None)
+        self.assertIsNotNone(p)
+        self.assertEqual(p["target"], 2500.0)
+        self.assertEqual(p["chapter"], "Evergreen Bay Area Chapter")
+
+        # Check Shasta Mudda's assignments
+        shasta = next(v for v in data["volunteers"] if v["name"] == "Shasta Mudda")
+        self.assertTrue(any(a["project"] == "Solar Lamps for Rural Classrooms" for a in shasta["assignments"]))
+
+    def test_add_volunteer_api(self):
+        """Tests POST /api/funds/add_volunteer registers a new youth volunteer."""
+        handler_class = server.NoCacheHTTPRequestHandler
+        payload = json.dumps({
+            "name": "Aarav Sharma",
+            "chapter": "Evergreen Bay Area Chapter",
+            "email": "aarav.sharma@chiraghope.org",
+            "tabName": "Aarav Sharma",
+            "initialProject": "Mini-Library & Sports Club",
+            "initialTarget": 500.0
+        }).encode('utf-8')
+
+        inst = handler_class.__new__(handler_class)
+        inst.command = 'POST'
+        inst.path = '/api/funds/add_volunteer'
+        inst.headers = {'Content-Length': str(len(payload))}
+        inst.rfile = io.BytesIO(payload)
+        inst.wfile = io.BytesIO()
+        inst.send_response = MagicMock()
+        inst.send_header = MagicMock()
+        inst.end_headers = MagicMock()
+
+        inst.do_POST()
+        inst.send_response.assert_called_with(200)
+
+        data = server.FUNDS_STORE
+        v = next((vol for vol in data["volunteers"] if vol["name"] == "Aarav Sharma"), None)
+        self.assertIsNotNone(v)
+        self.assertEqual(v["chapter"], "Evergreen Bay Area Chapter")
+        self.assertEqual(v["tabName"], "Aarav Sharma")
+        self.assertEqual(len(v["assignments"]), 1)
+        self.assertEqual(v["assignments"][0]["project"], "Mini-Library & Sports Club")
+        self.assertEqual(v["assignments"][0]["target"], 500.0)
+
+    def test_create_chapter_api(self):
+        """Tests POST /api/funds/create_chapter creates a new regional chapter."""
+        handler_class = server.NoCacheHTTPRequestHandler
+        payload = json.dumps({
+            "name": "Austin Chapter",
+            "location": "Texas, USA",
+            "initialTarget": 10000.0
+        }).encode('utf-8')
+
+        inst = handler_class.__new__(handler_class)
+        inst.command = 'POST'
+        inst.path = '/api/funds/create_chapter'
+        inst.headers = {'Content-Length': str(len(payload))}
+        inst.rfile = io.BytesIO(payload)
+        inst.wfile = io.BytesIO()
+        inst.send_response = MagicMock()
+        inst.send_header = MagicMock()
+        inst.end_headers = MagicMock()
+
+        inst.do_POST()
+        inst.send_response.assert_called_with(200)
+
+        data = server.FUNDS_STORE
+        c = next((chap for chap in data["chapters"] if chap["name"] == "Austin Chapter"), None)
+        self.assertIsNotNone(c)
+        self.assertEqual(c["location"], "Texas, USA")
+        self.assertEqual(c["initialTarget"], 10000.0)
+        self.assertEqual(len(data["chapters"]), 13)
+
 if __name__ == '__main__':
     unittest.main()

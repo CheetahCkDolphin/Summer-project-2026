@@ -679,6 +679,137 @@
       return { success: true, transaction: tx, project: project };
     },
 
+    // 4. Chapter Admin creates a new project
+    createProject(chapterName, projectName, targetAmount, description, assignedVolunteerName, status) {
+      if (!projectName || !projectName.trim()) {
+        throw new Error("Project name is required.");
+      }
+      projectName = projectName.trim();
+      chapterName = (chapterName || "Evergreen Bay Area Chapter").trim();
+
+      const existingProject = this.state.projects.find(p => p.name.toLowerCase() === projectName.toLowerCase());
+      if (existingProject) {
+        throw new Error(`A project named "${projectName}" already exists.`);
+      }
+
+      targetAmount = parseFloat(targetAmount);
+      if (isNaN(targetAmount) || targetAmount < 0) {
+        throw new Error("Target amount must be a non-negative number.");
+      }
+
+      // Ensure chapter exists or fallback
+      let chapter = this.state.chapters.find(c => c.name.toLowerCase() === chapterName.toLowerCase());
+      if (!chapter) {
+        chapter = { name: chapterName, raised: 0, withdrawals: 0, balance: 0 };
+        this.state.chapters.push(chapter);
+      }
+
+      const newProject = {
+        name: projectName,
+        chapter: chapter.name,
+        target: targetAmount,
+        raised: 0,
+        withdrawn: 0,
+        status: status || "Planning",
+        progress: 0,
+        description: description || `Community initiative under ${chapter.name}`
+      };
+      this.state.projects.push(newProject);
+
+      // If assigned to a volunteer, create or update the volunteer's assignment
+      if (assignedVolunteerName && assignedVolunteerName.trim() && assignedVolunteerName !== 'none') {
+        const vName = assignedVolunteerName.trim();
+        let volunteer = this.state.volunteers.find(v => v.name.toLowerCase() === vName.toLowerCase());
+        if (!volunteer) {
+          volunteer = {
+            name: vName,
+            chapter: chapter.name,
+            email: `${vName.toLowerCase().replace(/\s+/g, '.')}@chiraghope.org`,
+            assignments: []
+          };
+          this.state.volunteers.push(volunteer);
+        }
+        if (!volunteer.assignments) volunteer.assignments = [];
+        volunteer.assignments.push({
+          project: projectName,
+          target: targetAmount,
+          raised: 0,
+          withdrawn: 0
+        });
+      }
+
+      saveState(this.state);
+      this.notifySubscribers();
+      return { success: true, project: newProject };
+    },
+
+    // 5. Chapter Admin adds a new volunteer
+    addVolunteer(chapterName, volunteerName, email, tabName, initialProjectName, initialTarget) {
+      if (!volunteerName || !volunteerName.trim()) {
+        throw new Error("Volunteer name is required.");
+      }
+      volunteerName = volunteerName.trim();
+      chapterName = (chapterName || "Evergreen Bay Area Chapter").trim();
+
+      const existing = this.state.volunteers.find(v => v.name.toLowerCase() === volunteerName.toLowerCase());
+      if (existing) {
+        throw new Error(`A volunteer named "${volunteerName}" is already registered.`);
+      }
+
+      const vEmail = (email && email.trim()) ? email.trim() : `${volunteerName.toLowerCase().replace(/\s+/g, '.')}@chiraghope.org`;
+      const vTab = (tabName && tabName.trim()) ? tabName.trim() : volunteerName;
+
+      const newVolunteer = {
+        name: volunteerName,
+        tabName: vTab,
+        chapter: chapterName,
+        email: vEmail,
+        assignments: []
+      };
+
+      if (initialProjectName && initialProjectName.trim() && initialProjectName !== 'none') {
+        const initTarget = parseFloat(initialTarget) || 0;
+        newVolunteer.assignments.push({
+          project: initialProjectName.trim(),
+          target: initTarget,
+          raised: 0,
+          withdrawn: 0
+        });
+      }
+
+      this.state.volunteers.push(newVolunteer);
+      saveState(this.state);
+      this.notifySubscribers();
+      return { success: true, volunteer: newVolunteer };
+    },
+
+    // 6. Non-Profit Org Admin creates a new chapter
+    createChapter(chapterName, location, initialTarget) {
+      if (!chapterName || !chapterName.trim()) {
+        throw new Error("Chapter name is required.");
+      }
+      chapterName = chapterName.trim();
+
+      const existing = this.state.chapters.find(c => c.name.toLowerCase() === chapterName.toLowerCase());
+      if (existing) {
+        throw new Error(`A chapter named "${chapterName}" already exists.`);
+      }
+
+      const newChapter = {
+        name: chapterName,
+        location: (location && location.trim()) ? location.trim() : "United States",
+        raised: 0,
+        withdrawals: 0,
+        balance: 0,
+        initialTarget: parseFloat(initialTarget) || 0
+      };
+
+      this.state.chapters.push(newChapter);
+      saveState(this.state);
+      this.notifySubscribers();
+      return { success: true, chapter: newChapter };
+    },
+
     // Change listeners for UI reactivity
     subscribers: [],
     subscribe(callback) {
