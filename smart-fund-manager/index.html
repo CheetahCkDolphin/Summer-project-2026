@@ -85,6 +85,12 @@
           </svg>
           Non-Profit Org Administrator
         </button>
+        <button class="sf-nav-tab" data-target="platform-admin-view" id="tab-platform-admin">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          Platform Administrator
+        </button>
       </div>
 
       <div style="font-size: 0.8rem; color: var(--text-secondary);">
@@ -145,6 +151,18 @@
             Sign In as Non-Profit Admin
           </button>
         </div>
+
+        <!-- Persona 4: Smart Funds Manager Administrator (Platform Super Admin) -->
+        <div class="sf-persona-card platform-admin" id="card-platform-admin">
+          <div class="sf-persona-icon">⚡</div>
+          <h2 class="sf-persona-card-title">Smart Funds Platform Admin</h2>
+          <p class="sf-persona-card-desc">
+            Global ecosystem administrator. Onboard new non-profit organizations, monitor cross-organization fund distribution, chapters, and compliance.
+          </p>
+          <button class="sf-btn sf-persona-quick-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b; color: #fff;" onclick="app.quickLogin('platform_admin', 'Smart Funds Platform Super Admin', 'Platform Headquarters')">
+            Sign In as Platform Admin
+          </button>
+        </div>
       </div>
 
       <!-- Optional Direct Credentials Form -->
@@ -163,6 +181,7 @@
               <option value="volunteer">Volunteer (Youth Member)</option>
               <option value="chapter_admin">Chapter Administrator</option>
               <option value="nonprofit_admin">Non-Profit Organization Administrator</option>
+              <option value="platform_admin">Smart Funds Manager Administrator (Platform Super Admin)</option>
             </select>
           </div>
           <div class="sf-form-group">
@@ -807,6 +826,117 @@
       </div>
     </div>
 
+
+    <!-- ================================================================= -->
+    <!-- VIEW 5: SMART FUNDS MANAGER ADMINISTRATOR (PLATFORM SUPER ADMIN)   -->
+    <!-- ================================================================= -->
+    <div id="platform-admin-view" style="display: none;">
+      
+      <!-- Platform Banner -->
+      <div class="sf-section" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(15, 23, 42, 0.9));">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; color: #f59e0b;">
+              ⚡ Smart Funds Manager Administrator Portal
+            </h1>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">
+              Master Platform Overview — Ecosystem management across non-profit organizations, cross-chapter aggregates, and multi-tenant expansion.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="sf-btn sf-btn-primary sf-btn-sm" style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b; color: #fff;" onclick="app.openCreateOrganizationModal()" title="Add a new Non-Profit Organization">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 2px;"><path d="M12 5v14M5 12h14"/></svg>
+              Add Non-Profit Organization
+            </button>
+            <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.exportDataCSV()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform Global KPIs -->
+      <div class="sf-kpi-grid">
+        <div class="sf-kpi-card" style="border-left: 4px solid #f59e0b;">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Active Non-Profit Orgs</span>
+            <span class="sf-kpi-icon">🏢</span>
+          </div>
+          <div id="pa-kpi-orgs" class="sf-kpi-value">1</div>
+          <div class="sf-kpi-footer">Onboarded 501(c)(3) entities</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-target">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Total Regional Chapters</span>
+            <span class="sf-kpi-icon">🏛️</span>
+          </div>
+          <div id="pa-kpi-chapters" class="sf-kpi-value">12</div>
+          <div class="sf-kpi-footer">Across all participating orgs</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-raised">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Platform Gross Funds Raised</span>
+            <span class="sf-kpi-icon">💰</span>
+          </div>
+          <div id="pa-kpi-raised" class="sf-kpi-value">$67,163.00</div>
+          <div class="sf-kpi-footer">Total contributions mobilized</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-balance">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Platform Net Reserves</span>
+            <span class="sf-kpi-icon">🏦</span>
+          </div>
+          <div id="pa-kpi-balance" class="sf-kpi-value">$28,505.00</div>
+          <div class="sf-kpi-footer">Total liquid balance remaining</div>
+        </div>
+      </div>
+
+      <!-- Table: Registered Non-Profit Organizations Summary -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>🏢 Registered Non-Profit Organizations Summary</span>
+          </h2>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">
+            Multi-Tenant Portfolio & Operational Overview
+          </span>
+        </div>
+
+        <div class="sf-table-wrapper">
+          <table class="sf-table">
+            <thead>
+              <tr>
+                <th>Organization Name</th>
+                <th>EIN / Tax ID</th>
+                <th>HQ Location</th>
+                <th>Focus Cause</th>
+                <th>Contact</th>
+                <th>Chapters</th>
+                <th>Total Raised</th>
+                <th>Withdrawals</th>
+                <th>Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="pa-orgs-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+            <tfoot id="pa-orgs-tfoot" style="font-weight: 700; background: rgba(255, 255, 255, 0.02); border-top: 2px solid var(--border-color);">
+              <!-- Total row -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div> <!-- /sf-app-container -->
 
 
@@ -1063,6 +1193,53 @@
     </div>
   </div>
 
+  <!-- ================================================================= -->
+  <!-- MODAL 7: CREATE NON-PROFIT ORGANIZATION (PLATFORM ADMIN)          -->
+  <!-- ================================================================= -->
+  <div class="sf-modal-backdrop" id="modal-create-nonprofit">
+    <div class="sf-modal">
+      <div class="sf-modal-header">
+        <h3 class="sf-modal-title">🏢 Onboard New Non-Profit Organization</h3>
+        <button class="sf-modal-close" onclick="app.closeModals()">&times;</button>
+      </div>
+      <form id="create-nonprofit-form" onsubmit="app.handleCreateOrganization(event)">
+        <div class="sf-modal-body">
+          <div class="sf-alert sf-alert-info">
+            Register a verified non-profit organization (e.g. 501(c)(3) tax-exempt entity) into the Smart Funds Manager platform.
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cno-name">Organization Name</label>
+            <input type="text" id="cno-name" class="sf-form-control" placeholder="e.g. Hope For Tomorrow Foundation" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cno-ein">EIN / Tax ID</label>
+            <input type="text" id="cno-ein" class="sf-form-control" placeholder="e.g. 84-1234567" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cno-location">Headquarters Location</label>
+            <input type="text" id="cno-location" class="sf-form-control" placeholder="e.g. San Francisco, CA" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cno-email">Administrative Contact Email</label>
+            <input type="email" id="cno-email" class="sf-form-control" placeholder="e.g. admin@hopefortomorrow.org" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cno-cause">Focus Cause / Mission</label>
+            <input type="text" id="cno-cause" class="sf-form-control" placeholder="e.g. Healthcare, Youth Literacy, Animal Welfare" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="cno-description">Description & Mission Statement</label>
+            <textarea id="cno-description" class="sf-form-control" rows="2" placeholder="Summary of organizational scope and programs..."></textarea>
+          </div>
+        </div>
+        <div class="sf-modal-footer">
+          <button type="button" class="sf-btn sf-btn-outline" onclick="app.closeModals()">Cancel</button>
+          <button type="submit" class="sf-btn sf-btn-primary" style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b;">Onboard Organization</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Load Smart Funds Core Engine & UI Controller -->
   <script src="smart_funds.js?v=4"></script>
   <script>
@@ -1149,7 +1326,8 @@
         // Strict portal authorization guard: enforce that logged-in users only access their persona view
         if (user && viewId !== 'login-view') {
           const allowedView = user.role === 'volunteer' ? 'volunteer-view' :
-                              user.role === 'chapter_admin' ? 'chapter-admin-view' : 'nonprofit-admin-view';
+                              user.role === 'chapter_admin' ? 'chapter-admin-view' :
+                              user.role === 'platform_admin' ? 'platform-admin-view' : 'nonprofit-admin-view';
           if (viewId !== allowedView) {
             viewId = allowedView;
           }
@@ -1165,7 +1343,7 @@
         });
 
         // Show/hide view sections
-        ['login-view', 'volunteer-view', 'chapter-admin-view', 'nonprofit-admin-view'].forEach(id => {
+        ['login-view', 'volunteer-view', 'chapter-admin-view', 'nonprofit-admin-view', 'platform-admin-view'].forEach(id => {
           const el = document.getElementById(id);
           if (el) {
             el.style.display = (id === viewId) ? 'block' : 'none';
@@ -1186,6 +1364,8 @@
           }
         } else if (viewId === 'nonprofit-admin-view') {
           this.renderNonprofitAdmin();
+        } else if (viewId === 'platform-admin-view') {
+          this.renderPlatformAdmin();
         }
       },
 
@@ -1199,6 +1379,7 @@
         const tabVol = document.getElementById('tab-volunteer');
         const tabCA = document.getElementById('tab-chapter-admin');
         const tabNP = document.getElementById('tab-nonprofit-admin');
+        const tabPA = document.getElementById('tab-platform-admin');
 
         if (!user) {
           userBadge.style.display = 'none';
@@ -1215,7 +1396,8 @@
         document.getElementById('header-user-name').textContent = user.name;
         document.getElementById('header-user-role').textContent =
           user.role === 'volunteer' ? 'Volunteer' :
-          user.role === 'chapter_admin' ? 'Chapter Admin' : 'Non-Profit Admin';
+          user.role === 'chapter_admin' ? 'Chapter Admin' :
+          user.role === 'platform_admin' ? 'Platform Super Admin' : 'Non-Profit Admin';
         document.getElementById('active-chapter-name').textContent = user.chapter;
 
         // Strict Persona Portal Visibility: Show ONLY the active persona's portal tab in navigation
@@ -1223,18 +1405,28 @@
           if (tabVol) tabVol.style.display = 'inline-flex';
           if (tabCA) tabCA.style.display = 'none';
           if (tabNP) tabNP.style.display = 'none';
+          if (tabPA) tabPA.style.display = 'none';
           this.switchView('volunteer-view');
           this.renderVolunteer(user);
         } else if (user.role === 'chapter_admin') {
           if (tabVol) tabVol.style.display = 'none';
           if (tabCA) tabCA.style.display = 'inline-flex';
           if (tabNP) tabNP.style.display = 'none';
+          if (tabPA) tabPA.style.display = 'none';
           this.switchView('chapter-admin-view');
           this.renderChapterAdmin(user.chapter);
+        } else if (user.role === 'platform_admin') {
+          if (tabVol) tabVol.style.display = 'none';
+          if (tabCA) tabCA.style.display = 'none';
+          if (tabNP) tabNP.style.display = 'none';
+          if (tabPA) tabPA.style.display = 'inline-flex';
+          this.switchView('platform-admin-view');
+          this.renderPlatformAdmin();
         } else {
           if (tabVol) tabVol.style.display = 'none';
           if (tabCA) tabCA.style.display = 'none';
           if (tabNP) tabNP.style.display = 'inline-flex';
+          if (tabPA) tabPA.style.display = 'none';
           this.switchView('nonprofit-admin-view');
           this.renderNonprofitAdmin();
         }
@@ -1976,6 +2168,89 @@
           this.renderNonprofitAdmin();
         } catch (err) {
           alert("Error creating chapter: " + err.message);
+        }
+      },
+
+      // --- PLATFORM ADMIN RENDER ---
+      renderPlatformAdmin() {
+        const metrics = SmartFunds.getPlatformMetrics();
+        const orgs = SmartFunds.getOrganizationsSummary();
+
+        const kpiOrgs = document.getElementById('pa-kpi-orgs');
+        const kpiChapters = document.getElementById('pa-kpi-chapters');
+        const kpiRaised = document.getElementById('pa-kpi-raised');
+        const kpiBalance = document.getElementById('pa-kpi-balance');
+
+        if (kpiOrgs) kpiOrgs.textContent = metrics.totalOrganizations;
+        if (kpiChapters) kpiChapters.textContent = metrics.totalChapters;
+        if (kpiRaised) kpiRaised.textContent = SmartFunds.formatCurrency(metrics.totalRaised);
+        if (kpiBalance) kpiBalance.textContent = SmartFunds.formatCurrency(metrics.totalBalance);
+
+        const tbody = document.getElementById('pa-orgs-tbody');
+        if (tbody) {
+          tbody.innerHTML = '';
+          orgs.forEach(org => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>
+                <div style="font-weight: 700; color: var(--text-primary);">${org.name}</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">${org.description || ''}</div>
+              </td>
+              <td><code>${org.ein || 'N/A'}</code></td>
+              <td>${org.location || 'N/A'}</td>
+              <td><span class="sf-badge sf-badge-info">${org.cause || 'General'}</span></td>
+              <td><a href="mailto:${org.contactEmail}" style="color: var(--primary); text-decoration: none;">${org.contactEmail || 'N/A'}</a></td>
+              <td style="font-weight: 600; text-align: center;">${org.chapterCount}</td>
+              <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(org.totalRaised)}</td>
+              <td style="color: var(--danger); font-weight: 700;">${SmartFunds.formatCurrency(org.totalWithdrawn)}</td>
+              <td style="color: ${org.totalBalance < 0 ? 'var(--danger)' : 'var(--info)'}; font-weight: 700;">${SmartFunds.formatCurrency(org.totalBalance)}</td>
+              <td><span class="sf-badge sf-badge-success">${org.status || 'Active'}</span></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+        const tfoot = document.getElementById('pa-orgs-tfoot');
+        if (tfoot) {
+          tfoot.innerHTML = `
+            <tr>
+              <td colspan="5"><strong>Platform Total (${metrics.totalOrganizations} Organizations)</strong></td>
+              <td style="font-weight: 700; text-align: center;">${metrics.totalChapters}</td>
+              <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(metrics.totalRaised)}</td>
+              <td style="color: var(--danger); font-weight: 700;">${SmartFunds.formatCurrency(metrics.totalWithdrawn)}</td>
+              <td style="color: ${metrics.totalBalance < 0 ? 'var(--danger)' : 'var(--info)'}; font-weight: 700;">${SmartFunds.formatCurrency(metrics.totalBalance)}</td>
+              <td><span class="sf-badge sf-badge-info">Verified</span></td>
+            </tr>
+          `;
+        }
+      },
+
+      openCreateOrganizationModal() {
+        document.getElementById('cno-name').value = '';
+        document.getElementById('cno-ein').value = '';
+        document.getElementById('cno-location').value = '';
+        document.getElementById('cno-email').value = '';
+        document.getElementById('cno-cause').value = '';
+        document.getElementById('cno-description').value = '';
+        document.getElementById('modal-create-nonprofit').classList.add('open');
+      },
+
+      handleCreateOrganization(e) {
+        e.preventDefault();
+        const name = document.getElementById('cno-name').value.trim();
+        const ein = document.getElementById('cno-ein').value.trim();
+        const location = document.getElementById('cno-location').value.trim();
+        const email = document.getElementById('cno-email').value.trim();
+        const cause = document.getElementById('cno-cause').value.trim();
+        const desc = document.getElementById('cno-description').value.trim();
+
+        try {
+          SmartFunds.createOrganization(name, ein, location, email, cause, desc);
+          this.closeModals();
+          alert(`Success: Onboarded new non-profit organization "${name}" (EIN: ${ein})!`);
+          this.renderPlatformAdmin();
+        } catch (err) {
+          alert("Error onboarding organization: " + err.message);
         }
       },
 

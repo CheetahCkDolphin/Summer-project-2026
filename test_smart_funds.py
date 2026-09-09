@@ -401,5 +401,41 @@ class TestSmartFundsManager(unittest.TestCase):
         self.assertEqual(c["initialTarget"], 10000.0)
         self.assertEqual(len(data["chapters"]), 13)
 
+    def test_create_organization_api(self):
+        """Tests POST /api/funds/create_organization adds a new non-profit organization."""
+        handler_class = server.NoCacheHTTPRequestHandler
+        data = server.FUNDS_STORE
+        self.assertEqual(len(data.get("organizations", [])), 1)
+        self.assertEqual(data["organizations"][0]["name"], "Chirag Hope")
+
+        payload = json.dumps({
+            "name": "Global Youth Education Foundation",
+            "ein": "94-9876543",
+            "location": "Seattle, WA",
+            "contactEmail": "admin@globalyouth.org",
+            "cause": "Global STEM & Digital Literacy",
+            "description": "Equipping rural classrooms with modern learning devices."
+        }).encode('utf-8')
+
+        inst = handler_class.__new__(handler_class)
+        inst.command = 'POST'
+        inst.path = '/api/funds/create_organization'
+        inst.headers = {'Content-Length': str(len(payload))}
+        inst.rfile = io.BytesIO(payload)
+        inst.wfile = io.BytesIO()
+        inst.send_response = MagicMock()
+        inst.send_header = MagicMock()
+        inst.end_headers = MagicMock()
+
+        inst.do_POST()
+        inst.send_response.assert_called_with(200)
+
+        self.assertEqual(len(data["organizations"]), 2)
+        new_org = next(o for o in data["organizations"] if o["name"] == "Global Youth Education Foundation")
+        self.assertEqual(new_org["ein"], "94-9876543")
+        self.assertEqual(new_org["location"], "Seattle, WA")
+        self.assertEqual(new_org["contactEmail"], "admin@globalyouth.org")
+        self.assertEqual(new_org["cause"], "Global STEM & Digital Literacy")
+
 if __name__ == '__main__':
     unittest.main()

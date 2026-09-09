@@ -6,12 +6,25 @@
 (function(window) {
   'use strict';
 
-  const STORAGE_KEY = 'smart_funds_manager_state_v3';
+  const STORAGE_KEY = 'smart_funds_manager_state_v4';
 
   // Spreadsheet Baseline Data Initializer
   function getInitialDataset() {
     return {
       organization: "Chirag Hope",
+      organizations: [
+        {
+          id: "org-chirag-hope",
+          name: "Chirag Hope",
+          ein: "77-0489123",
+          headquarters: "San Jose, California, USA",
+          contactEmail: "admin@chiraghope.org",
+          cause: "Child Education & Rural Relief",
+          status: "Active",
+          foundedYear: 2018,
+          description: "Empowering rural students and underserved communities through education support, seats of hope, sports clubs, and classroom infrastructure."
+        }
+      ],
       chapters: [
         { name: "Evergreen Bay Area Chapter", raised: 20070, withdrawals: 13186, balance: 6884 },
         { name: "Washington D.C Chapter", raised: 22000, withdrawals: 10000, balance: 12000 },
@@ -326,15 +339,28 @@
   // Load or initialize state
   function loadState() {
     try {
-      // Check v3 first, with backward compatibility for v2 or v1 to preserve any created transactions
+      // Check v4 first, with backward compatibility for prior versions
       const stored = localStorage.getItem(STORAGE_KEY) ||
+                     localStorage.getItem('smart_funds_manager_state_v3') ||
                      localStorage.getItem('smart_funds_manager_state_v2') ||
                      localStorage.getItem('smart_funds_manager_state_v1');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.chapters && parsed.projects && parsed.volunteers) {
-          // Merge all 12 baseline volunteers from Google Doc Sheet 1 if missing or partial
           const initial = getInitialDataset();
+
+          // Ensure organizations array exists with Chirag Hope
+          if (!parsed.organizations || parsed.organizations.length === 0) {
+            parsed.organizations = initial.organizations;
+          } else {
+            initial.organizations.forEach(io => {
+              if (!parsed.organizations.some(o => o.name.toLowerCase() === io.name.toLowerCase())) {
+                parsed.organizations.unshift(io);
+              }
+            });
+          }
+
+          // Merge all 12 baseline volunteers from Google Doc Sheet 1 if missing or partial
           initial.volunteers.forEach(iv => {
             const existing = parsed.volunteers.find(v => v.name.toLowerCase() === iv.name.toLowerCase());
             if (!existing) {
@@ -390,8 +416,13 @@
     login(role, name, chapter) {
       this.state.activeUser = {
         role: role,
-        name: name || (role === 'volunteer' ? 'Shasta Mudda' : role === 'chapter_admin' ? 'Evergreen Admin' : 'Chirag Hope Executive Admin'),
-        chapter: chapter || 'Evergreen Bay Area Chapter'
+        name: name || (
+          role === 'volunteer' ? 'Shasta Mudda' :
+          role === 'chapter_admin' ? 'Evergreen Admin' :
+          role === 'nonprofit_admin' ? 'Chirag Hope Executive Admin' :
+          'Smart Funds Platform Admin'
+        ),
+        chapter: chapter || (role === 'platform_admin' ? 'Platform HQ' : 'Evergreen Bay Area Chapter')
       };
       saveState(this.state);
       this.notifySubscribers();
@@ -808,6 +839,133 @@
       saveState(this.state);
       this.notifySubscribers();
       return { success: true, chapter: newChapter };
+    },
+
+    // 7. Smart Funds Manager Admin creates a new Non-Profit Organization
+    createOrganization(name, ein, location, contactEmail, cause, description) {
+      if (!name || !name.trim()) {
+        throw new Error("Non-profit organization name is required.");
+      }
+      name = name.trim();
+
+      if (!this.state.organizations) {
+        this.state.organizations = [];
+      }
+
+      const existing = this.state.organizations.find(o => o.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        throw new Error(`An organization named "${name}" already exists.`);
+      }
+
+      const orgId = "org-" + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + "-" + Date.now().toString().slice(-4);
+      const newOrg = {
+        id: orgId,
+        name: name,
+        ein: (ein && ein.trim()) ? ein.trim() : "Pending",
+        headquarters: (location && location.trim()) ? location.trim() : "United States",
+        location: (location && location.trim()) ? location.trim() : "United States",
+        contactEmail: (contactEmail && contactEmail.trim()) ? contactEmail.trim() : `admin@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.org`,
+        cause: (cause && cause.trim()) ? cause.trim() : "Community Development & Education",
+        status: "Active",
+        foundedYear: new Date().getFullYear(),
+        description: (description && description.trim()) ? description.trim() : `Dedicated non-profit organization focused on ${cause || "community welfare"}.`
+      };
+
+      this.state.organizations.push(newOrg);
+      saveState(this.state);
+      this.notifySubscribers();
+      return { success: true, organization: newOrg };
+    },
+
+    getOrganizationsSummary() {
+      if (!this.state.organizations || this.state.organizations.length === 0) {
+        this.state.organizations = getInitialDataset().organizations;
+      }
+
+      // Calculate Chirag Hope metrics as baseline
+      const npMetrics = this.getNonprofitMetrics();
+
+      return this.state.organizations.map(org => {
+        const isChirag = org.name.toLowerCase().includes("chirag");
+        if (isChirag) {
+          return {
+            id: org.id,
+            name: org.name,
+            ein: org.ein || "77-0489123",
+            headquarters: org.headquarters || org.location || "San Jose, CA, USA",
+            location: org.location || org.headquarters || "San Jose, CA, USA",
+            contactEmail: org.contactEmail || "admin@chiraghope.org",
+            cause: org.cause || "Child Education & Rural Relief",
+            status: org.status || "Active",
+            foundedYear: org.foundedYear || 2018,
+            description: org.description,
+            chapterCount: npMetrics.totalChapters,
+            chaptersCount: npMetrics.totalChapters,
+            projectsCount: npMetrics.totalProjects,
+            volunteersCount: this.state.volunteers.length,
+            totalRaised: npMetrics.totalRaised,
+            totalWithdrawn: npMetrics.totalWithdrawn,
+            totalBalance: npMetrics.totalBalance,
+            balance: npMetrics.totalBalance
+          };
+        } else {
+          // For other organizations, count chapters linked to them or defaults
+          const orgChapters = this.state.chapters.filter(c => (c.organization || '').toLowerCase() === org.name.toLowerCase());
+          let totalRaised = 0;
+          let totalWithdrawn = 0;
+          orgChapters.forEach(c => {
+            totalRaised += Number(c.raised) || 0;
+            totalWithdrawn += Number(c.withdrawals) || 0;
+          });
+          const totalBalance = totalRaised - totalWithdrawn;
+          return {
+            id: org.id,
+            name: org.name,
+            ein: org.ein || "Pending",
+            headquarters: org.headquarters || org.location || "United States",
+            location: org.location || org.headquarters || "United States",
+            contactEmail: org.contactEmail || `contact@${org.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.org`,
+            cause: org.cause || "Community Welfare",
+            status: org.status || "Active",
+            foundedYear: org.foundedYear || new Date().getFullYear(),
+            description: org.description || "Active partner non-profit organization.",
+            chapterCount: orgChapters.length,
+            chaptersCount: orgChapters.length,
+            projectsCount: 0,
+            volunteersCount: 0,
+            totalRaised,
+            totalWithdrawn,
+            totalBalance,
+            balance: totalBalance
+          };
+        }
+      });
+    },
+
+    getPlatformMetrics() {
+      const summaries = this.getOrganizationsSummary();
+      let totalRaised = 0;
+      let totalWithdrawn = 0;
+      let totalChapters = 0;
+      let totalProjects = 0;
+
+      summaries.forEach(s => {
+        totalRaised += s.totalRaised;
+        totalWithdrawn += s.totalWithdrawn;
+        totalChapters += s.chaptersCount;
+        totalProjects += s.projectsCount;
+      });
+
+      return {
+        totalOrganizations: summaries.length,
+        totalChapters: Math.max(totalChapters, this.state.chapters.length),
+        totalProjects: Math.max(totalProjects, this.state.projects.length),
+        totalVolunteers: this.state.volunteers.length,
+        totalRaised,
+        totalWithdrawn,
+        balance: totalRaised - totalWithdrawn,
+        organizations: summaries
+      };
     },
 
     // Change listeners for UI reactivity

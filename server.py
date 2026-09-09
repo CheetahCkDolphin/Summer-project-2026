@@ -14,6 +14,20 @@ PORT = 8080
 def get_initial_funds_dataset():
     return {
         "organization": "Chirag Hope",
+        "organizations": [
+            {
+                "id": "org-chirag-hope",
+                "name": "Chirag Hope",
+                "ein": "77-0489123",
+                "headquarters": "San Jose, California, USA",
+                "location": "San Jose, California, USA",
+                "contactEmail": "admin@chiraghope.org",
+                "cause": "Child Education & Rural Relief",
+                "status": "Active",
+                "foundedYear": 2018,
+                "description": "Empowering rural students and underserved communities through education support, seats of hope, sports clubs, and classroom infrastructure."
+            }
+        ],
         "chapters": [
             {"name": "Evergreen Bay Area Chapter", "raised": 20070.0, "withdrawals": 13186.0, "balance": 6884.0},
             {"name": "Washington D.C Chapter", "raised": 22000.0, "withdrawals": 10000.0, "balance": 12000.0},
@@ -215,6 +229,17 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # REST API endpoint to fetch funds dataset
         if clean_path == '/api/funds/data':
             response_data = json.dumps(FUNDS_STORE).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response_data)))
+            self.end_headers()
+            self.wfile.write(response_data)
+            return
+
+        # REST API endpoint to fetch organizations summary
+        if clean_path == '/api/funds/organizations':
+            orgs = FUNDS_STORE.get('organizations', [])
+            response_data = json.dumps({"success": True, "organizations": orgs}).encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Content-Length', str(len(response_data)))
@@ -488,6 +513,54 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 }
                 FUNDS_STORE['chapters'].append(new_chap)
                 res = json.dumps({"success": True, "chapter": new_chap}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(res)))
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(err)))
+                self.end_headers()
+                self.wfile.write(err)
+            return
+
+        # 7. API: Create Non-Profit Organization
+        elif clean_path == '/api/funds/create_organization':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                org_name = body.get('name', '').strip()
+                ein = body.get('ein', '').strip() or "Pending"
+                location = (body.get('location') or body.get('headquarters') or '').strip() or "United States"
+                contact_email = body.get('contactEmail', '').strip() or f"admin@{org_name.lower().replace(' ', '')}.org"
+                cause = body.get('cause', '').strip() or "Community Development & Education"
+                description = body.get('description', '').strip() or f"Dedicated non-profit organization focused on {cause}."
+
+                if not org_name:
+                    raise ValueError("Organization name is required")
+
+                FUNDS_STORE.setdefault('organizations', [])
+                if any(o['name'].lower() == org_name.lower() for o in FUNDS_STORE['organizations']):
+                    raise ValueError(f"Organization '{org_name}' already exists")
+
+                org_id = f"org-{len(FUNDS_STORE['organizations']) + 1}"
+                new_org = {
+                    "id": org_id,
+                    "name": org_name,
+                    "ein": ein,
+                    "headquarters": location,
+                    "location": location,
+                    "contactEmail": contact_email,
+                    "cause": cause,
+                    "status": "Active",
+                    "foundedYear": 2026,
+                    "description": description
+                }
+                FUNDS_STORE['organizations'].append(new_org)
+                res = json.dumps({"success": True, "organization": new_org}).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Content-Length', str(len(res)))

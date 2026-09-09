@@ -383,10 +383,74 @@
           user = SmartFunds.getActiveUser();
           if (!user || user.role !== 'nonprofit_admin') throw new Error("Expected active role nonprofit_admin");
 
+          // Platform Admin login
+          SmartFunds.login('platform_admin', 'Smart Funds Platform Super Admin', 'Platform Headquarters');
+          user = SmartFunds.getActiveUser();
+          if (!user || user.role !== 'platform_admin') throw new Error("Expected active role platform_admin");
+          if (user.name !== 'Smart Funds Platform Super Admin') throw new Error("Expected active user Smart Funds Platform Super Admin");
+
           // Logout
           SmartFunds.logout();
           user = SmartFunds.getActiveUser();
           if (user !== null) throw new Error("Expected activeUser to be null after logout");
+
+          return true;
+        }
+      },
+      {
+        id: 15,
+        name: "Smart Funds Platform Metrics & Baseline Organizations",
+        desc: "Validates that platform metrics correctly aggregate Chirag Hope baseline with 12 chapters, $67,163 raised, and $28,505 net reserves.",
+        run() {
+          SmartFunds.resetToDefault();
+          const orgs = SmartFunds.getOrganizationsSummary();
+          if (!Array.isArray(orgs) || orgs.length < 1) throw new Error("Expected at least 1 organization in summary");
+          const chirag = orgs.find(o => o.name.toLowerCase().includes("chirag"));
+          if (!chirag) throw new Error("Chirag Hope baseline organization not found");
+          if (chirag.totalRaised !== 67163.0) throw new Error(`Expected $67,163.00 raised, got ${chirag.totalRaised}`);
+          if (chirag.totalWithdrawn !== 38658.0) throw new Error(`Expected $38,658.00 withdrawn, got ${chirag.totalWithdrawn}`);
+          if (chirag.balance !== 28505.0) throw new Error(`Expected $28,505.00 balance, got ${chirag.balance}`);
+
+          const platformMetrics = SmartFunds.getPlatformMetrics();
+          if (platformMetrics.totalOrganizations < 1) throw new Error("Expected at least 1 organization in platform metrics");
+          if (platformMetrics.totalChapters !== 12) throw new Error(`Expected 12 chapters, got ${platformMetrics.totalChapters}`);
+          if (platformMetrics.totalRaised !== 67163.0) throw new Error(`Expected $67,163.00 total platform raised, got ${platformMetrics.totalRaised}`);
+          return true;
+        }
+      },
+      {
+        id: 16,
+        name: "Create Non-Profit Organization Operation & Multi-Tenant Registry",
+        desc: "Verifies adding a new non-profit organization with EIN, headquarters location, mission, contact email, and duplicate prevention.",
+        run() {
+          SmartFunds.resetToDefault();
+          const initCount = SmartFunds.getOrganizationsSummary().length;
+          const res = SmartFunds.createOrganization(
+            "Youth Literacy Global Foundation",
+            "84-7654321",
+            "San Francisco, CA",
+            "contact@youthliteracy.org",
+            "Literacy & Book Grants",
+            "Dedicated to distributing books to underserved primary schools."
+          );
+
+          if (!res.success || !res.organization) throw new Error("Create organization did not return success");
+          const orgs = SmartFunds.getOrganizationsSummary();
+          if (orgs.length !== initCount + 1) throw new Error(`Expected ${initCount + 1} orgs, found ${orgs.length}`);
+
+          const newOrg = orgs.find(o => o.name === "Youth Literacy Global Foundation");
+          if (!newOrg) throw new Error("New organization not found in summary");
+          if (newOrg.ein !== "84-7654321") throw new Error(`Expected EIN 84-7654321, got ${newOrg.ein}`);
+          if (newOrg.cause !== "Literacy & Book Grants") throw new Error(`Expected Literacy & Book Grants, got ${newOrg.cause}`);
+
+          // Test duplicate name prevention
+          let threw = false;
+          try {
+            SmartFunds.createOrganization("Youth Literacy Global Foundation", "84-9999999", "Seattle, WA");
+          } catch (e) {
+            threw = true;
+          }
+          if (!threw) throw new Error("Expected duplicate organization creation to throw an error");
 
           return true;
         }
