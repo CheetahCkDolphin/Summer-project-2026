@@ -1100,10 +1100,9 @@ function transcribeAudioFile() {
                   headers: { 'Content-Type': 'audio/wav' }
                 });
               } else {
-                const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
-                const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
-                return Promise.resolve({
-                  transcript: chunkSentences.join(" ")
+                return fetch('https://www.google.com/speech-api/v2/recognize?client=chromium&lang=en-US', {
+                  method: 'POST',
+                  body: wavBlob
                 });
               }
             })
@@ -1112,7 +1111,7 @@ function transcribeAudioFile() {
                 return response;
               }
               if (!response.ok) throw new Error('STT HTTP status ' + response.status);
-              return response.json();
+              return isLocalhost ? response.json() : response.text();
             })
             .then(data => {
               let chunkText = "";
@@ -1129,8 +1128,7 @@ function transcribeAudioFile() {
                   } catch (e) {}
                 });
               }
-              const isError = !chunkText || 
-                              chunkText.startsWith("[Speech Recognition API error") || 
+              const isError = chunkText.startsWith("[Speech Recognition API error") || 
                               chunkText.startsWith("[Error") || 
                               chunkText.startsWith("[Exception") || 
                               chunkText.includes("nodename nor servname provided") ||
@@ -1138,7 +1136,7 @@ function transcribeAudioFile() {
 
               if (chunkText && !isError) {
                 transcripts.push(chunkText.trim());
-              } else {
+              } else if (!state.audioFile) {
                 const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
                 const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
                 transcripts.push(chunkSentences.join(" "));
@@ -1147,9 +1145,11 @@ function transcribeAudioFile() {
             })
             .catch(err => {
               console.warn(`STT Part ${currentChunk + 1} note:`, err);
-              const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
-              const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
-              transcripts.push(chunkSentences.join(" "));
+              if (!state.audioFile) {
+                const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                transcripts.push(chunkSentences.join(" "));
+              }
               updateSTTProgress();
             });
         } else {
@@ -1185,7 +1185,7 @@ function transcribeAudioFile() {
           state.audioElement.muted = false;
         }
         const finalFullText = transcripts.filter(t => t).join(" ").trim();
-        const finalText = finalFullText !== "" ? finalFullText : fullTargetText;
+        const finalText = finalFullText !== "" ? finalFullText : (state.audioFile ? "" : fullTargetText);
 
         const inputEl = document.getElementById('transcript-input') || DOM.transcriptInput || transcriptInput;
         if (inputEl) {
