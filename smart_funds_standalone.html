@@ -4,915 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Funds Manager - Chirag Hope</title>
-  <style>
-/* --- SMART FUNDS EMBEDDED STYLES --- */
-/* Smart Funds Manager Stylesheet */
-:root {
-  --bg-primary: #0b0f19;
-  --bg-secondary: #111827;
-  --bg-card: rgba(17, 24, 39, 0.85);
-  --bg-card-hover: rgba(31, 41, 55, 0.9);
-  --bg-modal: #1e293b;
-  --border-color: rgba(255, 255, 255, 0.1);
-  --border-focus: #38bdf8;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  
-  --primary: #0284c7;
-  --primary-hover: #0369a1;
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.12);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.12);
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.12);
-  --info: #38bdf8;
-  --info-bg: rgba(56, 189, 248, 0.12);
-  --purple: #a855f7;
-  --purple-bg: rgba(168, 85, 247, 0.12);
-  
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.25);
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: var(--font-family);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  min-height: 100vh;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Container */
-.sf-app-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1.25rem 1.5rem 3rem 1.5rem;
-}
-
-/* Header */
-.sf-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-md);
-}
-
-.sf-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.sf-brand-icon {
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
-}
-
-.sf-brand-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.sf-brand-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  background: var(--info-bg);
-  color: var(--info);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: var(--radius-full);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.sf-brand-subtitle {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.sf-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-/* Buttons */
-.sf-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.15rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.sf-btn-primary {
-  background: linear-gradient(135deg, var(--primary), #0284c7);
-  color: #fff;
-  border-color: rgba(56, 189, 248, 0.3);
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
-}
-
-.sf-btn-primary:hover {
-  background: linear-gradient(135deg, #0284c7, #0369a1);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.5);
-  transform: translateY(-1px);
-}
-
-.sf-btn-success {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-}
-
-.sf-btn-success:hover {
-  background: linear-gradient(135deg, #059669, #047857);
-  transform: translateY(-1px);
-}
-
-.sf-btn-warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #fff;
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.sf-btn-warning:hover {
-  background: linear-gradient(135deg, #d97706, #b45309);
-  transform: translateY(-1px);
-}
-
-.sf-btn-secondary {
-  background: rgba(30, 41, 59, 0.8);
-  color: var(--text-primary);
-  border-color: var(--border-color);
-}
-
-.sf-btn-secondary:hover {
-  background: rgba(51, 65, 85, 0.9);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.sf-btn-outline {
-  background: transparent;
-  color: var(--text-secondary);
-  border-color: var(--border-color);
-}
-
-.sf-btn-outline:hover {
-  color: var(--text-primary);
-  border-color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.sf-btn-sm {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.775rem;
-}
-
-/* Persona Profile Badge in Header */
-.sf-persona-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: rgba(30, 41, 59, 0.7);
-  padding: 0.35rem 0.85rem;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-color);
-}
-
-.sf-persona-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 8px var(--success);
-}
-
-.sf-persona-name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.sf-persona-role {
-  font-size: 0.75rem;
-  color: var(--info);
-  font-weight: 500;
-}
-
-/* Nav Switcher Bar */
-.sf-nav-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 0.5rem 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.sf-nav-tabs {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.sf-nav-tab {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.sf-nav-tab:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.sf-nav-tab.active {
-  color: #fff;
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.3), rgba(16, 185, 129, 0.2));
-  border-color: rgba(56, 189, 248, 0.4);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
-}
-
-/* Login Screen */
-.sf-login-container {
-  max-width: 900px;
-  margin: 3rem auto;
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 2.5rem;
-  box-shadow: var(--shadow-lg);
-}
-
-.sf-login-header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-}
-
-.sf-login-title {
-  font-size: 1.85rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #f8fafc, #38bdf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.sf-login-desc {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.sf-persona-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.sf-persona-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 1.75rem 1.25rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.sf-persona-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--info);
-  box-shadow: var(--shadow-glow);
-  background: rgba(30, 41, 59, 0.7);
-}
-
-.sf-persona-card.active {
-  border-color: var(--info);
-  background: linear-gradient(180deg, rgba(2, 132, 199, 0.15), rgba(15, 23, 42, 0.8));
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-}
-
-.sf-persona-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 1rem auto;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.sf-persona-card.volunteer .sf-persona-icon {
-  color: var(--success);
-  border-color: rgba(16, 185, 129, 0.3);
-  background: var(--success-bg);
-}
-
-.sf-persona-card.chapter-admin .sf-persona-icon {
-  color: var(--info);
-  border-color: rgba(56, 189, 248, 0.3);
-  background: var(--info-bg);
-}
-
-.sf-persona-card.nonprofit-admin .sf-persona-icon {
-  color: var(--purple);
-  border-color: rgba(168, 85, 247, 0.3);
-  background: var(--purple-bg);
-}
-
-.sf-persona-card.platform-admin .sf-persona-icon {
-  color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.3);
-  background: rgba(245, 158, 11, 0.1);
-}
-
-.sf-persona-card-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 0.35rem;
-  color: var(--text-primary);
-}
-
-.sf-persona-card-desc {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-  min-height: 48px;
-}
-
-.sf-persona-quick-btn {
-  width: 100%;
-}
-
-/* KPI Cards Grid */
-.sf-kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.sf-kpi-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 1.25rem;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-}
-
-.sf-kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--info);
-}
-
-.sf-kpi-card.kpi-raised::before { background: var(--success); }
-.sf-kpi-card.kpi-target::before { background: var(--info); }
-.sf-kpi-card.kpi-remaining::before { background: var(--warning); }
-.sf-kpi-card.kpi-withdrawn::before { background: var(--danger); }
-.sf-kpi-card.kpi-balance::before { background: var(--purple); }
-
-.sf-kpi-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.sf-kpi-label {
-  font-size: 0.775rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
-}
-
-.sf-kpi-icon {
-  color: var(--text-muted);
-}
-
-.sf-kpi-value {
-  font-size: 1.65rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin-bottom: 0.25rem;
-}
-
-.sf-kpi-footer {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-/* Sections & Cards */
-.sf-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-md);
-}
-
-.sf-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.sf-section-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Data Tables */
-.sf-table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-}
-
-.sf-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 0.875rem;
-}
-
-.sf-table th {
-  background: rgba(15, 23, 42, 0.9);
-  padding: 0.75rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
-  white-space: nowrap;
-}
-
-.sf-table td {
-  padding: 0.85rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
-  vertical-align: middle;
-}
-
-.sf-table tbody tr {
-  transition: background 0.15s ease;
-}
-
-.sf-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.sf-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* Badges */
-.sf-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.2rem 0.65rem;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.sf-badge-success {
-  background: var(--success-bg);
-  color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.sf-badge-warning {
-  background: var(--warning-bg);
-  color: var(--warning);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.sf-badge-danger {
-  background: var(--danger-bg);
-  color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.sf-badge-info {
-  background: var(--info-bg);
-  color: var(--info);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-}
-
-.sf-badge-neutral {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-}
-
-/* Progress bar */
-.sf-progress-bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  position: relative;
-}
-
-.sf-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #0ea5e9, #10b981);
-  border-radius: var(--radius-full);
-  transition: width 0.4s ease;
-}
-
-.sf-progress-fill.complete {
-  background: #10b981;
-}
-
-/* Modals */
-.sf-modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 1.5rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-.sf-modal-backdrop.open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.sf-modal {
-  background: var(--bg-modal);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  width: 100%;
-  max-width: 560px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-  transform: translateY(20px);
-  transition: transform 0.25s ease;
-}
-
-.sf-modal-backdrop.open .sf-modal {
-  transform: translateY(0);
-}
-
-.sf-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.sf-modal-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.sf-modal-close {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem;
-  border-radius: 4px;
-}
-
-.sf-modal-close:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.sf-modal-body {
-  padding: 1.5rem;
-}
-
-.sf-modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1.25rem 1.5rem;
-  border-top: 1px solid var(--border-color);
-  background: rgba(15, 23, 42, 0.4);
-}
-
-/* Form inputs */
-.sf-form-group {
-  margin-bottom: 1.25rem;
-}
-
-.sf-form-label {
-  display: block;
-  font-size: 0.825rem;
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-  color: var(--text-secondary);
-}
-
-.sf-form-control {
-  width: 100%;
-  padding: 0.65rem 0.85rem;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.sf-form-control:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-}
-
-.sf-form-control::placeholder {
-  color: var(--text-muted);
-}
-
-/* Helper alert/callout */
-.sf-alert {
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: 0.825rem;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-}
-
-.sf-alert-info {
-  background: var(--info-bg);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  color: #bae6fd;
-}
-
-.sf-alert-success {
-  background: var(--success-bg);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #a7f3d0;
-}
-
-.sf-alert-warning {
-  background: var(--warning-bg);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #fde68a;
-}
-
-/* Chart bars in Non-Profit view */
-.sf-chart-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  padding: 0.5rem 0;
-}
-
-.sf-chart-row {
-  display: grid;
-  grid-template-columns: 180px 1fr 120px;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.825rem;
-}
-
-.sf-chart-label {
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sf-chart-bar-track {
-  height: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  display: flex;
-}
-
-.sf-chart-bar-raised {
-  height: 100%;
-  background: linear-gradient(90deg, #10b981, #059669);
-  transition: width 0.5s ease;
-}
-
-.sf-chart-bar-withdrawn {
-  height: 100%;
-  background: linear-gradient(90deg, #f59e0b, #ef4444);
-  transition: width 0.5s ease;
-}
-
-.sf-chart-value {
-  text-align: right;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .sf-app-container {
-    padding: 0.75rem 0.75rem 2rem 0.75rem;
-  }
-  .sf-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .sf-header-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .sf-kpi-grid {
-    grid-template-columns: 1fr;
-  }
-  .sf-chart-row {
-    grid-template-columns: 1fr;
-    gap: 0.35rem;
-  }
-  .sf-chart-value {
-    text-align: left;
-  }
-}
-
-/* Volunteer Roster & Spotlight in Chapter Admin */
-.sf-volunteer-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0284c7, #10b981);
-  color: #fff;
-  font-size: 0.775rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 0.6rem;
-  flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
-}
-
-.sf-project-pill {
-  display: inline-block;
-  background: rgba(56, 189, 248, 0.12);
-  color: var(--info);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  font-size: 0.725rem;
-  font-weight: 500;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  margin: 0.15rem 0.25rem 0.15rem 0;
-  white-space: nowrap;
-}
-
-.sf-spotlight-card {
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.16), rgba(15, 23, 42, 0.95));
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.15);
-  animation: sfFadeIn 0.25s ease-out;
-}
-
-@keyframes sfFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.sf-spotlight-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.sf-table tfoot tr {
-  background: rgba(255, 255, 255, 0.04);
-  border-top: 2px solid var(--border-color);
-  font-weight: 700;
-}
-
-
-</style>
+  <link rel="stylesheet" href="smart_funds.css?v=1">
 </head>
 <body>
   <div class="sf-app-container">
@@ -1007,94 +99,146 @@ body {
     </nav>
 
     <!-- ================================================================= -->
-    <!-- VIEW 1: LOGIN & PERSONA SELECTION SCREEN                          -->
+    <!-- VIEW 1: AUTHENTICATION (SIGN IN & SIGN UP) SCREEN                 -->
     <!-- ================================================================= -->
     <div id="login-view" class="sf-login-container">
       <div class="sf-login-header">
         <h1 class="sf-login-title">Sign In to Smart Funds Manager</h1>
         <p class="sf-login-desc">
-          Select your persona below to access tailored dashboards for youth volunteers, chapter administrators, or national non-profit executives.
+          Sign in or create an account to access tailored portals for youth volunteers, chapter administrators, non-profit organizations, and platform executives.
         </p>
       </div>
 
-      <!-- 3 Persona Cards -->
-      <div class="sf-persona-grid">
-        <!-- Persona 1: Volunteer -->
-        <div class="sf-persona-card volunteer" id="card-volunteer">
-          <div class="sf-persona-icon">🤝</div>
-          <h2 class="sf-persona-card-title">Volunteer (Youth Member)</h2>
-          <p class="sf-persona-card-desc">
-            Raise funds for assigned community projects, execute project milestones, and submit fund withdrawal disbursements.
-          </p>
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <button class="sf-btn sf-btn-success sf-persona-quick-btn" onclick="app.quickLogin('volunteer', 'Shasta Mudda', 'Evergreen Bay Area Chapter')">
-              Sign In as Shasta Mudda
-            </button>
-            <button class="sf-btn sf-btn-secondary sf-btn-sm" onclick="app.quickLogin('volunteer', 'Ojasvi Mudda', 'Evergreen Bay Area Chapter')">
-              Sign In as Ojasvi Mudda
-            </button>
-          </div>
-        </div>
-
-        <!-- Persona 2: Chapter Administrator -->
-        <div class="sf-persona-card chapter-admin" id="card-chapter-admin">
-          <div class="sf-persona-icon">🏛️</div>
-          <h2 class="sf-persona-card-title">Chapter Administrator</h2>
-          <p class="sf-persona-card-desc">
-            Monitor each volunteer’s funds raised, targets to be raised, project statuses, and approved chapter fund withdrawals.
-          </p>
-          <button class="sf-btn sf-btn-primary sf-persona-quick-btn" onclick="app.quickLogin('chapter_admin', 'Evergreen Chapter Admin', 'Evergreen Bay Area Chapter')">
-            Sign In as Chapter Admin
+      <!-- Centered Authentication Card -->
+      <div class="sf-auth-box">
+        <!-- Dual Mode Tabs: Sign In / Create Account -->
+        <div class="sf-auth-tabs">
+          <button type="button" class="sf-auth-tab active" id="tab-auth-signin" onclick="app.switchAuthTab('signin')">
+            Sign In
+          </button>
+          <button type="button" class="sf-auth-tab" id="tab-auth-signup" onclick="app.switchAuthTab('signup')">
+            Create Account (Sign Up)
           </button>
         </div>
 
-        <!-- Persona 3: Non-Profit Organization Administrator -->
-        <div class="sf-persona-card nonprofit-admin" id="card-nonprofit-admin">
-          <div class="sf-persona-icon">🌐</div>
-          <h2 class="sf-persona-card-title">Non-Profit Administrator</h2>
-          <p class="sf-persona-card-desc">
-            Oversee executive national metrics: total funds raised, total withdrawn, and chapter-by-chapter performance across 12 chapters.
-          </p>
-          <button class="sf-btn sf-btn-warning sf-persona-quick-btn" onclick="app.quickLogin('nonprofit_admin', 'Chirag Hope Executive Admin', 'National Office')">
-            Sign In as Non-Profit Admin
-          </button>
-        </div>
+        <!-- Dynamic Feedback Alert -->
+        <div id="auth-alert" class="sf-auth-alert"></div>
 
-        <!-- Persona 4: Smart Funds Manager Administrator (Platform Super Admin) -->
-        <div class="sf-persona-card platform-admin" id="card-platform-admin">
-          <div class="sf-persona-icon">⚡</div>
-          <h2 class="sf-persona-card-title">Smart Funds Platform Admin</h2>
-          <p class="sf-persona-card-desc">
-            Global ecosystem administrator. Onboard new non-profit organizations, monitor cross-organization fund distribution, chapters, and compliance.
-          </p>
-          <button class="sf-btn sf-persona-quick-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b; color: #fff;" onclick="app.quickLogin('platform_admin', 'Smart Funds Platform Super Admin', 'Platform Headquarters')">
-            Sign In as Platform Admin
-          </button>
-        </div>
-      </div>
-
-      <!-- Optional Direct Credentials Form -->
-      <div style="max-width: 440px; margin: 0 auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-        <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-align: center; color: var(--text-secondary);">
-          Or Sign In with Custom Name & Role
-        </h3>
-        <form id="custom-login-form" onsubmit="app.handleCustomLogin(event)">
+        <!-- ============================================================= -->
+        <!-- TAB 1: SIGN IN FORM                                            -->
+        <!-- ============================================================= -->
+        <form id="form-signin" onsubmit="app.handleSignIn(event)">
           <div class="sf-form-group">
-            <label class="sf-form-label" for="login-name">Full Name</label>
-            <input type="text" id="login-name" class="sf-form-control" placeholder="e.g. Shasta Mudda" required>
+            <label class="sf-form-label" for="signin-email">Email Address or Username</label>
+            <input type="text" id="signin-email" class="sf-form-control" placeholder="e.g. shasta@chiraghope.org or Shasta Mudda" required autocomplete="username">
           </div>
+
           <div class="sf-form-group">
-            <label class="sf-form-label" for="login-role">Persona Role</label>
-            <select id="login-role" class="sf-form-control">
+            <label class="sf-form-label" for="signin-password">Password</label>
+            <div class="sf-password-wrapper">
+              <input type="password" id="signin-password" class="sf-form-control" placeholder="••••••••" required autocomplete="current-password">
+              <button type="button" class="sf-password-toggle" onclick="app.togglePasswordVisibility('signin-password')" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="sf-btn sf-btn-primary" style="width: 100%; margin-top: 0.75rem; font-weight: 700; padding: 0.75rem;">
+            Sign In to Dashboard
+          </button>
+
+          <!-- 1-Click Quick Demo Credentials Helper -->
+          <div class="sf-demo-section">
+            <div class="sf-demo-title">Quick Demo Credentials (1-Click Fill)</div>
+            <div class="sf-demo-chips">
+              <button type="button" class="sf-demo-chip" onclick="app.fillDemoCredentials('volunteer')" title="Shasta Mudda (Volunteer)">
+                <span class="sf-demo-chip-icon">🤝</span>
+                <div>
+                  <div>Shasta Mudda</div>
+                  <div class="sf-demo-chip-role">Volunteer</div>
+                </div>
+              </button>
+              <button type="button" class="sf-demo-chip" onclick="app.fillDemoCredentials('chapter_admin')" title="Evergreen Chapter Admin">
+                <span class="sf-demo-chip-icon">🏛️</span>
+                <div>
+                  <div>Evergreen Admin</div>
+                  <div class="sf-demo-chip-role">Chapter Admin</div>
+                </div>
+              </button>
+              <button type="button" class="sf-demo-chip" onclick="app.fillDemoCredentials('nonprofit_admin')" title="Chirag Hope Executive Admin">
+                <span class="sf-demo-chip-icon">🌐</span>
+                <div>
+                  <div>Chirag Hope Exec</div>
+                  <div class="sf-demo-chip-role">Non-Profit Admin</div>
+                </div>
+              </button>
+              <button type="button" class="sf-demo-chip" onclick="app.fillDemoCredentials('platform_admin')" title="Smart Funds Platform Super Admin">
+                <span class="sf-demo-chip-icon">⚡</span>
+                <div>
+                  <div>Platform Admin</div>
+                  <div class="sf-demo-chip-role">Platform Super Admin</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- ============================================================= -->
+        <!-- TAB 2: SIGN UP / REGISTRATION FORM                             -->
+        <!-- ============================================================= -->
+        <form id="form-signup" onsubmit="app.handleSignUp(event)" style="display: none;">
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-name">Full Name</label>
+            <input type="text" id="signup-name" class="sf-form-control" placeholder="e.g. Rohan Patel" required autocomplete="name">
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-email">Email Address</label>
+            <input type="email" id="signup-email" class="sf-form-control" placeholder="e.g. rohan@evergreen.org" required autocomplete="email">
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-password">Password (Minimum 6 characters)</label>
+            <div class="sf-password-wrapper">
+              <input type="password" id="signup-password" class="sf-form-control" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+              <button type="button" class="sf-password-toggle" onclick="app.togglePasswordVisibility('signup-password')" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-confirm-password">Confirm Password</label>
+            <div class="sf-password-wrapper">
+              <input type="password" id="signup-confirm-password" class="sf-form-control" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+              <button type="button" class="sf-password-toggle" onclick="app.togglePasswordVisibility('signup-confirm-password')" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-role">Persona Role</label>
+            <select id="signup-role" class="sf-form-control" required>
               <option value="volunteer">Volunteer (Youth Member)</option>
               <option value="chapter_admin">Chapter Administrator</option>
               <option value="nonprofit_admin">Non-Profit Organization Administrator</option>
               <option value="platform_admin">Smart Funds Manager Administrator (Platform Super Admin)</option>
             </select>
           </div>
+
           <div class="sf-form-group">
-            <label class="sf-form-label" for="login-chapter">Chapter</label>
-            <select id="login-chapter" class="sf-form-control">
+            <label class="sf-form-label" for="signup-chapter">Regional Chapter</label>
+            <select id="signup-chapter" class="sf-form-control" required>
               <option value="Evergreen Bay Area Chapter">Evergreen Bay Area Chapter</option>
               <option value="Washington D.C Chapter">Washington D.C Chapter</option>
               <option value="Orange County Chapter">Orange County Chapter</option>
@@ -1109,8 +253,9 @@ body {
               <option value="Virginia Chapter">Virginia Chapter</option>
             </select>
           </div>
-          <button type="submit" class="sf-btn sf-btn-primary" style="width: 100%;">
-            Continue to Dashboard
+
+          <button type="submit" class="sf-btn sf-btn-success" style="width: 100%; margin-top: 1rem; font-weight: 700; padding: 0.75rem;">
+            Create Account & Sign In
           </button>
         </form>
       </div>
@@ -2149,998 +1294,7 @@ body {
   </div>
 
   <!-- Load Smart Funds Core Engine & UI Controller -->
-  <script>
-/* --- SMART FUNDS CORE ENGINE --- */
-/**
- * Smart Funds Manager - Core State & Application Logic
- * Grounded in Chirag Hope Google Sheets (Evergreen Bay Area Chapter & National Chapters Overview)
- */
-
-(function(window) {
-  'use strict';
-
-  const STORAGE_KEY = 'smart_funds_manager_state_v4';
-
-  // Spreadsheet Baseline Data Initializer
-  function getInitialDataset() {
-    return {
-      organization: "Chirag Hope",
-      organizations: [
-        {
-          id: "org-chirag-hope",
-          name: "Chirag Hope",
-          ein: "77-0489123",
-          headquarters: "San Jose, California, USA",
-          contactEmail: "admin@chiraghope.org",
-          cause: "Child Education & Rural Relief",
-          status: "Active",
-          foundedYear: 2018,
-          description: "Empowering rural students and underserved communities through education support, seats of hope, sports clubs, and classroom infrastructure."
-        }
-      ],
-      chapters: [
-        { name: "Evergreen Bay Area Chapter", raised: 20070, withdrawals: 13186, balance: 6884 },
-        { name: "Washington D.C Chapter", raised: 22000, withdrawals: 10000, balance: 12000 },
-        { name: "Orange County Chapter", raised: 13093, withdrawals: 12000, balance: 1093 },
-        { name: "Fremont Chapter", raised: 9000, withdrawals: 0, balance: 9000 },
-        { name: "San Jose Chapter", raised: 3000, withdrawals: 3000, balance: 0 },
-        { name: "Sunnyvale Chapter", raised: 0, withdrawals: 472, balance: -472 },
-        { name: "Cupertino Chapter", raised: 0, withdrawals: 0, balance: 0 },
-        { name: "Frisco Chapter", raised: 0, withdrawals: 0, balance: 0 },
-        { name: "Michigan Chapter", raised: 0, withdrawals: 0, balance: 0 },
-        { name: "New Jersey Chapter", raised: 0, withdrawals: 0, balance: 0 },
-        { name: "Seattle Chapter", raised: 0, withdrawals: 0, balance: 0 },
-        { name: "Virginia Chapter", raised: 0, withdrawals: 0, balance: 0 }
-      ],
-      projects: [
-        {
-          id: "p1",
-          name: "Aid4Afghans",
-          chapter: "Evergreen Bay Area Chapter",
-          target: 120,
-          raised: 120,
-          withdrawn: 120,
-          status: "Complete",
-          progress: 100,
-          notes: "Relief funds delivered to Afghan refugee families."
-        },
-        {
-          id: "p2",
-          name: "Chirag O2 & Food - Support for 2nd Covid Wave",
-          chapter: "Evergreen Bay Area Chapter",
-          target: 1500,
-          raised: 1500,
-          withdrawn: 1500,
-          status: "Complete",
-          progress: 100,
-          notes: "Oxygen concentrators and meal packages distributed."
-        },
-        {
-          id: "p3",
-          name: "Education support and Seats of Hope for rural India",
-          chapter: "Evergreen Bay Area Chapter",
-          target: 6000,
-          raised: 6000,
-          withdrawn: 6000,
-          status: "Complete",
-          progress: 100,
-          notes: "Classroom benches and school kits delivered."
-        },
-        {
-          id: "p4",
-          name: "Education support and Seats of Hope for rural India Phase 2",
-          chapter: "Evergreen Bay Area Chapter",
-          target: 9000,
-          raised: 9000,
-          withdrawn: 2116,
-          status: "In Progress",
-          progress: 65,
-          notes: "Phase 2 in progress: furniture ordered for 8 village schools."
-        },
-        {
-          id: "p5",
-          name: "Mini-Library & Sports Club",
-          chapter: "Evergreen Bay Area Chapter",
-          target: 3450,
-          raised: 3450,
-          withdrawn: 3450,
-          status: "Complete",
-          progress: 100,
-          notes: "Books, shelves, and sports kits deployed."
-        },
-        {
-          id: "p6",
-          name: "MIssionKids",
-          chapter: "Fremont Chapter",
-          target: 9000,
-          raised: 9000,
-          withdrawn: 0,
-          status: "In Progress",
-          progress: 50,
-          notes: "Health & nutrition drive underway."
-        },
-        {
-          id: "p7",
-          name: "Anganwadi",
-          chapter: "Orange County Chapter",
-          target: 12000,
-          raised: 13093,
-          withdrawn: 12000,
-          status: "In Progress",
-          progress: 90,
-          notes: "Preschool center infrastructure upgrades ongoing."
-        },
-        {
-          id: "p8",
-          name: "Safe School #1",
-          chapter: "San Jose Chapter",
-          target: 3000,
-          raised: 3000,
-          withdrawn: 3000,
-          status: "Complete",
-          progress: 100,
-          notes: "Sanitation and clean drinking water facilities completed."
-        },
-        {
-          id: "p9",
-          name: "Aid4Amputees",
-          chapter: "Washington D.C Chapter",
-          target: 35000,
-          raised: 22000,
-          withdrawn: 10000,
-          status: "In Progress",
-          progress: 60,
-          notes: "Prosthetic limb fittings organized."
-        },
-        {
-          id: "p10",
-          name: "Vision Rehab Treatment",
-          chapter: "Washington D.C Chapter",
-          target: 3500,
-          raised: 0,
-          withdrawn: 0,
-          status: "Planning",
-          progress: 10,
-          notes: "Doctor partnership finalized."
-        },
-        {
-          id: "p11",
-          name: "CHIRAG O2 & FOOD",
-          chapter: "Michigan Chapter",
-          target: 7000,
-          raised: 0,
-          withdrawn: 0,
-          status: "Planning",
-          progress: 0,
-          notes: "Campaign kickoff scheduled."
-        },
-        {
-          id: "p12",
-          name: "DEESHA Project Noteworthy",
-          chapter: "Sunnyvale Chapter",
-          target: 472,
-          raised: 0,
-          withdrawn: 472,
-          status: "Execution",
-          progress: 75,
-          notes: "Educational devices procured via bridge funding."
-        },
-        {
-          id: "p13",
-          name: "General Donation",
-          chapter: "New Jersey Chapter",
-          target: 2000,
-          raised: 0,
-          withdrawn: 0,
-          status: "Planning",
-          progress: 0,
-          notes: "General chapter operations support."
-        },
-        {
-          id: "p14",
-          name: "Project X",
-          chapter: "Cupertino Chapter",
-          target: 200,
-          raised: 0,
-          withdrawn: 0,
-          status: "Planning",
-          progress: 0,
-          notes: "Pilot community initiative."
-        }
-      ],
-      volunteers: [
-        {
-          name: "Ojasvi Mudda",
-          tabName: "Ojasvi Mudda",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "ojasvi@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 1784, raised: 1784, withdrawn: 1784 },
-            { project: "Chirag O2 & Food - Support for 2nd Covid Wave", target: 1500, raised: 1500, withdrawn: 1500 },
-            { project: "Education support and Seats of Hope for rural India Phase 2", target: 3000, raised: 3000, withdrawn: 1116 },
-            { project: "Education support and Seats of Hope for rural India", target: 1000, raised: 1000, withdrawn: 1000 }
-          ]
-        },
-        {
-          name: "Shasta Mudda",
-          tabName: "Shasta Mudda",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "shasta@chiraghope.org",
-          assignments: [
-            { project: "Education support and Seats of Hope for rural India", target: 5000, raised: 5000, withdrawn: 5000 },
-            { project: "Education support and Seats of Hope for rural India Phase 2", target: 3000, raised: 3000, withdrawn: 1000 },
-            { project: "Mini-Library & Sports Club", target: 810, raised: 810, withdrawn: 810 }
-          ]
-        },
-        {
-          name: "Suravi",
-          tabName: "Suravi",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "suravi@chiraghope.org",
-          assignments: []
-        },
-        {
-          name: "Hasini",
-          tabName: "Hasini",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "hasini@chiraghope.org",
-          assignments: []
-        },
-        {
-          name: "Shreshtha Mudda",
-          tabName: "Shreshtha Mudda",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "shreshtha@chiraghope.org",
-          assignments: [
-            { project: "Education support and Seats of Hope for rural India Phase 2", target: 3000, raised: 3000, withdrawn: 0 },
-            { project: "Mini-Library & Sports Club", target: 0, raised: 0, withdrawn: 0 }
-          ]
-        },
-        {
-          name: "Esha Shivakumar",
-          tabName: "Esha Shivakumar",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "esha@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 310, raised: 310, withdrawn: 310 }
-          ]
-        },
-        {
-          name: "Pranati Prashanth",
-          tabName: "Pranati Prashanth",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "pranati@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 200, raised: 200, withdrawn: 200 }
-          ]
-        },
-        {
-          name: "Sindu Sirigineni",
-          tabName: "Sindu Sirigineni",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "sindu@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 150, raised: 150, withdrawn: 150 }
-          ]
-        },
-        {
-          name: "Samhita Mahadevan",
-          tabName: "Samhita Mahadevan",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "samhita@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 0, raised: 0, withdrawn: 0 }
-          ]
-        },
-        {
-          name: "Anh Tran",
-          tabName: "Anh Tran",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "anh@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 0, raised: 0, withdrawn: 0 }
-          ]
-        },
-        {
-          name: "General",
-          tabName: "General",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "general@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 46, raised: 46, withdrawn: 46 },
-            { project: "Aid4Afghans", target: 120, raised: 120, withdrawn: 120 }
-          ]
-        },
-        {
-          name: "Kaavya Kethini",
-          tabName: "Kaavya Kethini",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "kaavya@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 150, raised: 150, withdrawn: 150 }
-          ]
-        }
-      ],
-      transactions: [
-        {
-          id: "tx-init-1",
-          date: "2026-06-15",
-          type: "donation",
-          volunteer: "Shasta Mudda",
-          chapter: "Evergreen Bay Area Chapter",
-          project: "Education support and Seats of Hope for rural India Phase 2",
-          amount: 3000,
-          donor: "Community Donors & Matching",
-          notes: "Campaign kickoff for school benches"
-        },
-        {
-          id: "tx-init-2",
-          date: "2026-07-02",
-          type: "withdrawal",
-          volunteer: "Shasta Mudda",
-          chapter: "Evergreen Bay Area Chapter",
-          project: "Education support and Seats of Hope for rural India Phase 2",
-          amount: 1000,
-          purpose: "Down payment to wood furniture vendor for 4 schools",
-          notes: "Receipt #WH-4401"
-        }
-      ],
-      activeUser: null // Current session { role: 'volunteer'|'chapter_admin'|'nonprofit_admin', name: string, chapter: string }
-    };
-  }
-
-  // Load or initialize state
-  function loadState() {
-    try {
-      // Check v4 first, with backward compatibility for prior versions
-      const stored = localStorage.getItem(STORAGE_KEY) ||
-                     localStorage.getItem('smart_funds_manager_state_v3') ||
-                     localStorage.getItem('smart_funds_manager_state_v2') ||
-                     localStorage.getItem('smart_funds_manager_state_v1');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed.chapters && parsed.projects && parsed.volunteers) {
-          const initial = getInitialDataset();
-
-          // Ensure organizations array exists with Chirag Hope
-          if (!parsed.organizations || parsed.organizations.length === 0) {
-            parsed.organizations = initial.organizations;
-          } else {
-            initial.organizations.forEach(io => {
-              if (!parsed.organizations.some(o => o.name.toLowerCase() === io.name.toLowerCase())) {
-                parsed.organizations.unshift(io);
-              }
-            });
-          }
-
-          // Merge all 12 baseline volunteers from Google Doc Sheet 1 if missing or partial
-          initial.volunteers.forEach(iv => {
-            const existing = parsed.volunteers.find(v => v.name.toLowerCase() === iv.name.toLowerCase());
-            if (!existing) {
-              parsed.volunteers.push(iv);
-            } else {
-              if (!existing.tabName) existing.tabName = iv.tabName;
-              if (!existing.chapter) existing.chapter = iv.chapter;
-              if (!existing.assignments || existing.assignments.length === 0) {
-                existing.assignments = iv.assignments || [];
-              }
-            }
-          });
-          saveState(parsed);
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.warn("Could not load Smart Funds state from localStorage, initializing fresh:", e);
-    }
-    const fresh = getInitialDataset();
-    saveState(fresh);
-    return fresh;
-  }
-
-  function saveState(state) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.warn("Failed to persist Smart Funds state:", e);
-    }
-  }
-
-  // Helper formatting
-  function formatCurrency(amount) {
-    const num = Number(amount) || 0;
-    return (num < 0 ? "-" : "") + "$" + Math.abs(num).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  }
-
-  // Smart Funds Manager Object
-  const SmartFunds = {
-    state: loadState(),
-
-    resetToDefault() {
-      this.state = getInitialDataset();
-      saveState(this.state);
-      this.notifySubscribers();
-    },
-
-    // Session Management
-    login(role, name, chapter) {
-      this.state.activeUser = {
-        role: role,
-        name: name || (
-          role === 'volunteer' ? 'Shasta Mudda' :
-          role === 'chapter_admin' ? 'Evergreen Admin' :
-          role === 'nonprofit_admin' ? 'Chirag Hope Executive Admin' :
-          'Smart Funds Platform Admin'
-        ),
-        chapter: chapter || (role === 'platform_admin' ? 'Platform HQ' : 'Evergreen Bay Area Chapter')
-      };
-      saveState(this.state);
-      this.notifySubscribers();
-      return this.state.activeUser;
-    },
-
-    logout() {
-      this.state.activeUser = null;
-      saveState(this.state);
-      this.notifySubscribers();
-    },
-
-    getActiveUser() {
-      return this.state.activeUser;
-    },
-
-    // Financial Calculation Engines
-    getVolunteerMetrics(volunteerName) {
-      const v = this.state.volunteers.find(vol => vol.name.toLowerCase() === volunteerName.toLowerCase()) || { assignments: [] };
-      let totalRaised = 0;
-      let totalTarget = 0;
-      let totalWithdrawn = 0;
-
-      v.assignments.forEach(a => {
-        totalRaised += (Number(a.raised) || 0);
-        totalTarget += (Number(a.target) || 0);
-        totalWithdrawn += (Number(a.withdrawn) || 0);
-      });
-
-      const toBeRaised = Math.max(0, totalTarget - totalRaised);
-      const balance = totalRaised - totalWithdrawn;
-
-      return {
-        volunteer: v,
-        totalRaised,
-        totalTarget,
-        toBeRaised,
-        totalWithdrawn,
-        balance
-      };
-    },
-
-    getChapterMetrics(chapterName) {
-      const chName = (chapterName || "Evergreen Bay Area Chapter").trim().toLowerCase();
-      const c = this.state.chapters.find(chap => chap.name.toLowerCase() === chName);
-      const chapterProjects = this.state.projects.filter(p => (p.chapter || '').toLowerCase() === chName);
-      const chapterVolunteers = this.state.volunteers.filter(v => (v.chapter || '').toLowerCase() === chName);
-
-      let totalRaised = 0;
-      let totalTarget = 0;
-      let totalWithdrawn = 0;
-
-      chapterProjects.forEach(p => {
-        totalRaised += (Number(p.raised) || 0);
-        totalTarget += (Number(p.target) || 0);
-        totalWithdrawn += (Number(p.withdrawn) || 0);
-      });
-
-      const toBeRaised = Math.max(0, totalTarget - totalRaised);
-      const balance = totalRaised - totalWithdrawn;
-
-      return {
-        chapter: c || { name: chapterName || "Evergreen Bay Area Chapter" },
-        projects: chapterProjects,
-        volunteers: chapterVolunteers,
-        totalRaised,
-        totalTarget,
-        toBeRaised,
-        totalWithdrawn,
-        balance
-      };
-    },
-
-    getChapterVolunteersOverview(chapterName) {
-      const chName = (chapterName || "Evergreen Bay Area Chapter").trim().toLowerCase();
-      const chapterVolunteers = this.state.volunteers.filter(v => (v.chapter || '').toLowerCase() === chName);
-      return chapterVolunteers.map(v => {
-        let totalRaised = 0;
-        let totalTarget = 0;
-        let totalWithdrawn = 0;
-        const projectNames = [];
-
-        (v.assignments || []).forEach(a => {
-          totalRaised += (Number(a.raised) || 0);
-          totalTarget += (Number(a.target) || 0);
-          totalWithdrawn += (Number(a.withdrawn) || 0);
-          if (a.project && !projectNames.includes(a.project)) {
-            projectNames.push(a.project);
-          }
-        });
-
-        const toBeRaised = Math.max(0, totalTarget - totalRaised);
-        const balance = totalRaised - totalWithdrawn;
-        const progress = totalTarget > 0 ? Math.round((totalRaised / totalTarget) * 100) : 100;
-
-        return {
-          name: v.name,
-          email: v.email || `${v.name.toLowerCase().replace(/\s+/g, '.')}@chiraghope.org`,
-          chapter: v.chapter,
-          projectsCount: (v.assignments || []).length,
-          projectNames: projectNames,
-          totalRaised,
-          totalTarget,
-          toBeRaised,
-          totalWithdrawn,
-          balance,
-          progress,
-          assignments: v.assignments || []
-        };
-      });
-    },
-
-    getChapterVolunteerDetail(chapterName, volunteerName) {
-      const overview = this.getChapterVolunteersOverview(chapterName);
-      return overview.find(v => v.name.toLowerCase() === volunteerName.toLowerCase()) || null;
-    },
-
-    getNonprofitMetrics() {
-      let totalRaised = 0;
-      let totalTarget = 0;
-      let totalWithdrawn = 0;
-
-      this.state.projects.forEach(p => {
-        totalRaised += (Number(p.raised) || 0);
-        totalTarget += (Number(p.target) || 0);
-        totalWithdrawn += (Number(p.withdrawn) || 0);
-      });
-
-      const totalBalance = totalRaised - totalWithdrawn;
-
-      return {
-        organization: this.state.organization,
-        totalRaised,
-        totalTarget,
-        totalWithdrawn,
-        totalBalance,
-        totalChapters: this.state.chapters.length,
-        totalProjects: this.state.projects.length,
-        chapters: this.state.chapters
-      };
-    },
-
-    // Operations
-    // 1. Volunteer raises funds for a project
-    raiseFunds(volunteerName, projectName, amount, donorName, notes) {
-      amount = parseFloat(amount);
-      if (isNaN(amount) || amount <= 0) {
-        throw new Error("Contribution amount must be a positive number.");
-      }
-
-      // 1. Update Project
-      const project = this.state.projects.find(p => p.name.toLowerCase() === projectName.toLowerCase());
-      if (!project) {
-        throw new Error(`Project "${projectName}" not found.`);
-      }
-      project.raised = (Number(project.raised) || 0) + amount;
-      if (project.raised >= project.target && project.status === "Planning") {
-        project.status = "In Progress";
-      }
-
-      // 2. Update Chapter
-      const chapter = this.state.chapters.find(c => c.name.toLowerCase() === project.chapter.toLowerCase());
-      if (chapter) {
-        chapter.raised = (Number(chapter.raised) || 0) + amount;
-        chapter.balance = chapter.raised - chapter.withdrawals;
-      }
-
-      // 3. Update Volunteer Assignment
-      let volunteer = this.state.volunteers.find(v => v.name.toLowerCase() === volunteerName.toLowerCase());
-      if (!volunteer) {
-        volunteer = {
-          name: volunteerName,
-          chapter: project.chapter,
-          email: `${volunteerName.toLowerCase().replace(/\s+/g, '.')}@chiraghope.org`,
-          assignments: []
-        };
-        this.state.volunteers.push(volunteer);
-      }
-
-      let assignment = volunteer.assignments.find(a => a.project.toLowerCase() === projectName.toLowerCase());
-      if (!assignment) {
-        assignment = { project: project.name, target: amount, raised: 0, withdrawn: 0 };
-        volunteer.assignments.push(assignment);
-      }
-      assignment.raised = (Number(assignment.raised) || 0) + amount;
-
-      // 4. Record Transaction
-      const tx = {
-        id: "tx-" + Date.now(),
-        date: new Date().toISOString().split('T')[0],
-        type: "donation",
-        volunteer: volunteerName,
-        chapter: project.chapter,
-        project: project.name,
-        amount: amount,
-        donor: donorName || "Anonymous Supporter",
-        notes: notes || "Direct fundraising contribution"
-      };
-      this.state.transactions.unshift(tx);
-
-      saveState(this.state);
-      this.notifySubscribers();
-      return { success: true, transaction: tx, project: project };
-    },
-
-    // 2. Volunteer / Chapter executes project updates
-    executeProject(projectName, progressPercent, status, updateNotes) {
-      const project = this.state.projects.find(p => p.name.toLowerCase() === projectName.toLowerCase());
-      if (!project) {
-        throw new Error(`Project "${projectName}" not found.`);
-      }
-
-      if (progressPercent !== undefined && progressPercent !== null && progressPercent !== "") {
-        project.progress = Math.min(100, Math.max(0, parseInt(progressPercent, 10) || 0));
-      }
-      if (status) {
-        project.status = status;
-        if (status === "Complete") {
-          project.progress = 100;
-        }
-      }
-      if (updateNotes) {
-        project.notes = updateNotes;
-      }
-
-      saveState(this.state);
-      this.notifySubscribers();
-      return { success: true, project: project };
-    },
-
-    // 3. Volunteer / Chapter withdraws funds for project execution
-    withdrawFunds(volunteerName, projectName, amount, purpose, vendorReceipt) {
-      amount = parseFloat(amount);
-      if (isNaN(amount) || amount <= 0) {
-        throw new Error("Withdrawal amount must be a positive number.");
-      }
-
-      const project = this.state.projects.find(p => p.name.toLowerCase() === projectName.toLowerCase());
-      if (!project) {
-        throw new Error(`Project "${projectName}" not found.`);
-      }
-
-      const currentBalance = (Number(project.raised) || 0) - (Number(project.withdrawn) || 0);
-      if (amount > currentBalance) {
-        throw new Error(`Insufficient funds: Requested withdrawal of ${formatCurrency(amount)} exceeds available project balance of ${formatCurrency(currentBalance)}.`);
-      }
-
-      // Update Project
-      project.withdrawn = (Number(project.withdrawn) || 0) + amount;
-
-      // Update Chapter
-      const chapter = this.state.chapters.find(c => c.name.toLowerCase() === project.chapter.toLowerCase());
-      if (chapter) {
-        chapter.withdrawals = (Number(chapter.withdrawals) || 0) + amount;
-        chapter.balance = chapter.raised - chapter.withdrawals;
-      }
-
-      // Update Volunteer Assignment
-      if (volunteerName) {
-        const volunteer = this.state.volunteers.find(v => v.name.toLowerCase() === volunteerName.toLowerCase());
-        if (volunteer) {
-          const assignment = volunteer.assignments.find(a => a.project.toLowerCase() === projectName.toLowerCase());
-          if (assignment) {
-            assignment.withdrawn = (Number(assignment.withdrawn) || 0) + amount;
-          }
-        }
-      }
-
-      // Record Transaction
-      const tx = {
-        id: "tx-" + Date.now(),
-        date: new Date().toISOString().split('T')[0],
-        type: "withdrawal",
-        volunteer: volunteerName || "Chapter Admin",
-        chapter: project.chapter,
-        project: project.name,
-        amount: amount,
-        purpose: purpose || "Project Execution Expense",
-        notes: vendorReceipt || "Disbursement documented"
-      };
-      this.state.transactions.unshift(tx);
-
-      saveState(this.state);
-      this.notifySubscribers();
-      return { success: true, transaction: tx, project: project };
-    },
-
-    // 4. Chapter Admin creates a new project
-    createProject(chapterName, projectName, targetAmount, description, assignedVolunteerName, status) {
-      if (!projectName || !projectName.trim()) {
-        throw new Error("Project name is required.");
-      }
-      projectName = projectName.trim();
-      chapterName = (chapterName || "Evergreen Bay Area Chapter").trim();
-
-      const existingProject = this.state.projects.find(p => p.name.toLowerCase() === projectName.toLowerCase());
-      if (existingProject) {
-        throw new Error(`A project named "${projectName}" already exists.`);
-      }
-
-      targetAmount = parseFloat(targetAmount);
-      if (isNaN(targetAmount) || targetAmount < 0) {
-        throw new Error("Target amount must be a non-negative number.");
-      }
-
-      // Ensure chapter exists or fallback
-      let chapter = this.state.chapters.find(c => c.name.toLowerCase() === chapterName.toLowerCase());
-      if (!chapter) {
-        chapter = { name: chapterName, raised: 0, withdrawals: 0, balance: 0 };
-        this.state.chapters.push(chapter);
-      }
-
-      const newProject = {
-        name: projectName,
-        chapter: chapter.name,
-        target: targetAmount,
-        raised: 0,
-        withdrawn: 0,
-        status: status || "Planning",
-        progress: 0,
-        description: description || `Community initiative under ${chapter.name}`
-      };
-      this.state.projects.push(newProject);
-
-      // If assigned to a volunteer, create or update the volunteer's assignment
-      if (assignedVolunteerName && assignedVolunteerName.trim() && assignedVolunteerName !== 'none') {
-        const vName = assignedVolunteerName.trim();
-        let volunteer = this.state.volunteers.find(v => v.name.toLowerCase() === vName.toLowerCase());
-        if (!volunteer) {
-          volunteer = {
-            name: vName,
-            chapter: chapter.name,
-            email: `${vName.toLowerCase().replace(/\s+/g, '.')}@chiraghope.org`,
-            assignments: []
-          };
-          this.state.volunteers.push(volunteer);
-        }
-        if (!volunteer.assignments) volunteer.assignments = [];
-        volunteer.assignments.push({
-          project: projectName,
-          target: targetAmount,
-          raised: 0,
-          withdrawn: 0
-        });
-      }
-
-      saveState(this.state);
-      this.notifySubscribers();
-      return { success: true, project: newProject };
-    },
-
-    // 5. Chapter Admin adds a new volunteer
-    addVolunteer(chapterName, volunteerName, email, tabName, initialProjectName, initialTarget) {
-      if (!volunteerName || !volunteerName.trim()) {
-        throw new Error("Volunteer name is required.");
-      }
-      volunteerName = volunteerName.trim();
-      chapterName = (chapterName || "Evergreen Bay Area Chapter").trim();
-
-      const existing = this.state.volunteers.find(v => v.name.toLowerCase() === volunteerName.toLowerCase());
-      if (existing) {
-        throw new Error(`A volunteer named "${volunteerName}" is already registered.`);
-      }
-
-      const vEmail = (email && email.trim()) ? email.trim() : `${volunteerName.toLowerCase().replace(/\s+/g, '.')}@chiraghope.org`;
-      const vTab = (tabName && tabName.trim()) ? tabName.trim() : volunteerName;
-
-      const newVolunteer = {
-        name: volunteerName,
-        tabName: vTab,
-        chapter: chapterName,
-        email: vEmail,
-        assignments: []
-      };
-
-      if (initialProjectName && initialProjectName.trim() && initialProjectName !== 'none') {
-        const initTarget = parseFloat(initialTarget) || 0;
-        newVolunteer.assignments.push({
-          project: initialProjectName.trim(),
-          target: initTarget,
-          raised: 0,
-          withdrawn: 0
-        });
-      }
-
-      this.state.volunteers.push(newVolunteer);
-      saveState(this.state);
-      this.notifySubscribers();
-      return { success: true, volunteer: newVolunteer };
-    },
-
-    // 6. Non-Profit Org Admin creates a new chapter
-    createChapter(chapterName, location, initialTarget) {
-      if (!chapterName || !chapterName.trim()) {
-        throw new Error("Chapter name is required.");
-      }
-      chapterName = chapterName.trim();
-
-      const existing = this.state.chapters.find(c => c.name.toLowerCase() === chapterName.toLowerCase());
-      if (existing) {
-        throw new Error(`A chapter named "${chapterName}" already exists.`);
-      }
-
-      const newChapter = {
-        name: chapterName,
-        location: (location && location.trim()) ? location.trim() : "United States",
-        raised: 0,
-        withdrawals: 0,
-        balance: 0,
-        initialTarget: parseFloat(initialTarget) || 0
-      };
-
-      this.state.chapters.push(newChapter);
-      saveState(this.state);
-      this.notifySubscribers();
-      return { success: true, chapter: newChapter };
-    },
-
-    // 7. Smart Funds Manager Admin creates a new Non-Profit Organization
-    createOrganization(name, ein, location, contactEmail, cause, description) {
-      if (!name || !name.trim()) {
-        throw new Error("Non-profit organization name is required.");
-      }
-      name = name.trim();
-
-      if (!this.state.organizations) {
-        this.state.organizations = [];
-      }
-
-      const existing = this.state.organizations.find(o => o.name.toLowerCase() === name.toLowerCase());
-      if (existing) {
-        throw new Error(`An organization named "${name}" already exists.`);
-      }
-
-      const orgId = "org-" + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + "-" + Date.now().toString().slice(-4);
-      const newOrg = {
-        id: orgId,
-        name: name,
-        ein: (ein && ein.trim()) ? ein.trim() : "Pending",
-        headquarters: (location && location.trim()) ? location.trim() : "United States",
-        location: (location && location.trim()) ? location.trim() : "United States",
-        contactEmail: (contactEmail && contactEmail.trim()) ? contactEmail.trim() : `admin@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.org`,
-        cause: (cause && cause.trim()) ? cause.trim() : "Community Development & Education",
-        status: "Active",
-        foundedYear: new Date().getFullYear(),
-        description: (description && description.trim()) ? description.trim() : `Dedicated non-profit organization focused on ${cause || "community welfare"}.`
-      };
-
-      this.state.organizations.push(newOrg);
-      saveState(this.state);
-      this.notifySubscribers();
-      return { success: true, organization: newOrg };
-    },
-
-    getOrganizationsSummary() {
-      if (!this.state.organizations || this.state.organizations.length === 0) {
-        this.state.organizations = getInitialDataset().organizations;
-      }
-
-      // Calculate Chirag Hope metrics as baseline
-      const npMetrics = this.getNonprofitMetrics();
-
-      return this.state.organizations.map(org => {
-        const isChirag = org.name.toLowerCase().includes("chirag");
-        if (isChirag) {
-          return {
-            id: org.id,
-            name: org.name,
-            ein: org.ein || "77-0489123",
-            headquarters: org.headquarters || org.location || "San Jose, CA, USA",
-            location: org.location || org.headquarters || "San Jose, CA, USA",
-            contactEmail: org.contactEmail || "admin@chiraghope.org",
-            cause: org.cause || "Child Education & Rural Relief",
-            status: org.status || "Active",
-            foundedYear: org.foundedYear || 2018,
-            description: org.description,
-            chapterCount: npMetrics.totalChapters,
-            chaptersCount: npMetrics.totalChapters,
-            projectsCount: npMetrics.totalProjects,
-            volunteersCount: this.state.volunteers.length,
-            totalRaised: npMetrics.totalRaised,
-            totalWithdrawn: npMetrics.totalWithdrawn,
-            totalBalance: npMetrics.totalBalance,
-            balance: npMetrics.totalBalance
-          };
-        } else {
-          // For other organizations, count chapters linked to them or defaults
-          const orgChapters = this.state.chapters.filter(c => (c.organization || '').toLowerCase() === org.name.toLowerCase());
-          let totalRaised = 0;
-          let totalWithdrawn = 0;
-          orgChapters.forEach(c => {
-            totalRaised += Number(c.raised) || 0;
-            totalWithdrawn += Number(c.withdrawals) || 0;
-          });
-          const totalBalance = totalRaised - totalWithdrawn;
-          return {
-            id: org.id,
-            name: org.name,
-            ein: org.ein || "Pending",
-            headquarters: org.headquarters || org.location || "United States",
-            location: org.location || org.headquarters || "United States",
-            contactEmail: org.contactEmail || `contact@${org.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.org`,
-            cause: org.cause || "Community Welfare",
-            status: org.status || "Active",
-            foundedYear: org.foundedYear || new Date().getFullYear(),
-            description: org.description || "Active partner non-profit organization.",
-            chapterCount: orgChapters.length,
-            chaptersCount: orgChapters.length,
-            projectsCount: 0,
-            volunteersCount: 0,
-            totalRaised,
-            totalWithdrawn,
-            totalBalance,
-            balance: totalBalance
-          };
-        }
-      });
-    },
-
-    getPlatformMetrics() {
-      const summaries = this.getOrganizationsSummary();
-      let totalRaised = 0;
-      let totalWithdrawn = 0;
-      let totalChapters = 0;
-      let totalProjects = 0;
-
-      summaries.forEach(s => {
-        totalRaised += s.totalRaised;
-        totalWithdrawn += s.totalWithdrawn;
-        totalChapters += s.chaptersCount;
-        totalProjects += s.projectsCount;
-      });
-
-      return {
-        totalOrganizations: summaries.length,
-        totalChapters: Math.max(totalChapters, this.state.chapters.length),
-        totalProjects: Math.max(totalProjects, this.state.projects.length),
-        totalVolunteers: this.state.volunteers.length,
-        totalRaised,
-        totalWithdrawn,
-        balance: totalRaised - totalWithdrawn,
-        organizations: summaries
-      };
-    },
-
-    // Change listeners for UI reactivity
-    subscribers: [],
-    subscribe(callback) {
-      if (typeof callback === 'function') {
-        this.subscribers.push(callback);
-      }
-    },
-    notifySubscribers() {
-      this.subscribers.forEach(cb => {
-        try { cb(this.state); } catch (e) { console.error("Subscriber error:", e); }
-      });
-    },
-
-    formatCurrency: formatCurrency
-  };
-
-  window.SmartFunds = SmartFunds;
-})(window);
-
-</script>
+  <script src="smart_funds.js?v=4"></script>
   <script>
     // App UI Controller
     const app = {
@@ -3181,15 +1335,124 @@ body {
         this.render();
       },
 
+      authMode: 'signin',
+
+      switchAuthTab(mode) {
+        this.authMode = mode;
+        this.hideAuthAlert();
+        const tabSignIn = document.getElementById('tab-auth-signin');
+        const tabSignUp = document.getElementById('tab-auth-signup');
+        const formSignIn = document.getElementById('form-signin');
+        const formSignUp = document.getElementById('form-signup');
+
+        if (mode === 'signin') {
+          if (tabSignIn) tabSignIn.classList.add('active');
+          if (tabSignUp) tabSignUp.classList.remove('active');
+          if (formSignIn) formSignIn.style.display = 'block';
+          if (formSignUp) formSignUp.style.display = 'none';
+        } else {
+          if (tabSignUp) tabSignUp.classList.add('active');
+          if (tabSignIn) tabSignIn.classList.remove('active');
+          if (formSignUp) formSignUp.style.display = 'block';
+          if (formSignIn) formSignIn.style.display = 'none';
+        }
+      },
+
+      showAuthAlert(message, type = 'error') {
+        const el = document.getElementById('auth-alert');
+        if (!el) return;
+        el.textContent = message;
+        el.className = `sf-auth-alert ${type}`;
+        el.style.display = 'block';
+      },
+
+      hideAuthAlert() {
+        const el = document.getElementById('auth-alert');
+        if (el) el.style.display = 'none';
+      },
+
+      togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+      },
+
+      fillDemoCredentials(role) {
+        this.switchAuthTab('signin');
+        const emailInput = document.getElementById('signin-email');
+        const passInput = document.getElementById('signin-password');
+
+        const map = {
+          volunteer: { email: 'shasta@chiraghope.org', pass: 'password123', label: 'Shasta Mudda (Volunteer)' },
+          chapter_admin: { email: 'admin@evergreen.org', pass: 'password123', label: 'Evergreen Chapter Admin' },
+          nonprofit_admin: { email: 'exec@chiraghope.org', pass: 'password123', label: 'Chirag Hope Executive Admin' },
+          platform_admin: { email: 'superadmin@smartfunds.org', pass: 'password123', label: 'Smart Funds Platform Super Admin' }
+        };
+
+        const target = map[role] || map.volunteer;
+        if (emailInput) emailInput.value = target.email;
+        if (passInput) passInput.value = target.pass;
+        this.showAuthAlert(`Demo credentials loaded for ${target.label}. Click "Sign In to Dashboard" to continue.`, 'info');
+      },
+
+      handleSignIn(e) {
+        e.preventDefault();
+        this.hideAuthAlert();
+        const identifier = document.getElementById('signin-email').value.trim();
+        const password = document.getElementById('signin-password').value;
+
+        try {
+          const res = SmartFunds.login(identifier, password);
+          if (res && res.success) {
+            this.render();
+          }
+        } catch (err) {
+          this.showAuthAlert(err.message || 'Invalid email or password. Please try again.', 'error');
+        }
+      },
+
+      handleSignUp(e) {
+        e.preventDefault();
+        this.hideAuthAlert();
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const role = document.getElementById('signup-role').value;
+        const chapter = document.getElementById('signup-chapter').value;
+
+        if (password !== confirmPassword) {
+          this.showAuthAlert('Passwords do not match. Please verify both password entries.', 'error');
+          return;
+        }
+
+        if (password.length < 6) {
+          this.showAuthAlert('Password must be at least 6 characters long.', 'error');
+          return;
+        }
+
+        try {
+          const res = SmartFunds.registerUser(name, email, password, role, chapter);
+          if (res && res.success) {
+            this.showAuthAlert('Account successfully created! Signing you in...', 'success');
+            setTimeout(() => {
+              this.render();
+            }, 300);
+          }
+        } catch (err) {
+          this.showAuthAlert(err.message || 'Could not complete registration. Please try again.', 'error');
+        }
+      },
+
       quickLogin(role, name, chapter) {
         SmartFunds.login(role, name, chapter);
       },
 
       handleCustomLogin(e) {
-        e.preventDefault();
-        const name = document.getElementById('login-name').value.trim();
-        const role = document.getElementById('login-role').value;
-        const chapter = document.getElementById('login-chapter').value;
+        if (e && e.preventDefault) e.preventDefault();
+        const name = document.getElementById('login-name') ? document.getElementById('login-name').value.trim() : 'User';
+        const role = document.getElementById('login-role') ? document.getElementById('login-role').value : 'volunteer';
+        const chapter = document.getElementById('login-chapter') ? document.getElementById('login-chapter').value : 'Evergreen Bay Area Chapter';
         SmartFunds.login(role, name, chapter);
       },
 

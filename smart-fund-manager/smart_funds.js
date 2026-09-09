@@ -25,6 +25,48 @@
           description: "Empowering rural students and underserved communities through education support, seats of hope, sports clubs, and classroom infrastructure."
         }
       ],
+      users: [
+        {
+          id: "u-shasta",
+          name: "Shasta Mudda",
+          email: "shasta@chiraghope.org",
+          password: "password123",
+          role: "volunteer",
+          chapter: "Evergreen Bay Area Chapter"
+        },
+        {
+          id: "u-ojasvi",
+          name: "Ojasvi Mudda",
+          email: "ojasvi@chiraghope.org",
+          password: "password123",
+          role: "volunteer",
+          chapter: "Evergreen Bay Area Chapter"
+        },
+        {
+          id: "u-chapter-admin",
+          name: "Evergreen Chapter Admin",
+          email: "admin@evergreen.org",
+          password: "password123",
+          role: "chapter_admin",
+          chapter: "Evergreen Bay Area Chapter"
+        },
+        {
+          id: "u-nonprofit-admin",
+          name: "Chirag Hope Executive Admin",
+          email: "exec@chiraghope.org",
+          password: "password123",
+          role: "nonprofit_admin",
+          chapter: "National Office"
+        },
+        {
+          id: "u-platform-admin",
+          name: "Smart Funds Platform Super Admin",
+          email: "superadmin@smartfunds.org",
+          password: "password123",
+          role: "platform_admin",
+          chapter: "Platform Headquarters"
+        }
+      ],
       chapters: [
         { name: "Evergreen Bay Area Chapter", raised: 20070, withdrawals: 13186, balance: 6884 },
         { name: "Washington D.C Chapter", raised: 22000, withdrawals: 10000, balance: 12000 },
@@ -336,45 +378,65 @@
     };
   }
 
+  function getStorage() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) return window.localStorage;
+      if (typeof localStorage !== 'undefined') return localStorage;
+    } catch (e) {}
+    return null;
+  }
+
   // Load or initialize state
   function loadState() {
+    const storage = getStorage();
     try {
-      // Check v4 first, with backward compatibility for prior versions
-      const stored = localStorage.getItem(STORAGE_KEY) ||
-                     localStorage.getItem('smart_funds_manager_state_v3') ||
-                     localStorage.getItem('smart_funds_manager_state_v2') ||
-                     localStorage.getItem('smart_funds_manager_state_v1');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed.chapters && parsed.projects && parsed.volunteers) {
-          const initial = getInitialDataset();
+      if (storage) {
+        // Check v4 first, with backward compatibility for prior versions
+        const stored = storage.getItem(STORAGE_KEY) ||
+                       storage.getItem('smart_funds_manager_state_v3') ||
+                       storage.getItem('smart_funds_manager_state_v2') ||
+                       storage.getItem('smart_funds_manager_state_v1');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.chapters && parsed.projects && parsed.volunteers) {
+            const initial = getInitialDataset();
 
-          // Ensure organizations array exists with Chirag Hope
-          if (!parsed.organizations || parsed.organizations.length === 0) {
-            parsed.organizations = initial.organizations;
-          } else {
-            initial.organizations.forEach(io => {
-              if (!parsed.organizations.some(o => o.name.toLowerCase() === io.name.toLowerCase())) {
-                parsed.organizations.unshift(io);
+            // Ensure organizations array exists with Chirag Hope
+            if (!parsed.organizations || parsed.organizations.length === 0) {
+              parsed.organizations = initial.organizations;
+            } else {
+              initial.organizations.forEach(io => {
+                if (!parsed.organizations.some(o => o.name.toLowerCase() === io.name.toLowerCase())) {
+                  parsed.organizations.unshift(io);
+                }
+              });
+            }
+
+            // Merge all 12 baseline volunteers from Google Doc Sheet 1 if missing or partial
+            initial.volunteers.forEach(iv => {
+              const existing = parsed.volunteers.find(v => v.name.toLowerCase() === iv.name.toLowerCase());
+              if (!existing) {
+                parsed.volunteers.push(iv);
+                if (!existing.assignments || existing.assignments.length === 0) {
+                  existing.assignments = iv.assignments || [];
+                }
               }
             });
-          }
 
-          // Merge all 12 baseline volunteers from Google Doc Sheet 1 if missing or partial
-          initial.volunteers.forEach(iv => {
-            const existing = parsed.volunteers.find(v => v.name.toLowerCase() === iv.name.toLowerCase());
-            if (!existing) {
-              parsed.volunteers.push(iv);
+            // Merge users if missing or partial
+            if (!parsed.users || !Array.isArray(parsed.users) || parsed.users.length === 0) {
+              parsed.users = initial.users;
             } else {
-              if (!existing.tabName) existing.tabName = iv.tabName;
-              if (!existing.chapter) existing.chapter = iv.chapter;
-              if (!existing.assignments || existing.assignments.length === 0) {
-                existing.assignments = iv.assignments || [];
-              }
+              initial.users.forEach(iu => {
+                if (!parsed.users.some(u => u.email.toLowerCase() === iu.email.toLowerCase())) {
+                  parsed.users.push(iu);
+                }
+              });
             }
-          });
-          saveState(parsed);
-          return parsed;
+
+            saveState(parsed);
+            return parsed;
+          }
         }
       }
     } catch (e) {
@@ -386,8 +448,10 @@
   }
 
   function saveState(state) {
+    const storage = getStorage();
+    if (!storage) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      storage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
       console.warn("Failed to persist Smart Funds state:", e);
     }
@@ -412,21 +476,139 @@
       this.notifySubscribers();
     },
 
-    // Session Management
-    login(role, name, chapter) {
+    // Session Management & User Accounts
+    getUsers() {
+      if (!this.state.users || !Array.isArray(this.state.users) || this.state.users.length === 0) {
+        this.state.users = getInitialDataset().users;
+        saveState(this.state);
+      }
+      return this.state.users;
+    },
+
+    login(identifierOrRole, password, legacyChapter) {
+      // 1. Backward compatibility check for legacy calls: login(role, name, chapter)
+      const validRoles = ['volunteer', 'chapter_admin', 'nonprofit_admin', 'platform_admin'];
+      if (validRoles.includes(identifierOrRole) && (legacyChapter !== undefined || (typeof password === 'string' && (password.includes(' ') || password.includes('Admin') || password.includes('Mudda'))))) {
+        const role = identifierOrRole;
+        const name = password;
+        const chapter = legacyChapter;
+        this.state.activeUser = {
+          role: role,
+          name: name || (
+            role === 'volunteer' ? 'Shasta Mudda' :
+            role === 'chapter_admin' ? 'Evergreen Admin' :
+            role === 'nonprofit_admin' ? 'Chirag Hope Executive Admin' :
+            'Smart Funds Platform Admin'
+          ),
+          chapter: chapter || (role === 'platform_admin' ? 'Platform Headquarters' : 'Evergreen Bay Area Chapter')
+        };
+        saveState(this.state);
+        this.notifySubscribers();
+        return this.state.activeUser;
+      }
+
+      // 2. Strict Credential Validation: login(identifier, password)
+      if (!identifierOrRole || !password) {
+        throw new Error("Please provide both email/username and password.");
+      }
+
+      const idStr = String(identifierOrRole).trim().toLowerCase();
+      const users = this.getUsers();
+      const matched = users.find(u =>
+        (u.email.toLowerCase() === idStr || u.name.toLowerCase() === idStr) &&
+        u.password === password
+      );
+
+      if (!matched) {
+        throw new Error("Invalid email/username or password.");
+      }
+
+      this.state.activeUser = {
+        id: matched.id,
+        role: matched.role,
+        name: matched.name,
+        email: matched.email,
+        chapter: matched.chapter || (matched.role === 'platform_admin' ? 'Platform Headquarters' : 'Evergreen Bay Area Chapter')
+      };
+      saveState(this.state);
+      this.notifySubscribers();
+      return { success: true, user: this.state.activeUser };
+    },
+
+    quickLogin(role, name, chapter) {
+      const users = this.getUsers();
+      let matched = users.find(u => u.role === role);
       this.state.activeUser = {
         role: role,
-        name: name || (
-          role === 'volunteer' ? 'Shasta Mudda' :
-          role === 'chapter_admin' ? 'Evergreen Admin' :
-          role === 'nonprofit_admin' ? 'Chirag Hope Executive Admin' :
-          'Smart Funds Platform Admin'
-        ),
-        chapter: chapter || (role === 'platform_admin' ? 'Platform HQ' : 'Evergreen Bay Area Chapter')
+        name: name || (matched ? matched.name : (role === 'volunteer' ? 'Shasta Mudda' : 'Chapter Admin')),
+        email: matched ? matched.email : `${role}@smartfunds.org`,
+        chapter: chapter || (matched ? matched.chapter : 'Evergreen Bay Area Chapter')
       };
       saveState(this.state);
       this.notifySubscribers();
       return this.state.activeUser;
+    },
+
+    registerUser(name, email, password, role, chapter) {
+      if (!name || !name.trim()) throw new Error("Full name is required.");
+      if (!email || !email.trim()) throw new Error("Email address is required.");
+      if (!password || password.length < 6) throw new Error("Password must be at least 6 characters.");
+
+      const cleanEmail = email.trim().toLowerCase();
+      const users = this.getUsers();
+      if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
+        throw new Error("An account with this email address already exists.");
+      }
+
+      const cleanRole = role || 'volunteer';
+      const cleanChapter = chapter || (cleanRole === 'platform_admin' ? 'Platform Headquarters' : 'Evergreen Bay Area Chapter');
+      const cleanName = name.trim();
+
+      const newUser = {
+        id: `u-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name: cleanName,
+        email: cleanEmail,
+        password: password,
+        role: cleanRole,
+        chapter: cleanChapter,
+        createdAt: new Date().toISOString()
+      };
+
+      this.state.users.push(newUser);
+
+      // If registered as a volunteer, ensure a record in state.volunteers exists
+      if (cleanRole === 'volunteer') {
+        const existingVol = this.state.volunteers.find(v => v.name.toLowerCase() === cleanName.toLowerCase());
+        if (!existingVol) {
+          this.state.volunteers.push({
+            name: cleanName,
+            chapter: cleanChapter,
+            tabName: cleanName,
+            assignments: [
+              {
+                project: "Mini-Library & Sports Club",
+                target: 1000,
+                raised: 0,
+                withdrawn: 0,
+                status: "Assigned"
+              }
+            ]
+          });
+        }
+      }
+
+      // Automatically log new user in
+      this.state.activeUser = {
+        id: newUser.id,
+        role: newUser.role,
+        name: newUser.name,
+        email: newUser.email,
+        chapter: newUser.chapter
+      };
+
+      saveState(this.state);
+      this.notifySubscribers();
+      return { success: true, user: this.state.activeUser };
     },
 
     logout() {

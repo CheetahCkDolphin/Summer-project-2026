@@ -437,5 +437,110 @@ class TestSmartFundsManager(unittest.TestCase):
         self.assertEqual(new_org["contactEmail"], "admin@globalyouth.org")
         self.assertEqual(new_org["cause"], "Global STEM & Digital Literacy")
 
+    def test_login_api_success(self):
+        """Tests POST /api/funds/login succeeds with valid credentials."""
+        handler_class = server.NoCacheHTTPRequestHandler
+        payload = json.dumps({
+            "identifier": "shasta@chiraghope.org",
+            "password": "password123"
+        }).encode('utf-8')
+
+        inst = handler_class.__new__(handler_class)
+        inst.command = 'POST'
+        inst.path = '/api/funds/login'
+        inst.headers = {'Content-Length': str(len(payload))}
+        inst.rfile = io.BytesIO(payload)
+        inst.wfile = io.BytesIO()
+        inst.send_response = MagicMock()
+        inst.send_header = MagicMock()
+        inst.end_headers = MagicMock()
+
+        inst.do_POST()
+        inst.send_response.assert_called_with(200)
+        res = json.loads(inst.wfile.getvalue().decode('utf-8'))
+        self.assertTrue(res["success"])
+        self.assertEqual(res["user"]["name"], "Shasta Mudda")
+        self.assertEqual(res["user"]["role"], "volunteer")
+
+    def test_login_api_failure(self):
+        """Tests POST /api/funds/login rejects invalid credentials with 401."""
+        handler_class = server.NoCacheHTTPRequestHandler
+        payload = json.dumps({
+            "identifier": "shasta@chiraghope.org",
+            "password": "wrongpassword"
+        }).encode('utf-8')
+
+        inst = handler_class.__new__(handler_class)
+        inst.command = 'POST'
+        inst.path = '/api/funds/login'
+        inst.headers = {'Content-Length': str(len(payload))}
+        inst.rfile = io.BytesIO(payload)
+        inst.wfile = io.BytesIO()
+        inst.send_response = MagicMock()
+        inst.send_header = MagicMock()
+        inst.end_headers = MagicMock()
+
+        inst.do_POST()
+        inst.send_response.assert_called_with(401)
+
+    def test_register_user_api(self):
+        """Tests POST /api/funds/register creates a new user account and volunteer profile."""
+        handler_class = server.NoCacheHTTPRequestHandler
+        payload = json.dumps({
+            "name": "Rohan Patel",
+            "email": "rohan@evergreen.org",
+            "password": "securepassword123",
+            "role": "volunteer",
+            "chapter": "Evergreen Bay Area Chapter"
+        }).encode('utf-8')
+
+        inst = handler_class.__new__(handler_class)
+        inst.command = 'POST'
+        inst.path = '/api/funds/register'
+        inst.headers = {'Content-Length': str(len(payload))}
+        inst.rfile = io.BytesIO(payload)
+        inst.wfile = io.BytesIO()
+        inst.send_response = MagicMock()
+        inst.send_header = MagicMock()
+        inst.end_headers = MagicMock()
+
+        inst.do_POST()
+        inst.send_response.assert_called_with(200)
+
+        data = server.FUNDS_STORE
+        user = next((u for u in data["users"] if u["email"] == "rohan@evergreen.org"), None)
+        self.assertIsNotNone(user)
+        self.assertEqual(user["name"], "Rohan Patel")
+        self.assertEqual(user["role"], "volunteer")
+
+        # Check volunteer auto-provisioning
+        vol = next((v for v in data["volunteers"] if v["name"] == "Rohan Patel"), None)
+        self.assertIsNotNone(vol)
+        self.assertEqual(vol["chapter"], "Evergreen Bay Area Chapter")
+
+    def test_register_duplicate_email(self):
+        """Tests POST /api/funds/register prevents registration with duplicate email."""
+        handler_class = server.NoCacheHTTPRequestHandler
+        payload = json.dumps({
+            "name": "Another Shasta",
+            "email": "shasta@chiraghope.org",
+            "password": "newpassword123",
+            "role": "volunteer",
+            "chapter": "Evergreen Bay Area Chapter"
+        }).encode('utf-8')
+
+        inst = handler_class.__new__(handler_class)
+        inst.command = 'POST'
+        inst.path = '/api/funds/register'
+        inst.headers = {'Content-Length': str(len(payload))}
+        inst.rfile = io.BytesIO(payload)
+        inst.wfile = io.BytesIO()
+        inst.send_response = MagicMock()
+        inst.send_header = MagicMock()
+        inst.end_headers = MagicMock()
+
+        inst.do_POST()
+        inst.send_response.assert_called_with(400)
+
 if __name__ == '__main__':
     unittest.main()

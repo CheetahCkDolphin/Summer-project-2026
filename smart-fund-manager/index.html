@@ -99,94 +99,146 @@
     </nav>
 
     <!-- ================================================================= -->
-    <!-- VIEW 1: LOGIN & PERSONA SELECTION SCREEN                          -->
+    <!-- VIEW 1: AUTHENTICATION (SIGN IN & SIGN UP) SCREEN                 -->
     <!-- ================================================================= -->
     <div id="login-view" class="sf-login-container">
       <div class="sf-login-header">
         <h1 class="sf-login-title">Sign In to Smart Funds Manager</h1>
         <p class="sf-login-desc">
-          Select your persona below to access tailored dashboards for youth volunteers, chapter administrators, or national non-profit executives.
+          Sign in or create an account to access tailored portals for youth volunteers, chapter administrators, non-profit organizations, and platform executives.
         </p>
       </div>
 
-      <!-- 3 Persona Cards -->
-      <div class="sf-persona-grid">
-        <!-- Persona 1: Volunteer -->
-        <div class="sf-persona-card volunteer" id="card-volunteer">
-          <div class="sf-persona-icon">🤝</div>
-          <h2 class="sf-persona-card-title">Volunteer (Youth Member)</h2>
-          <p class="sf-persona-card-desc">
-            Raise funds for assigned community projects, execute project milestones, and submit fund withdrawal disbursements.
-          </p>
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <button class="sf-btn sf-btn-success sf-persona-quick-btn" onclick="app.quickLogin('volunteer', 'Shasta Mudda', 'Evergreen Bay Area Chapter')">
-              Sign In as Shasta Mudda
-            </button>
-            <button class="sf-btn sf-btn-secondary sf-btn-sm" onclick="app.quickLogin('volunteer', 'Ojasvi Mudda', 'Evergreen Bay Area Chapter')">
-              Sign In as Ojasvi Mudda
-            </button>
-          </div>
-        </div>
-
-        <!-- Persona 2: Chapter Administrator -->
-        <div class="sf-persona-card chapter-admin" id="card-chapter-admin">
-          <div class="sf-persona-icon">🏛️</div>
-          <h2 class="sf-persona-card-title">Chapter Administrator</h2>
-          <p class="sf-persona-card-desc">
-            Monitor each volunteer’s funds raised, targets to be raised, project statuses, and approved chapter fund withdrawals.
-          </p>
-          <button class="sf-btn sf-btn-primary sf-persona-quick-btn" onclick="app.quickLogin('chapter_admin', 'Evergreen Chapter Admin', 'Evergreen Bay Area Chapter')">
-            Sign In as Chapter Admin
+      <!-- Centered Authentication Card -->
+      <div class="sf-auth-box">
+        <!-- Dual Mode Tabs: Sign In / Create Account -->
+        <div class="sf-auth-tabs">
+          <button type="button" class="sf-auth-tab active" id="tab-auth-signin" onclick="app.switchAuthTab('signin')">
+            Sign In
+          </button>
+          <button type="button" class="sf-auth-tab" id="tab-auth-signup" onclick="app.switchAuthTab('signup')">
+            Create Account (Sign Up)
           </button>
         </div>
 
-        <!-- Persona 3: Non-Profit Organization Administrator -->
-        <div class="sf-persona-card nonprofit-admin" id="card-nonprofit-admin">
-          <div class="sf-persona-icon">🌐</div>
-          <h2 class="sf-persona-card-title">Non-Profit Administrator</h2>
-          <p class="sf-persona-card-desc">
-            Oversee executive national metrics: total funds raised, total withdrawn, and chapter-by-chapter performance across 12 chapters.
-          </p>
-          <button class="sf-btn sf-btn-warning sf-persona-quick-btn" onclick="app.quickLogin('nonprofit_admin', 'Chirag Hope Executive Admin', 'National Office')">
-            Sign In as Non-Profit Admin
-          </button>
-        </div>
+        <!-- Dynamic Feedback Alert -->
+        <div id="auth-alert" class="sf-auth-alert"></div>
 
-        <!-- Persona 4: Smart Funds Manager Administrator (Platform Super Admin) -->
-        <div class="sf-persona-card platform-admin" id="card-platform-admin">
-          <div class="sf-persona-icon">⚡</div>
-          <h2 class="sf-persona-card-title">Smart Funds Platform Admin</h2>
-          <p class="sf-persona-card-desc">
-            Global ecosystem administrator. Onboard new non-profit organizations, monitor cross-organization fund distribution, chapters, and compliance.
-          </p>
-          <button class="sf-btn sf-persona-quick-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #f59e0b; color: #fff;" onclick="app.quickLogin('platform_admin', 'Smart Funds Platform Super Admin', 'Platform Headquarters')">
-            Sign In as Platform Admin
-          </button>
-        </div>
-      </div>
-
-      <!-- Optional Direct Credentials Form -->
-      <div style="max-width: 440px; margin: 0 auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-        <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-align: center; color: var(--text-secondary);">
-          Or Sign In with Custom Name & Role
-        </h3>
-        <form id="custom-login-form" onsubmit="app.handleCustomLogin(event)">
+        <!-- ============================================================= -->
+        <!-- TAB 1: SIGN IN FORM                                            -->
+        <!-- ============================================================= -->
+        <form id="form-signin" onsubmit="app.handleSignIn(event)">
           <div class="sf-form-group">
-            <label class="sf-form-label" for="login-name">Full Name</label>
-            <input type="text" id="login-name" class="sf-form-control" placeholder="e.g. Shasta Mudda" required>
+            <label class="sf-form-label" for="signin-email">Email Address or Username</label>
+            <input type="text" id="signin-email" class="sf-form-control" placeholder="e.g. shasta@chiraghope.org or Shasta Mudda" required autocomplete="username">
           </div>
+
           <div class="sf-form-group">
-            <label class="sf-form-label" for="login-role">Persona Role</label>
-            <select id="login-role" class="sf-form-control">
+            <label class="sf-form-label" for="signin-password">Password</label>
+            <div class="sf-password-wrapper">
+              <input type="password" id="signin-password" class="sf-form-control" placeholder="••••••••" required autocomplete="current-password">
+              <button type="button" class="sf-password-toggle" onclick="app.togglePasswordVisibility('signin-password')" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="sf-btn sf-btn-primary" style="width: 100%; margin-top: 0.75rem; font-weight: 700; padding: 0.75rem;">
+            Sign In to Dashboard
+          </button>
+
+          <!-- 1-Click Quick Demo Credentials Helper -->
+          <div class="sf-demo-section">
+            <div class="sf-demo-title">Quick Demo Credentials (1-Click Fill)</div>
+            <div class="sf-demo-chips">
+              <button type="button" class="sf-demo-chip" onclick="app.fillDemoCredentials('volunteer')" title="Shasta Mudda (Volunteer)">
+                <span class="sf-demo-chip-icon">🤝</span>
+                <div>
+                  <div>Shasta Mudda</div>
+                  <div class="sf-demo-chip-role">Volunteer</div>
+                </div>
+              </button>
+              <button type="button" class="sf-demo-chip" onclick="app.fillDemoCredentials('chapter_admin')" title="Evergreen Chapter Admin">
+                <span class="sf-demo-chip-icon">🏛️</span>
+                <div>
+                  <div>Evergreen Admin</div>
+                  <div class="sf-demo-chip-role">Chapter Admin</div>
+                </div>
+              </button>
+              <button type="button" class="sf-demo-chip" onclick="app.fillDemoCredentials('nonprofit_admin')" title="Chirag Hope Executive Admin">
+                <span class="sf-demo-chip-icon">🌐</span>
+                <div>
+                  <div>Chirag Hope Exec</div>
+                  <div class="sf-demo-chip-role">Non-Profit Admin</div>
+                </div>
+              </button>
+              <button type="button" class="sf-demo-chip" onclick="app.fillDemoCredentials('platform_admin')" title="Smart Funds Platform Super Admin">
+                <span class="sf-demo-chip-icon">⚡</span>
+                <div>
+                  <div>Platform Admin</div>
+                  <div class="sf-demo-chip-role">Platform Super Admin</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- ============================================================= -->
+        <!-- TAB 2: SIGN UP / REGISTRATION FORM                             -->
+        <!-- ============================================================= -->
+        <form id="form-signup" onsubmit="app.handleSignUp(event)" style="display: none;">
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-name">Full Name</label>
+            <input type="text" id="signup-name" class="sf-form-control" placeholder="e.g. Rohan Patel" required autocomplete="name">
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-email">Email Address</label>
+            <input type="email" id="signup-email" class="sf-form-control" placeholder="e.g. rohan@evergreen.org" required autocomplete="email">
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-password">Password (Minimum 6 characters)</label>
+            <div class="sf-password-wrapper">
+              <input type="password" id="signup-password" class="sf-form-control" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+              <button type="button" class="sf-password-toggle" onclick="app.togglePasswordVisibility('signup-password')" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-confirm-password">Confirm Password</label>
+            <div class="sf-password-wrapper">
+              <input type="password" id="signup-confirm-password" class="sf-form-control" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+              <button type="button" class="sf-password-toggle" onclick="app.togglePasswordVisibility('signup-confirm-password')" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="signup-role">Persona Role</label>
+            <select id="signup-role" class="sf-form-control" required>
               <option value="volunteer">Volunteer (Youth Member)</option>
               <option value="chapter_admin">Chapter Administrator</option>
               <option value="nonprofit_admin">Non-Profit Organization Administrator</option>
               <option value="platform_admin">Smart Funds Manager Administrator (Platform Super Admin)</option>
             </select>
           </div>
+
           <div class="sf-form-group">
-            <label class="sf-form-label" for="login-chapter">Chapter</label>
-            <select id="login-chapter" class="sf-form-control">
+            <label class="sf-form-label" for="signup-chapter">Regional Chapter</label>
+            <select id="signup-chapter" class="sf-form-control" required>
               <option value="Evergreen Bay Area Chapter">Evergreen Bay Area Chapter</option>
               <option value="Washington D.C Chapter">Washington D.C Chapter</option>
               <option value="Orange County Chapter">Orange County Chapter</option>
@@ -201,8 +253,9 @@
               <option value="Virginia Chapter">Virginia Chapter</option>
             </select>
           </div>
-          <button type="submit" class="sf-btn sf-btn-primary" style="width: 100%;">
-            Continue to Dashboard
+
+          <button type="submit" class="sf-btn sf-btn-success" style="width: 100%; margin-top: 1rem; font-weight: 700; padding: 0.75rem;">
+            Create Account & Sign In
           </button>
         </form>
       </div>
@@ -1282,15 +1335,124 @@
         this.render();
       },
 
+      authMode: 'signin',
+
+      switchAuthTab(mode) {
+        this.authMode = mode;
+        this.hideAuthAlert();
+        const tabSignIn = document.getElementById('tab-auth-signin');
+        const tabSignUp = document.getElementById('tab-auth-signup');
+        const formSignIn = document.getElementById('form-signin');
+        const formSignUp = document.getElementById('form-signup');
+
+        if (mode === 'signin') {
+          if (tabSignIn) tabSignIn.classList.add('active');
+          if (tabSignUp) tabSignUp.classList.remove('active');
+          if (formSignIn) formSignIn.style.display = 'block';
+          if (formSignUp) formSignUp.style.display = 'none';
+        } else {
+          if (tabSignUp) tabSignUp.classList.add('active');
+          if (tabSignIn) tabSignIn.classList.remove('active');
+          if (formSignUp) formSignUp.style.display = 'block';
+          if (formSignIn) formSignIn.style.display = 'none';
+        }
+      },
+
+      showAuthAlert(message, type = 'error') {
+        const el = document.getElementById('auth-alert');
+        if (!el) return;
+        el.textContent = message;
+        el.className = `sf-auth-alert ${type}`;
+        el.style.display = 'block';
+      },
+
+      hideAuthAlert() {
+        const el = document.getElementById('auth-alert');
+        if (el) el.style.display = 'none';
+      },
+
+      togglePasswordVisibility(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+      },
+
+      fillDemoCredentials(role) {
+        this.switchAuthTab('signin');
+        const emailInput = document.getElementById('signin-email');
+        const passInput = document.getElementById('signin-password');
+
+        const map = {
+          volunteer: { email: 'shasta@chiraghope.org', pass: 'password123', label: 'Shasta Mudda (Volunteer)' },
+          chapter_admin: { email: 'admin@evergreen.org', pass: 'password123', label: 'Evergreen Chapter Admin' },
+          nonprofit_admin: { email: 'exec@chiraghope.org', pass: 'password123', label: 'Chirag Hope Executive Admin' },
+          platform_admin: { email: 'superadmin@smartfunds.org', pass: 'password123', label: 'Smart Funds Platform Super Admin' }
+        };
+
+        const target = map[role] || map.volunteer;
+        if (emailInput) emailInput.value = target.email;
+        if (passInput) passInput.value = target.pass;
+        this.showAuthAlert(`Demo credentials loaded for ${target.label}. Click "Sign In to Dashboard" to continue.`, 'info');
+      },
+
+      handleSignIn(e) {
+        e.preventDefault();
+        this.hideAuthAlert();
+        const identifier = document.getElementById('signin-email').value.trim();
+        const password = document.getElementById('signin-password').value;
+
+        try {
+          const res = SmartFunds.login(identifier, password);
+          if (res && res.success) {
+            this.render();
+          }
+        } catch (err) {
+          this.showAuthAlert(err.message || 'Invalid email or password. Please try again.', 'error');
+        }
+      },
+
+      handleSignUp(e) {
+        e.preventDefault();
+        this.hideAuthAlert();
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const role = document.getElementById('signup-role').value;
+        const chapter = document.getElementById('signup-chapter').value;
+
+        if (password !== confirmPassword) {
+          this.showAuthAlert('Passwords do not match. Please verify both password entries.', 'error');
+          return;
+        }
+
+        if (password.length < 6) {
+          this.showAuthAlert('Password must be at least 6 characters long.', 'error');
+          return;
+        }
+
+        try {
+          const res = SmartFunds.registerUser(name, email, password, role, chapter);
+          if (res && res.success) {
+            this.showAuthAlert('Account successfully created! Signing you in...', 'success');
+            setTimeout(() => {
+              this.render();
+            }, 300);
+          }
+        } catch (err) {
+          this.showAuthAlert(err.message || 'Could not complete registration. Please try again.', 'error');
+        }
+      },
+
       quickLogin(role, name, chapter) {
         SmartFunds.login(role, name, chapter);
       },
 
       handleCustomLogin(e) {
-        e.preventDefault();
-        const name = document.getElementById('login-name').value.trim();
-        const role = document.getElementById('login-role').value;
-        const chapter = document.getElementById('login-chapter').value;
+        if (e && e.preventDefault) e.preventDefault();
+        const name = document.getElementById('login-name') ? document.getElementById('login-name').value.trim() : 'User';
+        const role = document.getElementById('login-role') ? document.getElementById('login-role').value : 'volunteer';
+        const chapter = document.getElementById('login-chapter') ? document.getElementById('login-chapter').value : 'Evergreen Bay Area Chapter';
         SmartFunds.login(role, name, chapter);
       },
 

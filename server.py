@@ -28,6 +28,48 @@ def get_initial_funds_dataset():
                 "description": "Empowering rural students and underserved communities through education support, seats of hope, sports clubs, and classroom infrastructure."
             }
         ],
+        "users": [
+            {
+                "id": "u-shasta",
+                "name": "Shasta Mudda",
+                "email": "shasta@chiraghope.org",
+                "password": "password123",
+                "role": "volunteer",
+                "chapter": "Evergreen Bay Area Chapter"
+            },
+            {
+                "id": "u-ojasvi",
+                "name": "Ojasvi Mudda",
+                "email": "ojasvi@chiraghope.org",
+                "password": "password123",
+                "role": "volunteer",
+                "chapter": "Evergreen Bay Area Chapter"
+            },
+            {
+                "id": "u-chapter-admin",
+                "name": "Evergreen Chapter Admin",
+                "email": "admin@evergreen.org",
+                "password": "password123",
+                "role": "chapter_admin",
+                "chapter": "Evergreen Bay Area Chapter"
+            },
+            {
+                "id": "u-nonprofit-admin",
+                "name": "Chirag Hope Executive Admin",
+                "email": "exec@chiraghope.org",
+                "password": "password123",
+                "role": "nonprofit_admin",
+                "chapter": "National Office"
+            },
+            {
+                "id": "u-platform-admin",
+                "name": "Smart Funds Platform Super Admin",
+                "email": "superadmin@smartfunds.org",
+                "password": "password123",
+                "role": "platform_admin",
+                "chapter": "Platform Headquarters"
+            }
+        ],
         "chapters": [
             {"name": "Evergreen Bay Area Chapter", "raised": 20070.0, "withdrawals": 13186.0, "balance": 6884.0},
             {"name": "Washington D.C Chapter", "raised": 22000.0, "withdrawals": 10000.0, "balance": 12000.0},
@@ -561,6 +603,124 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 }
                 FUNDS_STORE['organizations'].append(new_org)
                 res = json.dumps({"success": True, "organization": new_org}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(res)))
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(err)))
+                self.end_headers()
+                self.wfile.write(err)
+            return
+
+        # 8. API: Authenticate User (Login)
+        elif clean_path == '/api/funds/login':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                identifier = str(body.get('identifier') or body.get('email') or body.get('username') or '').strip().lower()
+                password = str(body.get('password') or '').strip()
+
+                if not identifier or not password:
+                    raise ValueError("Email/username and password are required")
+
+                users = FUNDS_STORE.setdefault('users', [])
+                matched = next((u for u in users if (u.get('email', '').lower() == identifier or u.get('name', '').lower() == identifier) and u.get('password') == password), None)
+
+                if not matched:
+                    res = json.dumps({"error": "Invalid email/username or password"}).encode('utf-8')
+                    self.send_response(401)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Content-Length', str(len(res)))
+                    self.end_headers()
+                    self.wfile.write(res)
+                    return
+
+                safe_user = {
+                    "id": matched.get("id"),
+                    "name": matched.get("name"),
+                    "email": matched.get("email"),
+                    "role": matched.get("role"),
+                    "chapter": matched.get("chapter")
+                }
+                res = json.dumps({"success": True, "user": safe_user}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(res)))
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(err)))
+                self.end_headers()
+                self.wfile.write(err)
+            return
+
+        # 9. API: Register New User Account (Sign Up)
+        elif clean_path == '/api/funds/register':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                name = str(body.get('name') or '').strip()
+                email = str(body.get('email') or '').strip().lower()
+                password = str(body.get('password') or '')
+                role = str(body.get('role') or 'volunteer').strip()
+                chapter = str(body.get('chapter') or 'Evergreen Bay Area Chapter').strip()
+
+                if not name:
+                    raise ValueError("Full name is required")
+                if not email:
+                    raise ValueError("Email address is required")
+                if len(password) < 6:
+                    raise ValueError("Password must be at least 6 characters long")
+
+                users = FUNDS_STORE.setdefault('users', [])
+                if any(u.get('email', '').lower() == email for u in users):
+                    raise ValueError("An account with this email address already exists")
+
+                new_user = {
+                    "id": f"u-{len(users) + 1}",
+                    "name": name,
+                    "email": email,
+                    "password": password,
+                    "role": role,
+                    "chapter": chapter
+                }
+                users.append(new_user)
+
+                # If registered as volunteer, ensure record in volunteers
+                if role == 'volunteer':
+                    volunteers = FUNDS_STORE.setdefault('volunteers', [])
+                    if not any(v.get('name', '').lower() == name.lower() for v in volunteers):
+                        volunteers.append({
+                            "name": name,
+                            "chapter": chapter,
+                            "tabName": name,
+                            "assignments": [
+                                {
+                                    "project": "Mini-Library & Sports Club",
+                                    "target": 1000.0,
+                                    "raised": 0.0,
+                                    "withdrawn": 0.0,
+                                    "status": "Assigned"
+                                }
+                            ]
+                        })
+
+                safe_user = {
+                    "id": new_user["id"],
+                    "name": new_user["name"],
+                    "email": new_user["email"],
+                    "role": new_user["role"],
+                    "chapter": new_user["chapter"]
+                }
+                res = json.dumps({"success": True, "user": safe_user}).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Content-Length', str(len(res)))

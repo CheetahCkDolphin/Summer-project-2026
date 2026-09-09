@@ -454,6 +454,101 @@
 
           return true;
         }
+      },
+      {
+        id: 17,
+        name: "User Authentication & Credential Verification (Sign In)",
+        desc: "Validates email/username and password verification across all personas and verifies error rejection on incorrect credentials.",
+        run() {
+          SmartFunds.resetToDefault();
+
+          // 1. Valid volunteer credentials
+          const resVol = SmartFunds.login("shasta@chiraghope.org", "password123");
+          if (!resVol || !resVol.success) throw new Error("Volunteer login should succeed");
+          if (SmartFunds.getActiveUser().role !== 'volunteer') throw new Error("Expected role volunteer");
+          if (SmartFunds.getActiveUser().name !== 'Shasta Mudda') throw new Error("Expected Shasta Mudda");
+
+          // 2. Valid chapter admin credentials
+          const resAdmin = SmartFunds.login("admin@evergreen.org", "password123");
+          if (!resAdmin || !resAdmin.success) throw new Error("Chapter admin login should succeed");
+          if (SmartFunds.getActiveUser().role !== 'chapter_admin') throw new Error("Expected role chapter_admin");
+
+          // 3. Valid platform admin credentials
+          const resPlat = SmartFunds.login("superadmin@smartfunds.org", "password123");
+          if (!resPlat || !resPlat.success) throw new Error("Platform admin login should succeed");
+          if (SmartFunds.getActiveUser().role !== 'platform_admin') throw new Error("Expected role platform_admin");
+
+          // 4. Invalid password rejection
+          let threwBadPass = false;
+          try {
+            SmartFunds.login("shasta@chiraghope.org", "wrongpass");
+          } catch (e) {
+            threwBadPass = true;
+          }
+          if (!threwBadPass) throw new Error("Expected wrong password to throw error");
+
+          // 5. Non-existent user rejection
+          let threwBadUser = false;
+          try {
+            SmartFunds.login("nobody@nowhere.org", "password123");
+          } catch (e) {
+            threwBadUser = true;
+          }
+          if (!threwBadUser) throw new Error("Expected non-existent user to throw error");
+
+          return true;
+        }
+      },
+      {
+        id: 18,
+        name: "Sign Up Account Registration & Role Auto-Provisioning",
+        desc: "Validates registering a new user account, password length check, duplicate email prevention, and volunteer profile auto-provisioning.",
+        run() {
+          SmartFunds.resetToDefault();
+          const initUserCount = SmartFunds.getUsers().length;
+
+          // 1. Successful registration
+          const regRes = SmartFunds.registerUser(
+            "Ananya Gupta",
+            "ananya@chiraghope.org",
+            "guptapass123",
+            "volunteer",
+            "Evergreen Bay Area Chapter"
+          );
+
+          if (!regRes.success || !regRes.user) throw new Error("Expected successful user registration");
+          if (SmartFunds.getUsers().length !== initUserCount + 1) throw new Error("User count should increment by 1");
+
+          // 2. Verify activeUser automatically set to newly registered user
+          const active = SmartFunds.getActiveUser();
+          if (!active || active.email !== "ananya@chiraghope.org") throw new Error("Active user should be newly registered user");
+          if (active.role !== "volunteer") throw new Error("Active user role should be volunteer");
+
+          // 3. Verify volunteer roster auto-provisioning
+          const volInRoster = SmartFunds.state.volunteers.find(v => v.name.toLowerCase() === "ananya gupta");
+          if (!volInRoster) throw new Error("Volunteer should be automatically added to state.volunteers");
+          if (volInRoster.chapter !== "Evergreen Bay Area Chapter") throw new Error("Volunteer chapter mismatch");
+
+          // 4. Duplicate email prevention
+          let threwDuplicate = false;
+          try {
+            SmartFunds.registerUser("Another Ananya", "ananya@chiraghope.org", "password999", "volunteer", "Evergreen Bay Area Chapter");
+          } catch (e) {
+            threwDuplicate = true;
+          }
+          if (!threwDuplicate) throw new Error("Expected duplicate email to throw error");
+
+          // 5. Short password prevention (< 6 chars)
+          let threwShortPass = false;
+          try {
+            SmartFunds.registerUser("Short Pass", "short@pass.org", "123", "volunteer", "Evergreen Bay Area Chapter");
+          } catch (e) {
+            threwShortPass = true;
+          }
+          if (!threwShortPass) throw new Error("Expected short password to throw error");
+
+          return true;
+        }
       }
     ];
 
@@ -462,6 +557,7 @@
       container.innerHTML = '';
       let passed = 0;
       let failed = 0;
+      document.getElementById('total-tests').textContent = testCases.length;
 
       testCases.forEach(t => {
         const card = document.createElement('div');
