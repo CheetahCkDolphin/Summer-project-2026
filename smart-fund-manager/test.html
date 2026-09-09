@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Funds Manager - Automated Test Suite</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b0f19;
+      color: #f8fafc;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #38bdf8, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .summary-card {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    .stat-val {
+      font-size: 2rem;
+      font-weight: 800;
+    }
+    .test-card {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .test-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+    .test-desc {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .badge {
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-pass {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .badge-fail {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .btn {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn:hover { background: #0369a1; }
+  </style>
+</head>
+<body>
+  <h1>Smart Funds Manager - Browser Test Suite</h1>
+  <p style="color: #94a3b8; margin-bottom: 1.5rem;">
+    Verifying multi-persona workflows: Volunteer fundraising & withdrawals, Chapter Admin oversight, Non-Profit Admin national consolidation, and Google Sheets baseline integrity.
+  </p>
+
+  <div class="summary-card">
+    <div>
+      <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Total Tests</div>
+      <div id="total-tests" class="stat-val" style="color: #38bdf8;">8</div>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Passed</div>
+      <div id="passed-tests" class="stat-val" style="color: #10b981;">0</div>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Failed</div>
+      <div id="failed-tests" class="stat-val" style="color: #ef4444;">0</div>
+    </div>
+    <div style="margin-left: auto;">
+      <button class="btn" onclick="runTests()">Rerun All Tests</button>
+      <a href="/smart-fund-manager/" style="color: #38bdf8; margin-left: 1rem; text-decoration: none; font-size: 0.9rem;">Open Application &rarr;</a>
+    </div>
+  </div>
+
+  <div id="test-results"></div>
+
+  <!-- Load Smart Funds Core Engine -->
+  <script src="smart_funds.js?v=1"></script>
+  <script>
+    const testCases = [
+      {
+        id: 1,
+        name: "Spreadsheet Baseline Data Integrity",
+        desc: "Verifies 12 chapters exist with exact Google Sheet figures (Evergreen $20,070 raised, $13,186 withdrawn, $6,884 balance).",
+        run() {
+          SmartFunds.resetToDefault();
+          const s = SmartFunds.state;
+          if (s.chapters.length !== 12) throw new Error(`Expected 12 chapters, found ${s.chapters.length}`);
+          const eg = s.chapters.find(c => c.name === "Evergreen Bay Area Chapter");
+          if (!eg) throw new Error("Evergreen Bay Area Chapter missing");
+          if (eg.raised !== 20070) throw new Error(`Expected raised 20070, got ${eg.raised}`);
+          if (eg.withdrawals !== 13186) throw new Error(`Expected withdrawals 13186, got ${eg.withdrawals}`);
+          if (eg.balance !== 6884) throw new Error(`Expected balance 6884, got ${eg.balance}`);
+          return true;
+        }
+      },
+      {
+        id: 2,
+        name: "Volunteer Persona Authentication",
+        desc: "Verifies logging in as Shasta Mudda computes personal target, raised amount, and assigned projects.",
+        run() {
+          SmartFunds.login('volunteer', 'Shasta Mudda', 'Evergreen Bay Area Chapter');
+          const m = SmartFunds.getVolunteerMetrics('Shasta Mudda');
+          if (m.totalRaised !== 8810) throw new Error(`Expected raised 8810, got ${m.totalRaised}`);
+          if (m.totalTarget !== 8810) throw new Error(`Expected target 8810, got ${m.totalTarget}`);
+          if (m.volunteer.assignments.length < 3) throw new Error("Expected at least 3 project assignments");
+          return true;
+        }
+      },
+      {
+        id: 3,
+        name: "Volunteer Raise Funds Operation",
+        desc: "Verifies logging a contribution updates volunteer, project, and chapter balances concurrently.",
+        run() {
+          const initChapter = SmartFunds.getChapterMetrics('Evergreen Bay Area Chapter');
+          const initRaised = initChapter.totalRaised;
+          
+          SmartFunds.raiseFunds('Shasta Mudda', 'Mini-Library & Sports Club', 250, 'Donor A', 'Check #101');
+          
+          const updatedChapter = SmartFunds.getChapterMetrics('Evergreen Bay Area Chapter');
+          if (updatedChapter.totalRaised !== initRaised + 250) {
+            throw new Error(`Expected chapter raised to increase by 250, went from ${initRaised} to ${updatedChapter.totalRaised}`);
+          }
+          
+          const volMetrics = SmartFunds.getVolunteerMetrics('Shasta Mudda');
+          if (volMetrics.totalRaised !== 8810 + 250) {
+            throw new Error(`Expected volunteer raised to be ${8810 + 250}, got ${volMetrics.totalRaised}`);
+          }
+          return true;
+        }
+      },
+      {
+        id: 4,
+        name: "Volunteer Execute Project Milestones",
+        desc: "Verifies updating project milestones updates status, percentage, and execution notes.",
+        run() {
+          SmartFunds.executeProject('Mini-Library & Sports Club', 100, 'Complete', 'All books and sports kits deployed');
+          const p = SmartFunds.state.projects.find(proj => proj.name === 'Mini-Library & Sports Club');
+          if (p.status !== 'Complete') throw new Error(`Expected Complete, got ${p.status}`);
+          if (p.progress !== 100) throw new Error(`Expected 100%, got ${p.progress}`);
+          return true;
+        }
+      },
+      {
+        id: 5,
+        name: "Volunteer Withdraw Funds Operation",
+        desc: "Verifies fund withdrawal succeeds within available balance and decreases project/chapter balance.",
+        run() {
+          const pName = "Education support and Seats of Hope for rural India Phase 2";
+          const pBefore = SmartFunds.state.projects.find(p => p.name === pName);
+          const initialBalance = pBefore.raised - pBefore.withdrawn;
+          
+          SmartFunds.withdrawFunds('Shasta Mudda', pName, 500, 'School Furniture Supplies', 'Receipt #WH-551');
+          
+          const pAfter = SmartFunds.state.projects.find(p => p.name === pName);
+          const newBalance = pAfter.raised - pAfter.withdrawn;
+          if (newBalance !== initialBalance - 500) {
+            throw new Error(`Expected balance to decrease by 500, went from ${initialBalance} to ${newBalance}`);
+          }
+          return true;
+        }
+      },
+      {
+        id: 6,
+        name: "Withdrawal Exceeding Balance Rejection",
+        desc: "Verifies withdrawal validation rejects requests exceeding available project balance with an error.",
+        run() {
+          let threw = false;
+          try {
+            SmartFunds.withdrawFunds('Shasta Mudda', 'Aid4Afghans', 999999, 'Overdraw', 'None');
+          } catch (e) {
+            threw = true;
+          }
+          if (!threw) throw new Error("Expected withdrawal exceeding balance to throw an error, but it succeeded");
+          return true;
+        }
+      },
+      {
+        id: 7,
+        name: "Chapter Admin Persona Oversight",
+        desc: "Verifies Chapter Admin portal aggregates all volunteers (Ojasvi, Shasta, etc.) and projects.",
+        run() {
+          SmartFunds.login('chapter_admin', 'Evergreen Admin', 'Evergreen Bay Area Chapter');
+          const m = SmartFunds.getChapterMetrics('Evergreen Bay Area Chapter');
+          if (m.volunteers.length < 5) throw new Error(`Expected at least 5 volunteers in Evergreen chapter, got ${m.volunteers.length}`);
+          if (m.projects.length < 5) throw new Error(`Expected at least 5 projects in Evergreen chapter, got ${m.projects.length}`);
+          return true;
+        }
+      },
+      {
+        id: 8,
+        name: "Non-Profit Org Admin National Consolidation",
+        desc: "Verifies Non-Profit Admin consolidates global metrics across all 12 chapters (Total raised > $60k).",
+        run() {
+          SmartFunds.login('nonprofit_admin', 'Chirag Hope Executive Admin', 'National Office');
+          const m = SmartFunds.getNonprofitMetrics();
+          if (m.totalChapters !== 12) throw new Error(`Expected 12 chapters, got ${m.totalChapters}`);
+          if (m.totalRaised < 60000) throw new Error(`Expected total raised > 60000, got ${m.totalRaised}`);
+          if (m.totalBalance <= 0) throw new Error(`Expected positive net balance, got ${m.totalBalance}`);
+          return true;
+        }
+      }
+    ];
+
+    function runTests() {
+      const container = document.getElementById('test-results');
+      container.innerHTML = '';
+      let passed = 0;
+      let failed = 0;
+
+      testCases.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'test-card';
+        try {
+          t.run();
+          passed++;
+          card.innerHTML = `
+            <div>
+              <div class="test-name">Test ${t.id}: ${t.name}</div>
+              <div class="test-desc">${t.desc}</div>
+            </div>
+            <span class="badge badge-pass">PASS</span>
+          `;
+        } catch (err) {
+          failed++;
+          card.innerHTML = `
+            <div>
+              <div class="test-name">Test ${t.id}: ${t.name}</div>
+              <div class="test-desc" style="color: #fca5a5;">${err.message}</div>
+            </div>
+            <span class="badge badge-fail">FAIL</span>
+          `;
+        }
+        container.appendChild(card);
+      });
+
+      document.getElementById('passed-tests').textContent = passed;
+      document.getElementById('failed-tests').textContent = failed;
+    }
+
+    window.addEventListener('DOMContentLoaded', runTests);
+  </script>
+</body>
+</html>

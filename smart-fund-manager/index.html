@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Funds Manager - Chirag Hope</title>
+  <link rel="stylesheet" href="smart_funds.css?v=1">
+</head>
+<body>
+  <div class="sf-app-container">
+    
+    <!-- Top Header Navigation Bar -->
+    <header class="sf-header">
+      <div class="sf-brand">
+        <div class="sf-brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="sf-brand-title">
+            Smart Funds Manager
+            <span class="sf-brand-badge">Chirag Hope</span>
+          </div>
+          <div class="sf-brand-subtitle">Non-Profit Multi-Chapter Fundraising, Execution & Disbursement Management</div>
+        </div>
+      </div>
+
+      <div class="sf-header-actions">
+        <!-- Return to Main Homepage / Speech Evaluator -->
+        <a href="/" class="sf-btn sf-btn-outline sf-btn-sm" title="Go to NSDA Speech Evaluator">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Speech Evaluator
+        </a>
+
+        <!-- Reset Data Button -->
+        <button id="reset-data-btn" class="sf-btn sf-btn-secondary sf-btn-sm" title="Reset to baseline Google Sheets data">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Reset Data
+        </button>
+
+        <!-- Active User Profile & Persona Switcher -->
+        <div id="header-user-badge" class="sf-persona-badge" style="display: none;">
+          <div class="sf-persona-dot"></div>
+          <div>
+            <div id="header-user-name" class="sf-persona-name">Shasta Mudda</div>
+            <div id="header-user-role" class="sf-persona-role">Volunteer</div>
+          </div>
+        </div>
+
+        <button id="logout-btn" class="sf-btn sf-btn-outline sf-btn-sm" style="display: none;">
+          Sign Out
+        </button>
+      </div>
+    </header>
+
+    <!-- Sub-Navbar for Quick Persona Tabs (Shown when logged in) -->
+    <nav id="sf-role-nav" class="sf-nav-bar" style="display: none;">
+      <div class="sf-nav-tabs">
+        <button class="sf-nav-tab" data-target="volunteer-view" id="tab-volunteer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Volunteer Portal
+        </button>
+        <button class="sf-nav-tab" data-target="chapter-admin-view" id="tab-chapter-admin">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Chapter Administrator
+        </button>
+        <button class="sf-nav-tab" data-target="nonprofit-admin-view" id="tab-nonprofit-admin">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          Non-Profit Org Administrator
+        </button>
+      </div>
+
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">
+        Active Chapter: <strong id="active-chapter-name" style="color: var(--text-primary);">Evergreen Bay Area</strong>
+      </div>
+    </nav>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 1: LOGIN & PERSONA SELECTION SCREEN                          -->
+    <!-- ================================================================= -->
+    <div id="login-view" class="sf-login-container">
+      <div class="sf-login-header">
+        <h1 class="sf-login-title">Sign In to Smart Funds Manager</h1>
+        <p class="sf-login-desc">
+          Select your persona below to access tailored dashboards for youth volunteers, chapter administrators, or national non-profit executives.
+        </p>
+      </div>
+
+      <!-- 3 Persona Cards -->
+      <div class="sf-persona-grid">
+        <!-- Persona 1: Volunteer -->
+        <div class="sf-persona-card volunteer" id="card-volunteer">
+          <div class="sf-persona-icon">🤝</div>
+          <h2 class="sf-persona-card-title">Volunteer (Youth Member)</h2>
+          <p class="sf-persona-card-desc">
+            Raise funds for assigned community projects, execute project milestones, and submit fund withdrawal disbursements.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <button class="sf-btn sf-btn-success sf-persona-quick-btn" onclick="app.quickLogin('volunteer', 'Shasta Mudda', 'Evergreen Bay Area Chapter')">
+              Sign In as Shasta Mudda
+            </button>
+            <button class="sf-btn sf-btn-secondary sf-btn-sm" onclick="app.quickLogin('volunteer', 'Ojasvi Mudda', 'Evergreen Bay Area Chapter')">
+              Sign In as Ojasvi Mudda
+            </button>
+          </div>
+        </div>
+
+        <!-- Persona 2: Chapter Administrator -->
+        <div class="sf-persona-card chapter-admin" id="card-chapter-admin">
+          <div class="sf-persona-icon">🏛️</div>
+          <h2 class="sf-persona-card-title">Chapter Administrator</h2>
+          <p class="sf-persona-card-desc">
+            Monitor each volunteer’s funds raised, targets to be raised, project statuses, and approved chapter fund withdrawals.
+          </p>
+          <button class="sf-btn sf-btn-primary sf-persona-quick-btn" onclick="app.quickLogin('chapter_admin', 'Evergreen Chapter Admin', 'Evergreen Bay Area Chapter')">
+            Sign In as Chapter Admin
+          </button>
+        </div>
+
+        <!-- Persona 3: Non-Profit Organization Administrator -->
+        <div class="sf-persona-card nonprofit-admin" id="card-nonprofit-admin">
+          <div class="sf-persona-icon">🌐</div>
+          <h2 class="sf-persona-card-title">Non-Profit Administrator</h2>
+          <p class="sf-persona-card-desc">
+            Oversee executive national metrics: total funds raised, total withdrawn, and chapter-by-chapter performance across 12 chapters.
+          </p>
+          <button class="sf-btn sf-btn-warning sf-persona-quick-btn" onclick="app.quickLogin('nonprofit_admin', 'Chirag Hope Executive Admin', 'National Office')">
+            Sign In as Non-Profit Admin
+          </button>
+        </div>
+      </div>
+
+      <!-- Optional Direct Credentials Form -->
+      <div style="max-width: 440px; margin: 0 auto; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+        <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; text-align: center; color: var(--text-secondary);">
+          Or Sign In with Custom Name & Role
+        </h3>
+        <form id="custom-login-form" onsubmit="app.handleCustomLogin(event)">
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="login-name">Full Name</label>
+            <input type="text" id="login-name" class="sf-form-control" placeholder="e.g. Shasta Mudda" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="login-role">Persona Role</label>
+            <select id="login-role" class="sf-form-control">
+              <option value="volunteer">Volunteer (Youth Member)</option>
+              <option value="chapter_admin">Chapter Administrator</option>
+              <option value="nonprofit_admin">Non-Profit Organization Administrator</option>
+            </select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="login-chapter">Chapter</label>
+            <select id="login-chapter" class="sf-form-control">
+              <option value="Evergreen Bay Area Chapter">Evergreen Bay Area Chapter</option>
+              <option value="Washington D.C Chapter">Washington D.C Chapter</option>
+              <option value="Orange County Chapter">Orange County Chapter</option>
+              <option value="Fremont Chapter">Fremont Chapter</option>
+              <option value="San Jose Chapter">San Jose Chapter</option>
+              <option value="Sunnyvale Chapter">Sunnyvale Chapter</option>
+              <option value="Cupertino Chapter">Cupertino Chapter</option>
+              <option value="Frisco Chapter">Frisco Chapter</option>
+              <option value="Michigan Chapter">Michigan Chapter</option>
+              <option value="New Jersey Chapter">New Jersey Chapter</option>
+              <option value="Seattle Chapter">Seattle Chapter</option>
+              <option value="Virginia Chapter">Virginia Chapter</option>
+            </select>
+          </div>
+          <button type="submit" class="sf-btn sf-btn-primary" style="width: 100%;">
+            Continue to Dashboard
+          </button>
+        </form>
+      </div>
+    </div>
+
+
+    <!-- ================================================================= -->
+    <!-- VIEW 2: VOLUNTEER DASHBOARD                                       -->
+    <!-- ================================================================= -->
+    <div id="volunteer-view" style="display: none;">
+      
+      <!-- Welcome Banner & Quick Action Buttons -->
+      <div class="sf-section" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0.8));">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">
+              👋 Welcome, <span id="volunteer-display-name" style="color: var(--success);">Shasta Mudda</span>
+            </h1>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">
+              Chapter: <strong id="volunteer-chapter-name" style="color: var(--text-primary);">Evergreen Bay Area Chapter</strong> | Role: <strong>Youth Member / Volunteer</strong>
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button class="sf-btn sf-btn-success" onclick="app.openRaiseFundsModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Raise Funds
+            </button>
+            <button class="sf-btn sf-btn-primary" onclick="app.openExecuteProjectModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Execute Project
+            </button>
+            <button class="sf-btn sf-btn-warning" onclick="app.openWithdrawFundsModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg>
+              Withdraw Funds
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Volunteer KPI Cards -->
+      <div class="sf-kpi-grid">
+        <div class="sf-kpi-card kpi-raised">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Raised by Me</span>
+            <span class="sf-kpi-icon">💰</span>
+          </div>
+          <div id="v-kpi-raised" class="sf-kpi-value">$8,810.00</div>
+          <div class="sf-kpi-footer">Personal funds raised to date</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-target">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Target to Raise</span>
+            <span class="sf-kpi-icon">🎯</span>
+          </div>
+          <div id="v-kpi-target" class="sf-kpi-value">$8,810.00</div>
+          <div class="sf-kpi-footer">Total fundraising commitment</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-remaining">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">To Be Raised</span>
+            <span class="sf-kpi-icon">⏳</span>
+          </div>
+          <div id="v-kpi-remaining" class="sf-kpi-value">$0.00</div>
+          <div class="sf-kpi-footer">Remaining gap to reach target</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-withdrawn">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Withdrawn for Projects</span>
+            <span class="sf-kpi-icon">📤</span>
+          </div>
+          <div id="v-kpi-withdrawn" class="sf-kpi-value">$6,810.00</div>
+          <div class="sf-kpi-footer">Disbursed for project execution</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-balance">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Net Available Balance</span>
+            <span class="sf-kpi-icon">🏦</span>
+          </div>
+          <div id="v-kpi-balance" class="sf-kpi-value">$2,000.00</div>
+          <div class="sf-kpi-footer">Available to withdraw/spend</div>
+        </div>
+      </div>
+
+      <!-- Assigned Projects Table -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>📋 My Project Commitments & Progress</span>
+          </h2>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">
+            Source: Evergreen Bay Area Chapter Youth Members Sheet
+          </span>
+        </div>
+
+        <div class="sf-table-responsive">
+          <table class="sf-table" id="volunteer-projects-table">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>My Target</th>
+                <th>Raised by Me</th>
+                <th>To Be Raised</th>
+                <th>Withdrawn</th>
+                <th>Balance</th>
+                <th>Execution Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="volunteer-projects-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Transactions / Withdrawals Log -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>📝 My Recent Activity & Disbursements Log</span>
+          </h2>
+        </div>
+        <div class="sf-table-responsive">
+          <table class="sf-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Project</th>
+                <th>Amount</th>
+                <th>Details / Vendor Purpose</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="volunteer-transactions-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================================================================= -->
+    <!-- VIEW 3: CHAPTER ADMINISTRATOR DASHBOARD                           -->
+    <!-- ================================================================= -->
+    <div id="chapter-admin-view" style="display: none;">
+      
+      <!-- Chapter Admin Header & Selector -->
+      <div class="sf-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h1 style="font-size: 1.45rem; font-weight: 800;">
+              🏛️ Chapter Administrator: <span id="ca-chapter-title" style="color: var(--info);">Evergreen Bay Area Chapter</span>
+            </h1>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">
+              Review volunteer fundraising performance, individual targets, and authorized project fund withdrawals.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <label for="ca-chapter-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Switch Chapter:</label>
+            <select id="ca-chapter-select" class="sf-form-control" style="width: auto;" onchange="app.switchChapter(this.value)">
+              <option value="Evergreen Bay Area Chapter" selected>Evergreen Bay Area Chapter</option>
+              <option value="Washington D.C Chapter">Washington D.C Chapter</option>
+              <option value="Orange County Chapter">Orange County Chapter</option>
+              <option value="Fremont Chapter">Fremont Chapter</option>
+              <option value="San Jose Chapter">San Jose Chapter</option>
+              <option value="Sunnyvale Chapter">Sunnyvale Chapter</option>
+              <option value="Cupertino Chapter">Cupertino Chapter</option>
+              <option value="Frisco Chapter">Frisco Chapter</option>
+              <option value="Michigan Chapter">Michigan Chapter</option>
+              <option value="New Jersey Chapter">New Jersey Chapter</option>
+              <option value="Seattle Chapter">Seattle Chapter</option>
+              <option value="Virginia Chapter">Virginia Chapter</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter Overview KPI Cards -->
+      <div class="sf-kpi-grid">
+        <div class="sf-kpi-card kpi-raised">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Total Chapter Raised</span>
+            <span class="sf-kpi-icon">📈</span>
+          </div>
+          <div id="ca-kpi-raised" class="sf-kpi-value">$20,070.00</div>
+          <div class="sf-kpi-footer">Across all chapter projects</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-target">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Chapter Target</span>
+            <span class="sf-kpi-icon">🎯</span>
+          </div>
+          <div id="ca-kpi-target" class="sf-kpi-value">$20,070.00</div>
+          <div class="sf-kpi-footer">Combined chapter goals</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-remaining">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">To Be Raised</span>
+            <span class="sf-kpi-icon">⏳</span>
+          </div>
+          <div id="ca-kpi-remaining" class="sf-kpi-value">$0.00</div>
+          <div class="sf-kpi-footer">Outstanding fundraising target</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-withdrawn">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Total Withdrawals</span>
+            <span class="sf-kpi-icon">📤</span>
+          </div>
+          <div id="ca-kpi-withdrawn" class="sf-kpi-value">$13,186.00</div>
+          <div class="sf-kpi-footer">Total project disbursements</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-balance">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Net Chapter Balance</span>
+            <span class="sf-kpi-icon">🏦</span>
+          </div>
+          <div id="ca-kpi-balance" class="sf-kpi-value">$6,884.00</div>
+          <div class="sf-kpi-footer">Available reserve balance</div>
+        </div>
+      </div>
+
+      <!-- TABLE 1: Youth Members / Volunteer Breakdown (Directly from Spreadsheet 1) -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>👥 Volunteer Fundraising & Target Breakdown</span>
+          </h2>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">
+            Grounded in Google Sheet 1: Youth Members Column (Ojasvi, Shasta, Shreshtha, Esha, etc.)
+          </span>
+        </div>
+
+        <div class="sf-table-responsive">
+          <table class="sf-table">
+            <thead>
+              <tr>
+                <th>Volunteer Member</th>
+                <th>Assigned Project</th>
+                <th>Raised Funds</th>
+                <th>Target</th>
+                <th>To Be Raised</th>
+                <th>Withdrawn</th>
+                <th>Net Balance</th>
+                <th>Progress</th>
+              </tr>
+            </thead>
+            <tbody id="ca-volunteers-tbody">
+              <!-- Dynamically populated from state.volunteers -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TABLE 2: Chapter Projects Overview (Directly from Spreadsheet 1) -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>📊 Chapter Projects Funds Overview</span>
+          </h2>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">
+            Grounded in Google Sheet 1: Chapter Funds Overview
+          </span>
+        </div>
+
+        <div class="sf-table-responsive">
+          <table class="sf-table">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Raised Funds</th>
+                <th>Target</th>
+                <th>To Be Raised</th>
+                <th>Withdrawals</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ca-projects-tbody">
+              <!-- Dynamically populated from state.projects -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TABLE 3: Chapter Withdrawals Log -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>💸 Chapter Withdrawals & Expense Disbursements</span>
+          </h2>
+        </div>
+        <div class="sf-table-responsive">
+          <table class="sf-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Project</th>
+                <th>Volunteer / Requester</th>
+                <th>Amount Withdrawn</th>
+                <th>Purpose / Vendor</th>
+                <th>Documentation</th>
+              </tr>
+            </thead>
+            <tbody id="ca-withdrawals-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================================================================= -->
+    <!-- VIEW 4: NON-PROFIT ORGANIZATION ADMINISTRATOR                     -->
+    <!-- ================================================================= -->
+    <div id="nonprofit-admin-view" style="display: none;">
+      
+      <!-- Executive Banner -->
+      <div class="sf-section" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(15, 23, 42, 0.85));">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800;">
+              🌐 Non-Profit Organization Executive Dashboard
+            </h1>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">
+              Chirag Hope National Headquarters — Consolidated overview across 12 chapters, raised funds, withdrawals, and balances.
+            </p>
+          </div>
+          <div>
+            <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.exportDataCSV()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Executive Global KPIs -->
+      <div class="sf-kpi-grid">
+        <div class="sf-kpi-card kpi-raised">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Total Funds Raised</span>
+            <span class="sf-kpi-icon">💰</span>
+          </div>
+          <div id="np-kpi-raised" class="sf-kpi-value">$67,163.00</div>
+          <div class="sf-kpi-footer">Across all 12 chapters</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-target">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Total Target</span>
+            <span class="sf-kpi-icon">🎯</span>
+          </div>
+          <div id="np-kpi-target" class="sf-kpi-value">$82,342.00</div>
+          <div class="sf-kpi-footer">National cumulative goal</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-withdrawn">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Total Funds Withdrawn</span>
+            <span class="sf-kpi-icon">📤</span>
+          </div>
+          <div id="np-kpi-withdrawn" class="sf-kpi-value">$38,658.00</div>
+          <div class="sf-kpi-footer">Disbursed for project execution</div>
+        </div>
+
+        <div class="sf-kpi-card kpi-balance">
+          <div class="sf-kpi-header">
+            <span class="sf-kpi-label">Total Net Balance</span>
+            <span class="sf-kpi-icon">🏦</span>
+          </div>
+          <div id="np-kpi-balance" class="sf-kpi-value">$28,505.00</div>
+          <div class="sf-kpi-footer">Current liquid reserves</div>
+        </div>
+      </div>
+
+      <!-- Visual Distribution Chart: Raised vs Withdrawn by Chapter -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>📊 Chapter Financial Performance Comparison</span>
+          </h2>
+          <div style="display: flex; gap: 1rem; font-size: 0.8rem;">
+            <span style="display: flex; align-items: center; gap: 0.35rem;">
+              <span style="width: 10px; height: 10px; background: #10b981; border-radius: 2px;"></span> Raised Funds
+            </span>
+            <span style="display: flex; align-items: center; gap: 0.35rem;">
+              <span style="width: 10px; height: 10px; background: #ef4444; border-radius: 2px;"></span> Withdrawals
+            </span>
+          </div>
+        </div>
+
+        <div class="sf-chart-container" id="np-chapters-chart">
+          <!-- Dynamic chart rows -->
+        </div>
+      </div>
+
+      <!-- TABLE 1: Chirag Hope Chapters Fund Overview (Matches Spreadsheet 2 Left Table) -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>🏛️ Chirag Hope Chapters Fund Overview</span>
+          </h2>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">
+            Grounded in Google Sheet 2: Chirag Hope Chapters Fund Overview
+          </span>
+        </div>
+
+        <div class="sf-table-responsive">
+          <table class="sf-table">
+            <thead>
+              <tr>
+                <th>Chapter Name</th>
+                <th>Raised Fund</th>
+                <th>Withdrawals</th>
+                <th>Balance</th>
+                <th>Funding Ratio</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="np-chapters-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TABLE 2: Chirag Hope Chapters Project Overview (Matches Spreadsheet 2 Right Table) -->
+      <div class="sf-section">
+        <div class="sf-section-header">
+          <h2 class="sf-section-title">
+            <span>🌍 Chirag Hope Chapters Project Overview</span>
+          </h2>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">
+            Grounded in Google Sheet 2: Chirag Hope Chapters Project Overview
+          </span>
+        </div>
+
+        <div class="sf-table-responsive">
+          <table class="sf-table">
+            <thead>
+              <tr>
+                <th>Chapter Name</th>
+                <th>Current Project</th>
+                <th>Raised Funds</th>
+                <th>Target</th>
+                <th>Amount Withdrawn</th>
+                <th>Balance</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="np-projects-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- /sf-app-container -->
+
+
+  <!-- ================================================================= -->
+  <!-- MODAL 1: RAISE FUNDS (VOLUNTEER DONATION LOGGING)                 -->
+  <!-- ================================================================= -->
+  <div class="sf-modal-backdrop" id="modal-raise-funds">
+    <div class="sf-modal">
+      <div class="sf-modal-header">
+        <h3 class="sf-modal-title">💰 Log Fundraising Contribution</h3>
+        <button class="sf-modal-close" onclick="app.closeModals()">&times;</button>
+      </div>
+      <form onsubmit="app.submitRaiseFunds(event)">
+        <div class="sf-modal-body">
+          <div class="sf-alert sf-alert-info">
+            Record a new contribution or grant raised towards your assigned project target.
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="rf-project">Select Project</label>
+            <select id="rf-project" class="sf-form-control" required></select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="rf-amount">Contribution Amount ($)</label>
+            <input type="number" id="rf-amount" class="sf-form-control" placeholder="e.g. 500.00" step="0.01" min="1" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="rf-donor">Donor / Sponsor Name</label>
+            <input type="text" id="rf-donor" class="sf-form-control" placeholder="e.g. Bay Area Community Foundation" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="rf-notes">Notes / Receipt Ref</label>
+            <input type="text" id="rf-notes" class="sf-form-control" placeholder="e.g. Check #2081 or Matching Grant">
+          </div>
+        </div>
+        <div class="sf-modal-footer">
+          <button type="button" class="sf-btn sf-btn-outline" onclick="app.closeModals()">Cancel</button>
+          <button type="submit" class="sf-btn sf-btn-success">Record Contribution</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- MODAL 2: EXECUTE PROJECT (STATUS & MILESTONES)                     -->
+  <!-- ================================================================= -->
+  <div class="sf-modal-backdrop" id="modal-execute-project">
+    <div class="sf-modal">
+      <div class="sf-modal-header">
+        <h3 class="sf-modal-title">🚀 Execute Project Milestones</h3>
+        <button class="sf-modal-close" onclick="app.closeModals()">&times;</button>
+      </div>
+      <form onsubmit="app.submitExecuteProject(event)">
+        <div class="sf-modal-body">
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="ep-project">Select Project</label>
+            <select id="ep-project" class="sf-form-control" required></select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="ep-status">Execution Status</label>
+            <select id="ep-status" class="sf-form-control">
+              <option value="Planning">Planning</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Execution">Execution</option>
+              <option value="Complete">Complete</option>
+            </select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="ep-progress">Progress Percentage (0 - 100%)</label>
+            <input type="number" id="ep-progress" class="sf-form-control" min="0" max="100" placeholder="e.g. 75">
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="ep-notes">Milestone Update / Execution Notes</label>
+            <textarea id="ep-notes" class="sf-form-control" rows="3" placeholder="e.g. Procured classroom benches for rural school batch #2"></textarea>
+          </div>
+        </div>
+        <div class="sf-modal-footer">
+          <button type="button" class="sf-btn sf-btn-outline" onclick="app.closeModals()">Cancel</button>
+          <button type="submit" class="sf-btn sf-btn-primary">Update Execution Status</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- MODAL 3: WITHDRAW FUNDS                                           -->
+  <!-- ================================================================= -->
+  <div class="sf-modal-backdrop" id="modal-withdraw-funds">
+    <div class="sf-modal">
+      <div class="sf-modal-header">
+        <h3 class="sf-modal-title">💸 Withdraw Project Funds</h3>
+        <button class="sf-modal-close" onclick="app.closeModals()">&times;</button>
+      </div>
+      <form onsubmit="app.submitWithdrawFunds(event)">
+        <div class="sf-modal-body">
+          <div class="sf-alert sf-alert-warning" id="wf-balance-alert">
+            Withdrawals must not exceed the available project balance.
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="wf-project">Select Project</label>
+            <select id="wf-project" class="sf-form-control" required onchange="app.updateWithdrawalBalanceInfo(this.value)"></select>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="wf-amount">Withdrawal Amount ($)</label>
+            <input type="number" id="wf-amount" class="sf-form-control" placeholder="e.g. 250.00" step="0.01" min="1" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="wf-purpose">Expense Purpose / Vendor</label>
+            <input type="text" id="wf-purpose" class="sf-form-control" placeholder="e.g. Sports Equipment Supplier" required>
+          </div>
+          <div class="sf-form-group">
+            <label class="sf-form-label" for="wf-receipt">Invoice / Receipt Reference</label>
+            <input type="text" id="wf-receipt" class="sf-form-control" placeholder="e.g. Receipt #INV-9920">
+          </div>
+        </div>
+        <div class="sf-modal-footer">
+          <button type="button" class="sf-btn sf-btn-outline" onclick="app.closeModals()">Cancel</button>
+          <button type="submit" class="sf-btn sf-btn-warning">Disburse Funds</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Load Smart Funds Core Engine & UI Controller -->
+  <script src="smart_funds.js?v=1"></script>
+  <script>
+    // App UI Controller
+    const app = {
+      init() {
+        // Subscribe to state updates
+        SmartFunds.subscribe(() => {
+          app.render();
+        });
+
+        // Setup navbar tabs
+        document.querySelectorAll('.sf-nav-tab').forEach(tab => {
+          tab.addEventListener('click', (e) => {
+            const target = e.currentTarget.getAttribute('data-target');
+            app.switchView(target);
+          });
+        });
+
+        // Setup reset button
+        document.getElementById('reset-data-btn').addEventListener('click', () => {
+          if (confirm("Reset all fundraising, execution, and withdrawal data back to original spreadsheet values?")) {
+            SmartFunds.resetToDefault();
+          }
+        });
+
+        // Setup logout button
+        document.getElementById('logout-btn').addEventListener('click', () => {
+          SmartFunds.logout();
+        });
+
+        this.render();
+      },
+
+      quickLogin(role, name, chapter) {
+        SmartFunds.login(role, name, chapter);
+      },
+
+      handleCustomLogin(e) {
+        e.preventDefault();
+        const name = document.getElementById('login-name').value.trim();
+        const role = document.getElementById('login-role').value;
+        const chapter = document.getElementById('login-chapter').value;
+        SmartFunds.login(role, name, chapter);
+      },
+
+      switchChapter(chapterName) {
+        if (SmartFunds.state.activeUser) {
+          SmartFunds.state.activeUser.chapter = chapterName;
+        }
+        this.render();
+      },
+
+      switchView(viewId) {
+        // Update navbar tabs
+        document.querySelectorAll('.sf-nav-tab').forEach(tab => {
+          if (tab.getAttribute('data-target') === viewId) {
+            tab.classList.add('active');
+          } else {
+            tab.classList.remove('active');
+          }
+        });
+
+        // Show/hide view sections
+        ['login-view', 'volunteer-view', 'chapter-admin-view', 'nonprofit-admin-view'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.style.display = (id === viewId) ? 'block' : 'none';
+          }
+        });
+      },
+
+      render() {
+        const user = SmartFunds.getActiveUser();
+
+        // 1. Header & Navigation visibility
+        const userBadge = document.getElementById('header-user-badge');
+        const logoutBtn = document.getElementById('logout-btn');
+        const navBar = document.getElementById('sf-role-nav');
+
+        if (!user) {
+          userBadge.style.display = 'none';
+          logoutBtn.style.display = 'none';
+          navBar.style.display = 'none';
+          this.switchView('login-view');
+          return;
+        }
+
+        userBadge.style.display = 'flex';
+        logoutBtn.style.display = 'inline-flex';
+        navBar.style.display = 'flex';
+
+        document.getElementById('header-user-name').textContent = user.name;
+        document.getElementById('header-user-role').textContent =
+          user.role === 'volunteer' ? 'Volunteer' :
+          user.role === 'chapter_admin' ? 'Chapter Admin' : 'Non-Profit Admin';
+        document.getElementById('active-chapter-name').textContent = user.chapter;
+
+        // Route to active persona view
+        if (user.role === 'volunteer') {
+          this.switchView('volunteer-view');
+          this.renderVolunteer(user);
+        } else if (user.role === 'chapter_admin') {
+          this.switchView('chapter-admin-view');
+          this.renderChapterAdmin(user.chapter);
+        } else {
+          this.switchView('nonprofit-admin-view');
+          this.renderNonprofitAdmin();
+        }
+      },
+
+      // --- VOLUNTEER RENDER ---
+      renderVolunteer(user) {
+        document.getElementById('volunteer-display-name').textContent = user.name;
+        document.getElementById('volunteer-chapter-name').textContent = user.chapter;
+
+        const metrics = SmartFunds.getVolunteerMetrics(user.name);
+
+        document.getElementById('v-kpi-raised').textContent = SmartFunds.formatCurrency(metrics.totalRaised);
+        document.getElementById('v-kpi-target').textContent = SmartFunds.formatCurrency(metrics.totalTarget);
+        document.getElementById('v-kpi-remaining').textContent = SmartFunds.formatCurrency(metrics.toBeRaised);
+        document.getElementById('v-kpi-withdrawn').textContent = SmartFunds.formatCurrency(metrics.totalWithdrawn);
+        document.getElementById('v-kpi-balance').textContent = SmartFunds.formatCurrency(metrics.balance);
+
+        // Render Assigned Projects
+        const tbody = document.getElementById('volunteer-projects-tbody');
+        tbody.innerHTML = '';
+
+        if (!metrics.volunteer.assignments || metrics.volunteer.assignments.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No projects currently assigned to this volunteer. Click "Raise Funds" to begin.</td></tr>`;
+        } else {
+          metrics.volunteer.assignments.forEach(a => {
+            const project = SmartFunds.state.projects.find(p => p.name.toLowerCase() === a.project.toLowerCase()) || {
+              target: a.target, raised: a.raised, withdrawn: a.withdrawn, status: "In Progress", progress: 50
+            };
+            const toBeRaised = Math.max(0, a.target - a.raised);
+            const balance = a.raised - a.withdrawn;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><strong>${a.project}</strong></td>
+              <td>${SmartFunds.formatCurrency(a.target)}</td>
+              <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(a.raised)}</td>
+              <td style="color: var(--warning);">${SmartFunds.formatCurrency(toBeRaised)}</td>
+              <td style="color: var(--danger);">${SmartFunds.formatCurrency(a.withdrawn)}</td>
+              <td style="color: var(--info); font-weight: 700;">${SmartFunds.formatCurrency(balance)}</td>
+              <td>
+                <span class="sf-badge sf-badge-${project.status === 'Complete' ? 'success' : project.status === 'Execution' ? 'warning' : 'info'}">
+                  ${project.status} (${project.progress || 0}%)
+                </span>
+                <div class="sf-progress-bar" style="margin-top: 4px; width: 90px;">
+                  <div class="sf-progress-fill ${project.progress >= 100 ? 'complete' : ''}" style="width: ${project.progress || 0}%"></div>
+                </div>
+              </td>
+              <td>
+                <div style="display: flex; gap: 0.35rem;">
+                  <button class="sf-btn sf-btn-success sf-btn-sm" onclick="app.openRaiseFundsModal('${a.project}')" title="Raise Funds">+</button>
+                  <button class="sf-btn sf-btn-warning sf-btn-sm" onclick="app.openWithdrawFundsModal('${a.project}')" title="Withdraw Funds">💸</button>
+                  <button class="sf-btn sf-btn-secondary sf-btn-sm" onclick="app.openExecuteProjectModal('${a.project}')" title="Update Execution">⚙️</button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+
+        // Render Transactions
+        const txTbody = document.getElementById('volunteer-transactions-tbody');
+        txTbody.innerHTML = '';
+        const myTxs = SmartFunds.state.transactions.filter(t => t.volunteer.toLowerCase() === user.name.toLowerCase());
+        if (myTxs.length === 0) {
+          txTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1rem;">No recent transactions logged yet.</td></tr>`;
+        } else {
+          myTxs.forEach(t => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${t.date}</td>
+              <td><span class="sf-badge sf-badge-${t.type === 'donation' ? 'success' : 'danger'}">${t.type.toUpperCase()}</span></td>
+              <td>${t.project}</td>
+              <td style="font-weight: 700; color: var(--${t.type === 'donation' ? 'success' : 'danger'});">${t.type === 'donation' ? '+' : '-'}${SmartFunds.formatCurrency(t.amount)}</td>
+              <td>${t.donor || t.purpose || '-'}</td>
+              <td style="color: var(--text-muted); font-size: 0.775rem;">${t.notes || '-'}</td>
+            `;
+            txTbody.appendChild(tr);
+          });
+        }
+      },
+
+      // --- CHAPTER ADMIN RENDER ---
+      renderChapterAdmin(chapterName) {
+        document.getElementById('ca-chapter-title').textContent = chapterName;
+        document.getElementById('ca-chapter-select').value = chapterName;
+
+        const metrics = SmartFunds.getChapterMetrics(chapterName);
+
+        document.getElementById('ca-kpi-raised').textContent = SmartFunds.formatCurrency(metrics.totalRaised);
+        document.getElementById('ca-kpi-target').textContent = SmartFunds.formatCurrency(metrics.totalTarget);
+        document.getElementById('ca-kpi-remaining').textContent = SmartFunds.formatCurrency(metrics.toBeRaised);
+        document.getElementById('ca-kpi-withdrawn').textContent = SmartFunds.formatCurrency(metrics.totalWithdrawn);
+        document.getElementById('ca-kpi-balance').textContent = SmartFunds.formatCurrency(metrics.balance);
+
+        // TABLE 1: Volunteers / Youth Members breakdown (from Sheet 1)
+        const volTbody = document.getElementById('ca-volunteers-tbody');
+        volTbody.innerHTML = '';
+
+        metrics.volunteers.forEach(v => {
+          v.assignments.forEach(a => {
+            const toBeRaised = Math.max(0, a.target - a.raised);
+            const balance = a.raised - a.withdrawn;
+            const pct = a.target > 0 ? Math.round((a.raised / a.target) * 100) : 100;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><strong>${v.name}</strong></td>
+              <td>${a.project}</td>
+              <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(a.raised)}</td>
+              <td>${SmartFunds.formatCurrency(a.target)}</td>
+              <td style="color: var(--warning);">${SmartFunds.formatCurrency(toBeRaised)}</td>
+              <td style="color: var(--danger);">${SmartFunds.formatCurrency(a.withdrawn)}</td>
+              <td style="font-weight: 700; color: var(--info);">${SmartFunds.formatCurrency(balance)}</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <div class="sf-progress-bar" style="width: 70px;">
+                    <div class="sf-progress-fill ${pct >= 100 ? 'complete' : ''}" style="width: ${Math.min(100, pct)}%"></div>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary);">${pct}%</span>
+                </div>
+              </td>
+            `;
+            volTbody.appendChild(tr);
+          });
+        });
+
+        // TABLE 2: Chapter Projects Overview (from Sheet 1)
+        const projTbody = document.getElementById('ca-projects-tbody');
+        projTbody.innerHTML = '';
+
+        metrics.projects.forEach(p => {
+          const toBeRaised = Math.max(0, p.target - p.raised);
+          const balance = p.raised - p.withdrawn;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${p.name}</strong></td>
+            <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(p.raised)}</td>
+            <td>${SmartFunds.formatCurrency(p.target)}</td>
+            <td style="color: var(--warning);">${SmartFunds.formatCurrency(toBeRaised)}</td>
+            <td style="color: var(--danger);">${SmartFunds.formatCurrency(p.withdrawn)}</td>
+            <td style="font-weight: 700; color: var(--info);">${SmartFunds.formatCurrency(balance)}</td>
+            <td>
+              <span class="sf-badge sf-badge-${p.status === 'Complete' ? 'success' : p.status === 'Execution' ? 'warning' : 'info'}">
+                ${p.status}
+              </span>
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.35rem;">
+                <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.openWithdrawFundsModal('${p.name}')">Record Withdrawal</button>
+                <button class="sf-btn sf-btn-secondary sf-btn-sm" onclick="app.openExecuteProjectModal('${p.name}')">Edit Status</button>
+              </div>
+            </td>
+          `;
+          projTbody.appendChild(tr);
+        });
+
+        // TABLE 3: Chapter Withdrawals
+        const withTbody = document.getElementById('ca-withdrawals-tbody');
+        withTbody.innerHTML = '';
+        const chapterWithdrawals = SmartFunds.state.transactions.filter(t =>
+          t.type === 'withdrawal' && t.chapter.toLowerCase() === chapterName.toLowerCase()
+        );
+
+        if (chapterWithdrawals.length === 0) {
+          withTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1rem;">No withdrawals logged for this chapter.</td></tr>`;
+        } else {
+          chapterWithdrawals.forEach(t => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${t.date}</td>
+              <td><strong>${t.project}</strong></td>
+              <td>${t.volunteer}</td>
+              <td style="color: var(--danger); font-weight: 700;">${SmartFunds.formatCurrency(t.amount)}</td>
+              <td>${t.purpose || '-'}</td>
+              <td style="color: var(--text-muted); font-size: 0.775rem;">${t.notes || '-'}</td>
+            `;
+            withTbody.appendChild(tr);
+          });
+        }
+      },
+
+      // --- NON-PROFIT ADMIN RENDER ---
+      renderNonprofitAdmin() {
+        const metrics = SmartFunds.getNonprofitMetrics();
+
+        document.getElementById('np-kpi-raised').textContent = SmartFunds.formatCurrency(metrics.totalRaised);
+        document.getElementById('np-kpi-target').textContent = SmartFunds.formatCurrency(metrics.totalTarget);
+        document.getElementById('np-kpi-withdrawn').textContent = SmartFunds.formatCurrency(metrics.totalWithdrawn);
+        document.getElementById('np-kpi-balance').textContent = SmartFunds.formatCurrency(metrics.totalBalance);
+
+        // Render Chart Rows
+        const chartContainer = document.getElementById('np-chapters-chart');
+        chartContainer.innerHTML = '';
+        const maxVal = Math.max(...metrics.chapters.map(c => Math.max(c.raised, c.withdrawals)), 25000);
+
+        metrics.chapters.forEach(c => {
+          const raisedWidth = Math.round((c.raised / maxVal) * 100);
+          const withWidth = Math.round((c.withdrawals / maxVal) * 100);
+
+          const row = document.createElement('div');
+          row.className = 'sf-chart-row';
+          row.innerHTML = `
+            <div class="sf-chart-label" title="${c.name}">${c.name}</div>
+            <div class="sf-chart-bar-track">
+              <div class="sf-chart-bar-raised" style="width: ${raisedWidth}%;" title="Raised: ${SmartFunds.formatCurrency(c.raised)}"></div>
+              <div class="sf-chart-bar-withdrawn" style="width: ${withWidth}%;" title="Withdrawn: ${SmartFunds.formatCurrency(c.withdrawals)}"></div>
+            </div>
+            <div class="sf-chart-value">${SmartFunds.formatCurrency(c.balance)}</div>
+          `;
+          chartContainer.appendChild(row);
+        });
+
+        // TABLE 1: National Chapters Fund Overview (from Sheet 2 Left)
+        const chapTbody = document.getElementById('np-chapters-tbody');
+        chapTbody.innerHTML = '';
+
+        metrics.chapters.forEach(c => {
+          const fundingRatio = c.raised > 0 ? Math.round((c.withdrawals / c.raised) * 100) : 0;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${c.name}</strong></td>
+            <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(c.raised)}</td>
+            <td style="color: var(--danger); font-weight: 700;">${SmartFunds.formatCurrency(c.withdrawals)}</td>
+            <td style="color: ${c.balance < 0 ? 'var(--danger)' : 'var(--info)'}; font-weight: 700;">${SmartFunds.formatCurrency(c.balance)}</td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="sf-progress-bar" style="width: 80px;">
+                  <div class="sf-progress-fill" style="width: ${Math.min(100, fundingRatio)}%; background: #f59e0b;"></div>
+                </div>
+                <span style="font-size: 0.75rem; color: var(--text-secondary);">${fundingRatio}%</span>
+              </div>
+            </td>
+            <td>
+              <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.inspectChapter('${c.name}')">View Details</button>
+            </td>
+          `;
+          chapTbody.appendChild(tr);
+        });
+
+        // TABLE 2: National Projects Master Overview (from Sheet 2 Right)
+        const projTbody = document.getElementById('np-projects-tbody');
+        projTbody.innerHTML = '';
+
+        SmartFunds.state.projects.forEach(p => {
+          const balance = p.raised - p.withdrawn;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${p.chapter}</td>
+            <td><strong>${p.name}</strong></td>
+            <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(p.raised)}</td>
+            <td>${SmartFunds.formatCurrency(p.target)}</td>
+            <td style="color: var(--danger);">${SmartFunds.formatCurrency(p.withdrawn)}</td>
+            <td style="color: ${balance < 0 ? 'var(--danger)' : 'var(--info)'}; font-weight: 700;">${SmartFunds.formatCurrency(balance)}</td>
+            <td>
+              <span class="sf-badge sf-badge-${p.status === 'Complete' ? 'success' : p.status === 'Execution' ? 'warning' : 'info'}">
+                ${p.status}
+              </span>
+            </td>
+          `;
+          projTbody.appendChild(tr);
+        });
+      },
+
+      inspectChapter(chapterName) {
+        if (SmartFunds.state.activeUser) {
+          SmartFunds.state.activeUser.chapter = chapterName;
+        }
+        this.switchView('chapter-admin-view');
+        this.renderChapterAdmin(chapterName);
+      },
+
+      // --- MODALS ---
+      openRaiseFundsModal(selectedProject) {
+        const select = document.getElementById('rf-project');
+        select.innerHTML = '';
+        SmartFunds.state.projects.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.textContent = `${p.name} (${p.chapter}) - Target: ${SmartFunds.formatCurrency(p.target)}`;
+          if (selectedProject && p.name.toLowerCase() === selectedProject.toLowerCase()) {
+            opt.selected = true;
+          }
+          select.appendChild(opt);
+        });
+        document.getElementById('modal-raise-funds').classList.add('open');
+      },
+
+      openExecuteProjectModal(selectedProject) {
+        const select = document.getElementById('ep-project');
+        select.innerHTML = '';
+        SmartFunds.state.projects.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.textContent = `${p.name} (${p.chapter}) - Status: ${p.status}`;
+          if (selectedProject && p.name.toLowerCase() === selectedProject.toLowerCase()) {
+            opt.selected = true;
+          }
+          select.appendChild(opt);
+        });
+        document.getElementById('modal-execute-project').classList.add('open');
+      },
+
+      openWithdrawFundsModal(selectedProject) {
+        const select = document.getElementById('wf-project');
+        select.innerHTML = '';
+        SmartFunds.state.projects.forEach(p => {
+          const balance = p.raised - p.withdrawn;
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.textContent = `${p.name} (Balance: ${SmartFunds.formatCurrency(balance)})`;
+          if (selectedProject && p.name.toLowerCase() === selectedProject.toLowerCase()) {
+            opt.selected = true;
+          }
+          select.appendChild(opt);
+        });
+        this.updateWithdrawalBalanceInfo(select.value);
+        document.getElementById('modal-withdraw-funds').classList.add('open');
+      },
+
+      updateWithdrawalBalanceInfo(projectName) {
+        const p = SmartFunds.state.projects.find(proj => proj.name.toLowerCase() === projectName.toLowerCase());
+        const alert = document.getElementById('wf-balance-alert');
+        if (p) {
+          const bal = p.raised - p.withdrawn;
+          alert.innerHTML = `Available balance for <strong>${p.name}</strong>: <strong>${SmartFunds.formatCurrency(bal)}</strong>.`;
+        }
+      },
+
+      closeModals() {
+        document.querySelectorAll('.sf-modal-backdrop').forEach(m => m.classList.remove('open'));
+      },
+
+      submitRaiseFunds(e) {
+        e.preventDefault();
+        const project = document.getElementById('rf-project').value;
+        const amount = document.getElementById('rf-amount').value;
+        const donor = document.getElementById('rf-donor').value.trim();
+        const notes = document.getElementById('rf-notes').value.trim();
+        const volunteerName = SmartFunds.getActiveUser() ? SmartFunds.getActiveUser().name : "Shasta Mudda";
+
+        try {
+          SmartFunds.raiseFunds(volunteerName, project, amount, donor, notes);
+          this.closeModals();
+          alert(`Success: Recorded $${Number(amount).toFixed(2)} contribution for "${project}"!`);
+        } catch (err) {
+          alert("Error recording contribution: " + err.message);
+        }
+      },
+
+      submitExecuteProject(e) {
+        e.preventDefault();
+        const project = document.getElementById('ep-project').value;
+        const status = document.getElementById('ep-status').value;
+        const progress = document.getElementById('ep-progress').value;
+        const notes = document.getElementById('ep-notes').value.trim();
+
+        try {
+          SmartFunds.executeProject(project, progress, status, notes);
+          this.closeModals();
+          alert(`Success: Updated execution status for "${project}"!`);
+        } catch (err) {
+          alert("Error updating project: " + err.message);
+        }
+      },
+
+      submitWithdrawFunds(e) {
+        e.preventDefault();
+        const project = document.getElementById('wf-project').value;
+        const amount = document.getElementById('wf-amount').value;
+        const purpose = document.getElementById('wf-purpose').value.trim();
+        const receipt = document.getElementById('wf-receipt').value.trim();
+        const volunteerName = SmartFunds.getActiveUser() ? SmartFunds.getActiveUser().name : "Shasta Mudda";
+
+        try {
+          SmartFunds.withdrawFunds(volunteerName, project, amount, purpose, receipt);
+          this.closeModals();
+          alert(`Success: Withdrew $${Number(amount).toFixed(2)} for "${purpose}" on "${project}"!`);
+        } catch (err) {
+          alert("Withdrawal Failed: " + err.message);
+        }
+      },
+
+      exportDataCSV() {
+        let csv = "Chapter Name,Raised Fund,Withdrawals,Balance\n";
+        SmartFunds.state.chapters.forEach(c => {
+          csv += `"${c.name}",${c.raised},${c.withdrawals},${c.balance}\n`;
+        });
+        csv += "\nProject Name,Chapter,Target,Raised,Withdrawn,Balance,Status\n";
+        SmartFunds.state.projects.forEach(p => {
+          csv += `"${p.name}","${p.chapter}",${p.target},${p.raised},${p.withdrawn},${p.raised - p.withdrawn},"${p.status}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `chirag_hope_funds_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+      }
+    };
+
+    // Auto-initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      app.init();
+    });
+  </script>
+</body>
+</html>

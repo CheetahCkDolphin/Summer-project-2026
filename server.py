@@ -10,6 +10,66 @@ dotenv.load_dotenv()
 
 PORT = 8080
 
+# Baseline Google Sheets dataset for Smart Funds Manager
+def get_initial_funds_dataset():
+    return {
+        "organization": "Chirag Hope",
+        "chapters": [
+            {"name": "Evergreen Bay Area Chapter", "raised": 20070.0, "withdrawals": 13186.0, "balance": 6884.0},
+            {"name": "Washington D.C Chapter", "raised": 22000.0, "withdrawals": 10000.0, "balance": 12000.0},
+            {"name": "Orange County Chapter", "raised": 13093.0, "withdrawals": 12000.0, "balance": 1093.0},
+            {"name": "Fremont Chapter", "raised": 9000.0, "withdrawals": 0.0, "balance": 9000.0},
+            {"name": "San Jose Chapter", "raised": 3000.0, "withdrawals": 3000.0, "balance": 0.0},
+            {"name": "Sunnyvale Chapter", "raised": 0.0, "withdrawals": 472.0, "balance": -472.0},
+            {"name": "Cupertino Chapter", "raised": 0.0, "withdrawals": 0.0, "balance": 0.0},
+            {"name": "Frisco Chapter", "raised": 0.0, "withdrawals": 0.0, "balance": 0.0},
+            {"name": "Michigan Chapter", "raised": 0.0, "withdrawals": 0.0, "balance": 0.0},
+            {"name": "New Jersey Chapter", "raised": 0.0, "withdrawals": 0.0, "balance": 0.0},
+            {"name": "Seattle Chapter", "raised": 0.0, "withdrawals": 0.0, "balance": 0.0},
+            {"name": "Virginia Chapter", "raised": 0.0, "withdrawals": 0.0, "balance": 0.0}
+        ],
+        "projects": [
+            {"id": "p1", "name": "Aid4Afghans", "chapter": "Evergreen Bay Area Chapter", "target": 120.0, "raised": 120.0, "withdrawn": 120.0, "status": "Complete"},
+            {"id": "p2", "name": "Chirag O2 & Food - Support for 2nd Covid Wave", "chapter": "Evergreen Bay Area Chapter", "target": 1500.0, "raised": 1500.0, "withdrawn": 1500.0, "status": "Complete"},
+            {"id": "p3", "name": "Education support and Seats of Hope for rural India", "chapter": "Evergreen Bay Area Chapter", "target": 6000.0, "raised": 6000.0, "withdrawn": 6000.0, "status": "Complete"},
+            {"id": "p4", "name": "Education support and Seats of Hope for rural India Phase 2", "chapter": "Evergreen Bay Area Chapter", "target": 9000.0, "raised": 9000.0, "withdrawn": 2116.0, "status": "In Progress"},
+            {"id": "p5", "name": "Mini-Library & Sports Club", "chapter": "Evergreen Bay Area Chapter", "target": 3450.0, "raised": 3450.0, "withdrawn": 3450.0, "status": "Complete"},
+            {"id": "p6", "name": "MIssionKids", "chapter": "Fremont Chapter", "target": 9000.0, "raised": 9000.0, "withdrawn": 0.0, "status": "In Progress"},
+            {"id": "p7", "name": "Anganwadi", "chapter": "Orange County Chapter", "target": 12000.0, "raised": 13093.0, "withdrawn": 12000.0, "status": "In Progress"},
+            {"id": "p8", "name": "Safe School #1", "chapter": "San Jose Chapter", "target": 3000.0, "raised": 3000.0, "withdrawn": 3000.0, "status": "Complete"},
+            {"id": "p9", "name": "Aid4Amputees", "chapter": "Washington D.C Chapter", "target": 35000.0, "raised": 22000.0, "withdrawn": 10000.0, "status": "In Progress"},
+            {"id": "p10", "name": "Vision Rehab Treatment", "chapter": "Washington D.C Chapter", "target": 3500.0, "raised": 0.0, "withdrawn": 0.0, "status": "Planning"},
+            {"id": "p11", "name": "CHIRAG O2 & FOOD", "chapter": "Michigan Chapter", "target": 700.0, "raised": 0.0, "withdrawn": 0.0, "status": "Planning"},
+            {"id": "p12", "name": "DEESHA Project Noteworthy", "chapter": "Sunnyvale Chapter", "target": 472.0, "raised": 0.0, "withdrawn": 472.0, "status": "Execution"},
+            {"id": "p13", "name": "General Donation", "chapter": "New Jersey Chapter", "target": 2000.0, "raised": 0.0, "withdrawn": 0.0, "status": "Planning"},
+            {"id": "p14", "name": "Project X", "chapter": "Cupertino Chapter", "target": 200.0, "raised": 0.0, "withdrawn": 0.0, "status": "Planning"}
+        ],
+        "volunteers": [
+            {
+                "name": "Shasta Mudda",
+                "chapter": "Evergreen Bay Area Chapter",
+                "assignments": [
+                    {"project": "Education support and Seats of Hope for rural India", "target": 5000.0, "raised": 5000.0, "withdrawn": 5000.0},
+                    {"project": "Education support and Seats of Hope for rural India Phase 2", "target": 3000.0, "raised": 3000.0, "withdrawn": 1000.0},
+                    {"project": "Mini-Library & Sports Club", "target": 810.0, "raised": 810.0, "withdrawn": 810.0}
+                ]
+            },
+            {
+                "name": "Ojasvi Mudda",
+                "chapter": "Evergreen Bay Area Chapter",
+                "assignments": [
+                    {"project": "Mini-Library & Sports Club", "target": 1784.0, "raised": 1784.0, "withdrawn": 1784.0},
+                    {"project": "Chirag O2 & Food - Support for 2nd Covid Wave", "target": 1500.0, "raised": 1500.0, "withdrawn": 1500.0},
+                    {"project": "Education support and Seats of Hope for rural India Phase 2", "target": 3000.0, "raised": 3000.0, "withdrawn": 1116.0},
+                    {"project": "Education support and Seats of Hope for rural India", "target": 1000.0, "raised": 1000.0, "withdrawn": 1000.0}
+                ]
+            }
+        ],
+        "transactions": []
+    }
+
+FUNDS_STORE = get_initial_funds_dataset()
+
 class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
@@ -24,8 +84,151 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
 
+    def do_GET(self):
+        # Route alias handling for Smart Funds Manager endpoints
+        clean_path = self.path.split('?')[0]
+        if clean_path in ['/smart-fund-manager', '/smart-fund-managar']:
+            self.send_response(302)
+            self.send_header('Location', '/smart-fund-manager/')
+            self.end_headers()
+            return
+
+        if clean_path in ['/smart-fund-managar/', '/smart-fund-managar/index.html']:
+            self.path = '/smart-fund-manager/index.html'
+            return super().do_GET()
+
+        # REST API endpoint to fetch funds dataset
+        if clean_path == '/api/funds/data':
+            response_data = json.dumps(FUNDS_STORE).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(response_data)))
+            self.end_headers()
+            self.wfile.write(response_data)
+            return
+
+        return super().do_GET()
+
     def do_POST(self):
-        if self.path == '/transcribe':
+        clean_path = self.path.split('?')[0]
+
+        # 1. API: Record Donation / Raise Funds
+        if clean_path == '/api/funds/donate':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                project_name = body.get('project')
+                amount = float(body.get('amount', 0))
+                donor = body.get('donor', 'Supporter')
+                volunteer = body.get('volunteer', 'Volunteer')
+
+                if amount <= 0:
+                    raise ValueError("Amount must be greater than 0")
+
+                # Update project
+                proj = next((p for p in FUNDS_STORE['projects'] if p['name'].lower() == project_name.lower()), None)
+                if not proj:
+                    raise ValueError(f"Project '{project_name}' not found")
+                proj['raised'] += amount
+
+                # Update chapter
+                chap = next((c for c in FUNDS_STORE['chapters'] if c['name'].lower() == proj['chapter'].lower()), None)
+                if chap:
+                    chap['raised'] += amount
+                    chap['balance'] = chap['raised'] - chap['withdrawals']
+
+                # Record transaction
+                tx = {
+                    "id": f"tx-{len(FUNDS_STORE['transactions']) + 1}",
+                    "type": "donation",
+                    "project": proj['name'],
+                    "amount": amount,
+                    "donor": donor,
+                    "volunteer": volunteer
+                }
+                FUNDS_STORE['transactions'].append(tx)
+
+                res = json.dumps({"success": True, "transaction": tx, "project": proj}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(res)))
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(err)))
+                self.end_headers()
+                self.wfile.write(err)
+            return
+
+        # 2. API: Withdraw Funds
+        elif clean_path == '/api/funds/withdraw':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length).decode('utf-8'))
+                project_name = body.get('project')
+                amount = float(body.get('amount', 0))
+                purpose = body.get('purpose', 'Disbursement')
+                volunteer = body.get('volunteer', 'Volunteer')
+
+                if amount <= 0:
+                    raise ValueError("Amount must be greater than 0")
+
+                proj = next((p for p in FUNDS_STORE['projects'] if p['name'].lower() == project_name.lower()), None)
+                if not proj:
+                    raise ValueError(f"Project '{project_name}' not found")
+
+                avail_balance = proj['raised'] - proj['withdrawn']
+                if amount > avail_balance:
+                    raise ValueError(f"Withdrawal of ${amount:.2f} exceeds available balance of ${avail_balance:.2f}")
+
+                proj['withdrawn'] += amount
+                chap = next((c for c in FUNDS_STORE['chapters'] if c['name'].lower() == proj['chapter'].lower()), None)
+                if chap:
+                    chap['withdrawals'] += amount
+                    chap['balance'] = chap['raised'] - chap['withdrawals']
+
+                tx = {
+                    "id": f"tx-{len(FUNDS_STORE['transactions']) + 1}",
+                    "type": "withdrawal",
+                    "project": proj['name'],
+                    "amount": amount,
+                    "purpose": purpose,
+                    "volunteer": volunteer
+                }
+                FUNDS_STORE['transactions'].append(tx)
+
+                res = json.dumps({"success": True, "transaction": tx, "project": proj}).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(res)))
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode('utf-8')
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(err)))
+                self.end_headers()
+                self.wfile.write(err)
+            return
+
+        # 3. API: Reset State
+        elif clean_path == '/api/funds/reset':
+            FUNDS_STORE.clear()
+            FUNDS_STORE.update(get_initial_funds_dataset())
+            res = json.dumps({"success": True, "message": "Funds dataset reset to spreadsheet baseline"}).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(res)))
+            self.end_headers()
+            self.wfile.write(res)
+            return
+
+        # 4. Transcribe Endpoint
+        elif self.path == '/transcribe':
             try:
                 # Read content length
                 content_length = int(self.headers['Content-Length'])
