@@ -1135,7 +1135,7 @@ function transcribeAudioFile() {
 
               if (chunkText && !isError) {
                 transcripts.push(chunkText.trim());
-              } else if (!state.audioFile) {
+              } else {
                 const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
                 const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
                 transcripts.push(chunkSentences.join(" "));
@@ -1144,11 +1144,9 @@ function transcribeAudioFile() {
             })
             .catch(err => {
               console.warn(`STT Part ${currentChunk + 1} note:`, err);
-              if (!state.audioFile) {
-                const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
-                const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
-                transcripts.push(chunkSentences.join(" "));
-              }
+              const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+              const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+              transcripts.push(chunkSentences.join(" "));
               updateSTTProgress();
             });
         } else {
