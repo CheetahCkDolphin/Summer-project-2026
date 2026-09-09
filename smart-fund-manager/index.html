@@ -376,7 +376,19 @@
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <label for="ca-volunteer-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Choose Volunteer:</label>
               <select id="ca-volunteer-select" class="sf-form-control" style="width: auto; min-width: 210px;" onchange="app.filterChapterVolunteer(this.value)">
-                <option value="all">👥 All Volunteers (Overview)</option>
+                <option value="all">👥 All Volunteers (Overview &amp; Roster)</option>
+                <option value="Ojasvi Mudda">Ojasvi Mudda</option>
+                <option value="Shasta Mudda">Shasta Mudda</option>
+                <option value="Suravi">Suravi</option>
+                <option value="Hasini">Hasini</option>
+                <option value="Shreshtha Mudda">Shreshtha Mudda</option>
+                <option value="Esha Shivakumar">Esha Shivakumar</option>
+                <option value="Pranati Prashanth">Pranati Prashanth</option>
+                <option value="Sindu Sirigineni">Sindu Sirigineni</option>
+                <option value="Samhita Mahadevan">Samhita Mahadevan</option>
+                <option value="Anh Tran">Anh Tran</option>
+                <option value="General">General</option>
+                <option value="Kaavya Kethini">Kaavya Kethini</option>
               </select>
               <button id="ca-reset-volunteer-btn" class="sf-btn sf-btn-outline sf-btn-sm" style="display: none;" onclick="app.filterChapterVolunteer('all')" title="Show all volunteers">
                 Show All
@@ -902,7 +914,7 @@
   </div>
 
   <!-- Load Smart Funds Core Engine & UI Controller -->
-  <script src="smart_funds.js?v=1"></script>
+  <script src="smart_funds.js?v=3"></script>
   <script>
     // App UI Controller
     const app = {
@@ -931,6 +943,11 @@
         document.getElementById('logout-btn').addEventListener('click', () => {
           SmartFunds.logout();
         });
+
+        // Pre-populate Chapter Admin view data so all dropdowns and tables are populated immediately
+        const defaultChapter = (SmartFunds.state.activeUser && SmartFunds.state.activeUser.chapter) ||
+                               (document.getElementById('ca-chapter-select') ? document.getElementById('ca-chapter-select').value : 'Evergreen Bay Area Chapter');
+        this.renderChapterAdmin(defaultChapter);
 
         this.render();
       },
@@ -991,6 +1008,22 @@
             el.style.display = (id === viewId) ? 'block' : 'none';
           }
         });
+
+        // Ensure active view is immediately rendered and populated
+        if (viewId === 'chapter-admin-view') {
+          const activeChapter = (SmartFunds.state.activeUser && SmartFunds.state.activeUser.chapter) ||
+                                (document.getElementById('ca-chapter-select') ? document.getElementById('ca-chapter-select').value : 'Evergreen Bay Area Chapter');
+          this.renderChapterAdmin(activeChapter);
+        } else if (viewId === 'volunteer-view') {
+          const user = SmartFunds.getActiveUser();
+          if (user) {
+            this.renderVolunteer(user);
+          } else {
+            this.renderVolunteer({ name: 'Shasta Mudda', role: 'volunteer', chapter: 'Evergreen Bay Area Chapter' });
+          }
+        } else if (viewId === 'nonprofit-admin-view') {
+          this.renderNonprofitAdmin();
+        }
       },
 
       render() {

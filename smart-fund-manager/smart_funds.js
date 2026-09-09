@@ -6,7 +6,7 @@
 (function(window) {
   'use strict';
 
-  const STORAGE_KEY = 'smart_funds_manager_state_v1';
+  const STORAGE_KEY = 'smart_funds_manager_state_v3';
 
   // Spreadsheet Baseline Data Initializer
   function getInitialDataset() {
@@ -326,10 +326,28 @@
   // Load or initialize state
   function loadState() {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      // Check v3 first, with backward compatibility for v2 or v1 to preserve any created transactions
+      const stored = localStorage.getItem(STORAGE_KEY) ||
+                     localStorage.getItem('smart_funds_manager_state_v2') ||
+                     localStorage.getItem('smart_funds_manager_state_v1');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.chapters && parsed.projects && parsed.volunteers) {
+          // Merge all 12 baseline volunteers from Google Doc Sheet 1 if missing or partial
+          const initial = getInitialDataset();
+          initial.volunteers.forEach(iv => {
+            const existing = parsed.volunteers.find(v => v.name.toLowerCase() === iv.name.toLowerCase());
+            if (!existing) {
+              parsed.volunteers.push(iv);
+            } else {
+              if (!existing.tabName) existing.tabName = iv.tabName;
+              if (!existing.chapter) existing.chapter = iv.chapter;
+              if (!existing.assignments || existing.assignments.length === 0) {
+                existing.assignments = iv.assignments || [];
+              }
+            }
+          });
+          saveState(parsed);
           return parsed;
         }
       }
@@ -417,9 +435,10 @@
     },
 
     getChapterMetrics(chapterName) {
-      const c = this.state.chapters.find(chap => chap.name.toLowerCase() === chapterName.toLowerCase());
-      const chapterProjects = this.state.projects.filter(p => p.chapter.toLowerCase() === chapterName.toLowerCase());
-      const chapterVolunteers = this.state.volunteers.filter(v => v.chapter.toLowerCase() === chapterName.toLowerCase());
+      const chName = (chapterName || "Evergreen Bay Area Chapter").trim().toLowerCase();
+      const c = this.state.chapters.find(chap => chap.name.toLowerCase() === chName);
+      const chapterProjects = this.state.projects.filter(p => (p.chapter || '').toLowerCase() === chName);
+      const chapterVolunteers = this.state.volunteers.filter(v => (v.chapter || '').toLowerCase() === chName);
 
       let totalRaised = 0;
       let totalTarget = 0;
@@ -435,7 +454,7 @@
       const balance = totalRaised - totalWithdrawn;
 
       return {
-        chapter: c || { name: chapterName },
+        chapter: c || { name: chapterName || "Evergreen Bay Area Chapter" },
         projects: chapterProjects,
         volunteers: chapterVolunteers,
         totalRaised,
@@ -447,7 +466,8 @@
     },
 
     getChapterVolunteersOverview(chapterName) {
-      const chapterVolunteers = this.state.volunteers.filter(v => v.chapter.toLowerCase() === chapterName.toLowerCase());
+      const chName = (chapterName || "Evergreen Bay Area Chapter").trim().toLowerCase();
+      const chapterVolunteers = this.state.volunteers.filter(v => (v.chapter || '').toLowerCase() === chName);
       return chapterVolunteers.map(v => {
         let totalRaised = 0;
         let totalTarget = 0;
