@@ -499,10 +499,10 @@
               <span>👥 Chapter Volunteers Roster: Overview of Projects & Funds</span>
             </h2>
             <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
-              Grounded in Google Sheet 1: Aggregate performance across all registered youth volunteers in <span id="ca-roster-chapter-title" style="color: var(--text-primary); font-weight: 600;">Evergreen Bay Area Chapter</span>.
+              Grounded in Google Doc Sheet 1 Tab Names: Aggregate performance across all registered youth volunteer tabs in <span id="ca-roster-chapter-title" style="color: var(--text-primary); font-weight: 600;">Evergreen Bay Area Chapter</span>.
             </p>
           </div>
-          <span class="sf-badge sf-badge-info" id="ca-roster-count-badge">10 Volunteers</span>
+          <span class="sf-badge sf-badge-info" id="ca-roster-count-badge">12 Volunteers (Sheet 1 Tabs)</span>
         </div>
 
         <div class="sf-table-responsive">
@@ -1208,7 +1208,9 @@
             sumBalance += v.balance;
 
             const initials = v.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            const projectPills = v.projectNames.map(p => `<span class="sf-project-pill" title="${p}">${p}</span>`).join('');
+            const projectPills = v.projectNames && v.projectNames.length > 0
+              ? v.projectNames.map(p => `<span class="sf-project-pill" title="${p}">${p}</span>`).join('')
+              : `<span style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">No active projects allocated yet</span>`;
             const isSelected = currentSelected.toLowerCase() === v.name.toLowerCase();
 
             const tr = document.createElement('tr');
@@ -1222,7 +1224,10 @@
                 <div style="display: flex; align-items: center;">
                   <span class="sf-volunteer-avatar">${initials}</span>
                   <div>
-                    <strong>${v.name}</strong>
+                    <div style="display: flex; align-items: center; gap: 0.35rem;">
+                      <strong>${v.name}</strong>
+                      <span class="sf-badge sf-badge-outline" style="font-size: 0.65rem; padding: 0.1rem 0.35rem;" title="Google Doc Sheet 1 Tab: ${v.name}">Sheet Tab</span>
+                    </div>
                     <div style="font-size: 0.75rem; color: var(--text-muted);">${v.email}</div>
                   </div>
                 </div>

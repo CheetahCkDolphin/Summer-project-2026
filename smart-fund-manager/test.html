@@ -238,13 +238,21 @@
       {
         id: 9,
         name: "Chapter Admin Volunteer Roster & Selection Deep-Dive",
-        desc: "Verifies Chapter Admin can view an overview of every volunteer's projects and funds, and filter/select individual volunteers (e.g. Ojasvi Mudda, Shasta Mudda).",
+        desc: "Verifies Chapter Admin populates all 12 volunteer tabs from Google Sheet 1 (Ojasvi, Shasta, Suravi, Hasini, Shreshtha, Esha, Pranati, Sindu, Samhita, Anh, General, Kaavya).",
         run() {
           const overview = SmartFunds.getChapterVolunteersOverview('Evergreen Bay Area Chapter');
-          if (!overview || overview.length < 5) {
-            throw new Error(`Expected at least 5 volunteers in Evergreen overview, got ${overview ? overview.length : 0}`);
+          if (!overview || overview.length !== 12) {
+            throw new Error(`Expected exactly 12 volunteer tabs from Sheet 1, got ${overview ? overview.length : 0}`);
           }
           
+          // Verify Suravi & Hasini tabs from Sheet 1
+          const suravi = overview.find(v => v.name === 'Suravi');
+          if (!suravi) throw new Error("Suravi tab missing from chapter volunteers overview");
+          const hasini = overview.find(v => v.name === 'Hasini');
+          if (!hasini) throw new Error("Hasini tab missing from chapter volunteers overview");
+          const esha = overview.find(v => v.name === 'Esha Shivakumar');
+          if (!esha) throw new Error("Esha Shivakumar tab missing from chapter volunteers overview");
+
           // Verify Shasta Mudda
           const shasta = overview.find(v => v.name === 'Shasta Mudda');
           if (!shasta) throw new Error("Shasta Mudda missing from chapter roster overview");

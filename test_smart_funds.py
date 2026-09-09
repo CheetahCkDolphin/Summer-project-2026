@@ -240,10 +240,26 @@ class TestSmartFundsManager(unittest.TestCase):
         self.assertGreater(os.path.getsize(sf_js), 500)
 
     def test_chapter_admin_volunteers_roster_integrity(self):
-        """Verifies that each volunteer in Evergreen chapter has project counts, targets, raised, and withdrawals."""
+        """Verifies that each volunteer in Evergreen chapter matches the 12 tabs of Google Doc Sheet 1."""
         data = server.FUNDS_STORE
         evergreen_vols = [v for v in data["volunteers"] if v.get("chapter") == "Evergreen Bay Area Chapter"]
-        self.assertGreaterEqual(len(evergreen_vols), 9)
+        self.assertEqual(len(evergreen_vols), 12)
+
+        # Verify all 12 Sheet 1 tab names are present
+        expected_tabs = {
+            "Ojasvi Mudda", "Shasta Mudda", "Suravi", "Hasini",
+            "Shreshtha Mudda", "Esha Shivakumar", "Pranati Prashanth",
+            "Sindu Sirigineni", "Samhita Mahadevan", "Anh Tran",
+            "General", "Kaavya Kethini"
+        }
+        actual_names = {v["name"] for v in evergreen_vols}
+        self.assertEqual(expected_tabs, actual_names)
+
+        # Check Suravi and Hasini tabs exist
+        suravi = next(v for v in evergreen_vols if v["name"] == "Suravi")
+        self.assertEqual(suravi["tabName"], "Suravi")
+        hasini = next(v for v in evergreen_vols if v["name"] == "Hasini")
+        self.assertEqual(hasini["tabName"], "Hasini")
 
         # Check Shasta Mudda
         shasta = next(v for v in evergreen_vols if v["name"] == "Shasta Mudda")

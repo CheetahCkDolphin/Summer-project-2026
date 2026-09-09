@@ -184,17 +184,8 @@
       ],
       volunteers: [
         {
-          name: "Shasta Mudda",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "shasta@chiraghope.org",
-          assignments: [
-            { project: "Education support and Seats of Hope for rural India", target: 5000, raised: 5000, withdrawn: 5000 },
-            { project: "Education support and Seats of Hope for rural India Phase 2", target: 3000, raised: 3000, withdrawn: 1000 },
-            { project: "Mini-Library & Sports Club", target: 810, raised: 810, withdrawn: 810 }
-          ]
-        },
-        {
           name: "Ojasvi Mudda",
+          tabName: "Ojasvi Mudda",
           chapter: "Evergreen Bay Area Chapter",
           email: "ojasvi@chiraghope.org",
           assignments: [
@@ -205,7 +196,33 @@
           ]
         },
         {
+          name: "Shasta Mudda",
+          tabName: "Shasta Mudda",
+          chapter: "Evergreen Bay Area Chapter",
+          email: "shasta@chiraghope.org",
+          assignments: [
+            { project: "Education support and Seats of Hope for rural India", target: 5000, raised: 5000, withdrawn: 5000 },
+            { project: "Education support and Seats of Hope for rural India Phase 2", target: 3000, raised: 3000, withdrawn: 1000 },
+            { project: "Mini-Library & Sports Club", target: 810, raised: 810, withdrawn: 810 }
+          ]
+        },
+        {
+          name: "Suravi",
+          tabName: "Suravi",
+          chapter: "Evergreen Bay Area Chapter",
+          email: "suravi@chiraghope.org",
+          assignments: []
+        },
+        {
+          name: "Hasini",
+          tabName: "Hasini",
+          chapter: "Evergreen Bay Area Chapter",
+          email: "hasini@chiraghope.org",
+          assignments: []
+        },
+        {
           name: "Shreshtha Mudda",
+          tabName: "Shreshtha Mudda",
           chapter: "Evergreen Bay Area Chapter",
           email: "shreshtha@chiraghope.org",
           assignments: [
@@ -214,7 +231,8 @@
           ]
         },
         {
-          name: "Esha Shivkumar",
+          name: "Esha Shivakumar",
+          tabName: "Esha Shivakumar",
           chapter: "Evergreen Bay Area Chapter",
           email: "esha@chiraghope.org",
           assignments: [
@@ -223,6 +241,7 @@
         },
         {
           name: "Pranati Prashanth",
+          tabName: "Pranati Prashanth",
           chapter: "Evergreen Bay Area Chapter",
           email: "pranati@chiraghope.org",
           assignments: [
@@ -231,6 +250,7 @@
         },
         {
           name: "Sindu Sirigineni",
+          tabName: "Sindu Sirigineni",
           chapter: "Evergreen Bay Area Chapter",
           email: "sindu@chiraghope.org",
           assignments: [
@@ -238,15 +258,8 @@
           ]
         },
         {
-          name: "Kaavya Kethini",
-          chapter: "Evergreen Bay Area Chapter",
-          email: "kaavya@chiraghope.org",
-          assignments: [
-            { project: "Mini-Library & Sports Club", target: 150, raised: 150, withdrawn: 150 }
-          ]
-        },
-        {
           name: "Samhita Mahadevan",
+          tabName: "Samhita Mahadevan",
           chapter: "Evergreen Bay Area Chapter",
           email: "samhita@chiraghope.org",
           assignments: [
@@ -255,6 +268,7 @@
         },
         {
           name: "Anh Tran",
+          tabName: "Anh Tran",
           chapter: "Evergreen Bay Area Chapter",
           email: "anh@chiraghope.org",
           assignments: [
@@ -263,11 +277,21 @@
         },
         {
           name: "General",
+          tabName: "General",
           chapter: "Evergreen Bay Area Chapter",
           email: "general@chiraghope.org",
           assignments: [
             { project: "Mini-Library & Sports Club", target: 46, raised: 46, withdrawn: 46 },
             { project: "Aid4Afghans", target: 120, raised: 120, withdrawn: 120 }
+          ]
+        },
+        {
+          name: "Kaavya Kethini",
+          tabName: "Kaavya Kethini",
+          chapter: "Evergreen Bay Area Chapter",
+          email: "kaavya@chiraghope.org",
+          assignments: [
+            { project: "Mini-Library & Sports Club", target: 150, raised: 150, withdrawn: 150 }
           ]
         }
       ],
