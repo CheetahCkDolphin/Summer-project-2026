@@ -1051,17 +1051,147 @@ async function getWhisperPipeline(onProgress) {
   return whisperLoadingPromise;
 }
 
-// Pre-warm client-side Whisper model when browser is idle
+// Background Web Worker code string to offload CPU-intensive WebAssembly STT inference
+const STT_WORKER_CODE = `
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+
+env.allowLocalModels = false;
+env.useBrowserCache = true;
+if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+  env.backends.onnx.wasm.numThreads = 1;
+}
+
+let transcriberPromise = null;
+
+function getPipeline(msgId) {
+  if (!transcriberPromise) {
+    transcriberPromise = pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {
+      progress_callback: (p) => {
+        self.postMessage({ id: msgId, type: 'progress', data: p });
+      }
+    });
+  }
+  return transcriberPromise;
+}
+
+self.onmessage = async (e) => {
+  const { id, type, audioData } = e.data;
+  if (type === 'init') {
+    try {
+      await getPipeline(id);
+      self.postMessage({ id, type: 'init_done' });
+    } catch (err) {
+      self.postMessage({ id, type: 'error', error: err.message || String(err) });
+    }
+  } else if (type === 'transcribe') {
+    try {
+      const transcriber = await getPipeline(id);
+      const output = await transcriber(audioData, {
+        language: 'english',
+        task: 'transcribe'
+      });
+      const recognized = (output && output.text) ? output.text.trim() : "";
+      self.postMessage({
+        id,
+        type: 'transcribe_done',
+        text: recognized
+      });
+    } catch (err) {
+      self.postMessage({ id, type: 'error', error: err.message || String(err) });
+    }
+  }
+};
+`;
+
+let sttWorkerInstance = null;
+let workerMsgIdCounter = 0;
+const workerPendingCallbacks = new Map();
+
+function getSTTWorker() {
+  if (sttWorkerInstance) return sttWorkerInstance;
+  if (typeof Worker === 'undefined' || typeof Blob === 'undefined' || typeof URL === 'undefined') {
+    return null;
+  }
+
+  try {
+    const blob = new Blob([STT_WORKER_CODE], { type: 'application/javascript' });
+    const workerUrl = URL.createObjectURL(blob);
+    const worker = new Worker(workerUrl, { type: 'module' });
+
+    worker.onmessage = (e) => {
+      const { id, type, data, text, error } = e.data;
+      const cb = workerPendingCallbacks.get(id);
+      if (!cb) return;
+
+      if (type === 'progress') {
+        if (typeof cb.onProgress === 'function') cb.onProgress(data);
+      } else if (type === 'transcribe_done') {
+        workerPendingCallbacks.delete(id);
+        cb.resolve(text);
+      } else if (type === 'init_done') {
+        workerPendingCallbacks.delete(id);
+        cb.resolve(true);
+      } else if (type === 'error') {
+        workerPendingCallbacks.delete(id);
+        cb.reject(new Error(error || 'Worker error'));
+      }
+    };
+
+    worker.onerror = (err) => {
+      console.warn("STT background worker error notice:", err);
+    };
+
+    sttWorkerInstance = worker;
+    return sttWorkerInstance;
+  } catch (err) {
+    console.warn("Web Worker creation fallback notice:", err);
+    return null;
+  }
+}
+
+// Transcribe audio using background Web Worker to preserve 100% main thread responsiveness
+function transcribeAudioInWorker(channelData, onProgress) {
+  const worker = getSTTWorker();
+  if (!worker) {
+    // Graceful fallback to main-thread Whisper if Web Workers are restricted
+    return getWhisperPipeline(onProgress).then(transcriber => {
+      return transcriber(channelData, { language: 'english', task: 'transcribe' });
+    }).then(out => (out && out.text ? out.text.trim() : ""));
+  }
+
+  const id = ++workerMsgIdCounter;
+  return new Promise((resolve, reject) => {
+    workerPendingCallbacks.set(id, { resolve, reject, onProgress });
+    try {
+      worker.postMessage({ id, type: 'transcribe', audioData: channelData }, [channelData.buffer]);
+    } catch (e) {
+      worker.postMessage({ id, type: 'transcribe', audioData: channelData });
+    }
+  });
+}
+
+// Pre-warm client-side Whisper model in background worker when browser is idle
 if (typeof window !== 'undefined') {
   const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   if (!isLocal) {
+    const prewarmWorker = () => {
+      const worker = getSTTWorker();
+      if (worker) {
+        const id = ++workerMsgIdCounter;
+        workerPendingCallbacks.set(id, { resolve: () => {}, reject: () => {}, onProgress: () => {} });
+        worker.postMessage({ id, type: 'init' });
+      } else {
+        getWhisperPipeline().catch(() => {});
+      }
+    };
+
     setTimeout(() => {
       if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(() => { getWhisperPipeline().catch(() => {}); });
+        window.requestIdleCallback(prewarmWorker);
       } else {
-        setTimeout(() => { getWhisperPipeline().catch(() => {}); }, 1500);
+        setTimeout(prewarmWorker, 1000);
       }
-    }, 2500);
+    }, 2000);
   }
 }
 
@@ -1173,24 +1303,18 @@ function transcribeAudioFile() {
                   return response.json();
                 });
               } else {
-                // In-browser client-side Whisper ASR (100% CORS-free, WebAssembly)
+                // In-browser client-side Whisper ASR executed in a background Web Worker (Zero UI lag)
                 const channelData = resampledBuffer.getChannelData(0);
-                return getWhisperPipeline((p) => {
+                btn.innerHTML = `<span>Transcribing Part ${currentChunk + 1}/${numChunks}...</span>`;
+                return transcribeAudioInWorker(channelData, (p) => {
                   if (p && p.status === 'progress' && btn) {
                     const pct = Math.round(p.progress || 0);
                     btn.innerHTML = `<span>Loading STT (${pct}%)...</span>`;
                   } else if (p && p.status === 'initiate' && btn) {
                     btn.innerHTML = `<span>Preparing STT Engine...</span>`;
                   }
-                }).then(transcriber => {
-                  btn.innerHTML = `<span>Transcribing Part ${currentChunk + 1}/${numChunks}...</span>`;
-                  return transcriber(channelData, {
-                    language: 'english',
-                    task: 'transcribe'
-                  });
-                }).then(out => {
-                  const text = (out && out.text) ? out.text.trim() : "";
-                  return { transcript: text };
+                }).then(text => {
+                  return { transcript: text || "" };
                 });
               }
             })
