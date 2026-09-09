@@ -933,6 +933,31 @@ function handleAudioFile(file) {
   
   // Setup audio node decoding for real visual analysis if AudioContext available
   initAudioContext();
+
+  // Decode AudioBuffer asynchronously in background for instantaneous STT & analysis
+  try {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const arrayBuffer = e.target.result;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!state.audioContext) state.audioContext = new AudioCtx();
+      state.audioContext.decodeAudioData(arrayBuffer).then(decoded => {
+        state.audioBuffer = decoded;
+        if (decoded.duration && !isNaN(decoded.duration)) {
+          state.audioDuration = decoded.duration;
+          if (DOM.infoDuration) DOM.infoDuration.textContent = formatDuration(state.audioDuration);
+          if (DOM.waveformTime) DOM.waveformTime.textContent = '0:00 / ' + formatDuration(state.audioDuration);
+          generateStaticWaveform();
+          evaluateSpeech();
+        }
+      }).catch(err => {
+        console.warn("Background audio decoding notice:", err);
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  } catch (e) {
+    console.warn("FileReader decode error:", e);
+  }
 }
 
 // Convert audio buffer to WAV PCM 16-bit Mono Blob
@@ -993,6 +1018,51 @@ function bufferToWav(buffer) {
   }
 
   return new Blob([bufferArr], { type: 'audio/wav' });
+}
+
+// Global in-browser client-side Whisper ASR (Transformers.js / WebAssembly)
+let whisperPipelineInstance = null;
+let whisperLoadingPromise = null;
+
+async function getWhisperPipeline(onProgress) {
+  if (whisperPipelineInstance) return whisperPipelineInstance;
+  if (whisperLoadingPromise) return whisperLoadingPromise;
+
+  whisperLoadingPromise = (async () => {
+    try {
+      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+      env.allowLocalModels = false;
+      env.useBrowserCache = true;
+      if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+        env.backends.onnx.wasm.numThreads = 1;
+      }
+      const instance = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {
+        progress_callback: onProgress
+      });
+      whisperPipelineInstance = instance;
+      return instance;
+    } catch (err) {
+      console.warn("Client-side Whisper pipeline initialization notice:", err);
+      whisperLoadingPromise = null;
+      throw err;
+    }
+  })();
+
+  return whisperLoadingPromise;
+}
+
+// Pre-warm client-side Whisper model when browser is idle
+if (typeof window !== 'undefined') {
+  const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  if (!isLocal) {
+    setTimeout(() => {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => { getWhisperPipeline().catch(() => {}); });
+      } else {
+        setTimeout(() => { getWhisperPipeline().catch(() => {}); }, 1500);
+      }
+    }, 2500);
+  }
 }
 
 // Resample and slice a specific part of the AudioBuffer to a target sample rate and duration
@@ -1092,42 +1162,46 @@ function transcribeAudioFile() {
           
           resampleAndSliceBufferPart(audioBuf, 16000, start, duration)
             .then(resampledBuffer => {
-              const wavBlob = bufferToWav(resampledBuffer);
               if (isLocalhost) {
+                const wavBlob = bufferToWav(resampledBuffer);
                 return fetch('/transcribe', {
                   method: 'POST',
                   body: wavBlob,
                   headers: { 'Content-Type': 'audio/wav' }
+                }).then(response => {
+                  if (!response.ok) throw new Error('STT HTTP status ' + response.status);
+                  return response.json();
                 });
               } else {
-                return fetch('https://www.google.com/speech-api/v2/recognize?client=chromium&lang=en-US', {
-                  method: 'POST',
-                  body: wavBlob
+                // In-browser client-side Whisper ASR (100% CORS-free, WebAssembly)
+                const channelData = resampledBuffer.getChannelData(0);
+                return getWhisperPipeline((p) => {
+                  if (p && p.status === 'progress' && btn) {
+                    const pct = Math.round(p.progress || 0);
+                    btn.innerHTML = `<span>Loading STT (${pct}%)...</span>`;
+                  } else if (p && p.status === 'initiate' && btn) {
+                    btn.innerHTML = `<span>Preparing STT Engine...</span>`;
+                  }
+                }).then(transcriber => {
+                  btn.innerHTML = `<span>Transcribing Part ${currentChunk + 1}/${numChunks}...</span>`;
+                  return transcriber(channelData, {
+                    language: 'english',
+                    task: 'transcribe'
+                  });
+                }).then(out => {
+                  const text = (out && out.text) ? out.text.trim() : "";
+                  return { transcript: text };
                 });
               }
-            })
-            .then(response => {
-              if (response && typeof response === 'object' && response.transcript !== undefined) {
-                return response;
-              }
-              if (!response.ok) throw new Error('STT HTTP status ' + response.status);
-              return isLocalhost ? response.json() : response.text();
             })
             .then(data => {
               let chunkText = "";
               if (typeof data === 'object') {
-                chunkText = data.transcript || "";
+                chunkText = data.transcript || data.text || "";
               } else if (typeof data === 'string') {
-                const lines = data.split('\n');
-                lines.forEach(line => {
-                  try {
-                    const parsed = JSON.parse(line);
-                    if (parsed.result && parsed.result[0] && parsed.result[0].alternative && parsed.result[0].alternative[0]) {
-                      chunkText += (chunkText ? " " : "") + parsed.result[0].alternative[0].transcript;
-                    }
-                  } catch (e) {}
-                });
+                chunkText = data;
               }
+
               const isError = chunkText.startsWith("[Speech Recognition API error") || 
                               chunkText.startsWith("[Error") || 
                               chunkText.startsWith("[Exception") || 
@@ -1136,7 +1210,7 @@ function transcribeAudioFile() {
 
               if (chunkText && !isError) {
                 transcripts.push(chunkText.trim());
-              } else {
+              } else if (!state.audioFile) {
                 const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
                 const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
                 transcripts.push(chunkSentences.join(" "));
@@ -1145,13 +1219,15 @@ function transcribeAudioFile() {
             })
             .catch(err => {
               console.warn(`STT Part ${currentChunk + 1} note:`, err);
-              const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
-              const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
-              transcripts.push(chunkSentences.join(" "));
+              if (!state.audioFile) {
+                const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                transcripts.push(chunkSentences.join(" "));
+              }
               updateSTTProgress();
             });
         } else {
-          // Client-side STT chunking for hosted web application (shastamudda.com)
+          // Client-side STT chunking for sample speech audio
           const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
           const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
           transcripts.push(chunkSentences.join(" "));
@@ -1175,7 +1251,7 @@ function transcribeAudioFile() {
           }
 
           currentChunk++;
-          setTimeout(processNextChunk, 500);
+          setTimeout(processNextChunk, 300);
         }
       } else {
         // All STT chunks completed! Restore audio unmuted state for playback
@@ -1183,7 +1259,14 @@ function transcribeAudioFile() {
           state.audioElement.muted = false;
         }
         const finalFullText = transcripts.filter(t => t).join(" ").trim();
-        const finalText = finalFullText !== "" ? finalFullText : fullTargetText;
+        let finalText = finalFullText;
+        if (!finalText) {
+          if (state.audioFile) {
+            finalText = "[Audio processed: No clear spoken words detected in the recording. You can edit this text to add your speech.]";
+          } else {
+            finalText = fullTargetText;
+          }
+        }
 
         const inputEl = document.getElementById('transcript-input') || DOM.transcriptInput || transcriptInput;
         if (inputEl) {
