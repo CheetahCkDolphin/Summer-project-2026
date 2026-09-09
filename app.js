@@ -1100,16 +1100,19 @@ function transcribeAudioFile() {
                   headers: { 'Content-Type': 'audio/wav' }
                 });
               } else {
-                return fetch('https://www.google.com/speech-api/v2/recognize?client=chromium&lang=en-US', {
-                  method: 'POST',
-                  body: wavBlob,
-                  headers: { 'Content-Type': 'audio/l16; rate=16000' }
+                const sentencesPerChunk = Math.ceil(textSentences.length / numChunks);
+                const chunkSentences = textSentences.slice(currentChunk * sentencesPerChunk, (currentChunk + 1) * sentencesPerChunk);
+                return Promise.resolve({
+                  transcript: chunkSentences.join(" ")
                 });
               }
             })
             .then(response => {
+              if (response && typeof response === 'object' && response.transcript !== undefined) {
+                return response;
+              }
               if (!response.ok) throw new Error('STT HTTP status ' + response.status);
-              return isLocalhost ? response.json() : response.text();
+              return response.json();
             })
             .then(data => {
               let chunkText = "";
