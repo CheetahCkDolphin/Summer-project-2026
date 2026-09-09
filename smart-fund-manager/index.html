@@ -508,9 +508,9 @@
         <div class="sf-section-header">
           <div>
             <h2 class="sf-section-title">
-              <span>👥 Chapter Volunteers Roster: Overview of Projects & Funds</span>
+              <span id="ca-roster-title">👥 Chapter Volunteers Roster: Overview of Projects & Funds</span>
             </h2>
-            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+            <p id="ca-roster-desc" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
               Grounded in Google Doc Sheet 1 Tab Names: Aggregate performance across all registered youth volunteer tabs in <span id="ca-roster-chapter-title" style="color: var(--text-primary); font-weight: 600;">Evergreen Bay Area Chapter</span>.
             </p>
           </div>
@@ -1215,15 +1215,31 @@
         const rosterTbody = document.getElementById('ca-roster-tbody');
         const rosterTfoot = document.getElementById('ca-roster-tfoot');
         const rosterBadge = document.getElementById('ca-roster-count-badge');
+        const rosterTitle = document.getElementById('ca-roster-title');
+        const rosterDesc = document.getElementById('ca-roster-desc');
         rosterTbody.innerHTML = '';
         if (rosterTfoot) rosterTfoot.innerHTML = '';
 
-        if (rosterBadge) {
-          rosterBadge.textContent = `${volunteersOverview.length} Volunteer${volunteersOverview.length === 1 ? '' : 's'}`;
+        let rosterToRender = volunteersOverview;
+        if (currentSelected && currentSelected !== 'all') {
+          rosterToRender = volunteersOverview.filter(v => v.name.toLowerCase() === currentSelected.toLowerCase());
+          if (rosterTitle) rosterTitle.textContent = `👥 Chapter Volunteers Roster: ${currentSelected}`;
+          if (rosterDesc) rosterDesc.innerHTML = `Showing filtered roster overview and project performance for <strong>${currentSelected}</strong> in <span style="color: var(--text-primary); font-weight: 600;">${chapterName}</span>.`;
+          if (rosterBadge) {
+            rosterBadge.className = 'sf-badge sf-badge-primary';
+            rosterBadge.textContent = `Filtered: ${currentSelected}`;
+          }
+        } else {
+          if (rosterTitle) rosterTitle.textContent = '👥 Chapter Volunteers Roster: Overview of Projects & Funds';
+          if (rosterDesc) rosterDesc.innerHTML = `Grounded in Google Doc Sheet 1 Tab Names: Aggregate performance across all registered youth volunteer tabs in <span id="ca-roster-chapter-title" style="color: var(--text-primary); font-weight: 600;">${chapterName}</span>.`;
+          if (rosterBadge) {
+            rosterBadge.className = 'sf-badge sf-badge-info';
+            rosterBadge.textContent = `${volunteersOverview.length} Volunteers (Sheet 1 Tabs)`;
+          }
         }
 
-        if (volunteersOverview.length === 0) {
-          rosterTbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No volunteers registered for this chapter yet.</td></tr>`;
+        if (rosterToRender.length === 0) {
+          rosterTbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No volunteers found matching selection "${currentSelected}".</td></tr>`;
         } else {
           let sumProjects = 0;
           let sumRaised = 0;
@@ -1232,7 +1248,7 @@
           let sumWithdrawn = 0;
           let sumBalance = 0;
 
-          volunteersOverview.forEach(v => {
+          rosterToRender.forEach(v => {
             sumProjects += v.projectsCount;
             sumRaised += v.totalRaised;
             sumTarget += v.totalTarget;
@@ -1283,28 +1299,43 @@
                 </div>
               </td>
               <td>
-                <button class="sf-btn ${isSelected ? 'sf-btn-primary' : 'sf-btn-outline'} sf-btn-sm" onclick="app.filterChapterVolunteer('${v.name}')" title="Select ${v.name}">
-                  ${isSelected ? '✓ Active' : '🔍 Deep-Dive'}
-                </button>
+                ${isSelected ? `
+                  <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.filterChapterVolunteer('all')" title="Show all chapter volunteers">
+                    ✕ Show All
+                  </button>
+                ` : `
+                  <button class="sf-btn sf-btn-primary sf-btn-sm" onclick="app.filterChapterVolunteer('${v.name}')" title="Filter to ${v.name}">
+                    🔍 Deep-Dive
+                  </button>
+                `}
               </td>
             `;
             rosterTbody.appendChild(tr);
           });
 
-          // Chapter summary footer
+          // Chapter / filtered summary footer
           if (rosterTfoot) {
             const overallPct = sumTarget > 0 ? Math.round((sumRaised / sumTarget) * 100) : 100;
+            const label = (currentSelected && currentSelected !== 'all')
+              ? `Filtered Volunteer Total (${rosterToRender.length})`
+              : `Chapter Volunteers Total (${volunteersOverview.length})`;
             rosterTfoot.innerHTML = `
               <tr>
-                <td><strong>Chapter Volunteers Total (${volunteersOverview.length})</strong></td>
-                <td><strong>${sumProjects} Assignments</strong></td>
+                <td><strong>${label}</strong></td>
+                <td><strong>${sumProjects} Assignment${sumProjects === 1 ? '' : 's'}</strong></td>
                 <td style="color: var(--success); font-weight: 800;">${SmartFunds.formatCurrency(sumRaised)}</td>
                 <td style="font-weight: 700;">${SmartFunds.formatCurrency(sumTarget)}</td>
                 <td style="color: var(--warning); font-weight: 700;">${SmartFunds.formatCurrency(sumToBeRaised)}</td>
                 <td style="color: var(--danger); font-weight: 700;">${SmartFunds.formatCurrency(sumWithdrawn)}</td>
                 <td style="color: var(--info); font-weight: 800;">${SmartFunds.formatCurrency(sumBalance)}</td>
                 <td><span style="font-weight: 700; color: var(--text-primary);">${overallPct}%</span></td>
-                <td>-</td>
+                <td>
+                  ${(currentSelected && currentSelected !== 'all') ? `
+                    <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.filterChapterVolunteer('all')" style="font-size: 0.72rem; padding: 0.2rem 0.45rem;">
+                      Show All
+                    </button>
+                  ` : '-'}
+                </td>
               </tr>
             `;
           }
