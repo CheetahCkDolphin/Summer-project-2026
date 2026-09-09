@@ -110,15 +110,30 @@ SUCCESS! Smart Funds Manager is published to shastamudda.com via WordPress!")
     return True
 
 if __name__ == "__main__":
-    user = os.environ.get("WP_USER")
+    try:
+        import dotenv
+        dotenv.load_dotenv()
+        dotenv.load_dotenv(os.path.expanduser("~/.env"))
+    except ImportError:
+        pass
+
+    user = os.environ.get("WP_USER") or "admin"
     pw = os.environ.get("WP_APP_PASSWORD")
-    if not user or not pw:
+
+    if not pw:
         if len(sys.argv) >= 3:
             user = sys.argv[1]
             pw = sys.argv[2]
-        else:
+        elif len(sys.argv) == 2:
+            pw = sys.argv[1]
+        elif sys.stdin.isatty():
             import getpass
-            user = input("WordPress Username: ").strip()
+            prompt_user = input(f"WordPress Username [{user}]: ").strip()
+            if prompt_user:
+                user = prompt_user
             pw = getpass.getpass("WordPress Application Password: ").strip()
+        else:
+            print("Error: WP_APP_PASSWORD not set. Please set WP_APP_PASSWORD in ~/.env or provide as argument.")
+            sys.exit(1)
 
     publish(user, pw)
