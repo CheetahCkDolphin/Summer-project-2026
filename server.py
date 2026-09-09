@@ -41,14 +41,16 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 with sr.AudioFile(temp_filename) as source:
                     audio = r.record(source)
                 
-                # Transcribe using Google's free API with graceful error handling
+                # Transcribe using Google's free API, falling back to PocketSphinx offline STT engine
+                text = ""
                 try:
                     text = r.recognize_google(audio)
-                except sr.UnknownValueError:
-                    text = ""
-                except sr.RequestError as e:
-                    print(f"Speech recognition network notice: {e}")
-                    text = ""
+                except Exception as e1:
+                    try:
+                        text = r.recognize_sphinx(audio)
+                    except Exception as e2:
+                        print(f"STT recognition note: {e1} | {e2}")
+                        text = ""
 
                 # Delete temp file
                 if os.path.exists(temp_filename):
