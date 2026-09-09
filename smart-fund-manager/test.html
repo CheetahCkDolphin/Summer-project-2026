@@ -91,7 +91,7 @@
   <div class="summary-card">
     <div>
       <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Total Tests</div>
-      <div id="total-tests" class="stat-val" style="color: #38bdf8;">8</div>
+      <div id="total-tests" class="stat-val" style="color: #38bdf8;">9</div>
     </div>
     <div>
       <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;">Passed</div>
@@ -232,6 +232,37 @@
           if (m.totalChapters !== 12) throw new Error(`Expected 12 chapters, got ${m.totalChapters}`);
           if (m.totalRaised < 60000) throw new Error(`Expected total raised > 60000, got ${m.totalRaised}`);
           if (m.totalBalance <= 0) throw new Error(`Expected positive net balance, got ${m.totalBalance}`);
+          return true;
+        }
+      },
+      {
+        id: 9,
+        name: "Chapter Admin Volunteer Roster & Selection Deep-Dive",
+        desc: "Verifies Chapter Admin can view an overview of every volunteer's projects and funds, and filter/select individual volunteers (e.g. Ojasvi Mudda, Shasta Mudda).",
+        run() {
+          const overview = SmartFunds.getChapterVolunteersOverview('Evergreen Bay Area Chapter');
+          if (!overview || overview.length < 5) {
+            throw new Error(`Expected at least 5 volunteers in Evergreen overview, got ${overview ? overview.length : 0}`);
+          }
+          
+          // Verify Shasta Mudda
+          const shasta = overview.find(v => v.name === 'Shasta Mudda');
+          if (!shasta) throw new Error("Shasta Mudda missing from chapter roster overview");
+          if (shasta.projectsCount !== 3) throw new Error(`Expected Shasta to have 3 projects, got ${shasta.projectsCount}`);
+          if (shasta.totalRaised !== 8810) throw new Error(`Expected Shasta total raised 8810, got ${shasta.totalRaised}`);
+          if (shasta.totalTarget !== 8810) throw new Error(`Expected Shasta total target 8810, got ${shasta.totalTarget}`);
+          if (shasta.totalWithdrawn !== 6810) throw new Error(`Expected Shasta total withdrawn 6810, got ${shasta.totalWithdrawn}`);
+          if (shasta.balance !== 2000) throw new Error(`Expected Shasta balance 2000, got ${shasta.balance}`);
+
+          // Verify Ojasvi Mudda
+          const ojasvi = SmartFunds.getChapterVolunteerDetail('Evergreen Bay Area Chapter', 'Ojasvi Mudda');
+          if (!ojasvi) throw new Error("Ojasvi Mudda detail lookup failed");
+          if (ojasvi.projectsCount !== 4) throw new Error(`Expected Ojasvi to have 4 projects, got ${ojasvi.projectsCount}`);
+          if (ojasvi.totalRaised !== 7284) throw new Error(`Expected Ojasvi total raised 7284, got ${ojasvi.totalRaised}`);
+          if (ojasvi.totalTarget !== 7284) throw new Error(`Expected Ojasvi total target 7284, got ${ojasvi.totalTarget}`);
+          if (ojasvi.totalWithdrawn !== 5400) throw new Error(`Expected Ojasvi total withdrawn 5400, got ${ojasvi.totalWithdrawn}`);
+          if (ojasvi.balance !== 1884) throw new Error(`Expected Ojasvi balance 1884, got ${ojasvi.balance}`);
+
           return true;
         }
       }

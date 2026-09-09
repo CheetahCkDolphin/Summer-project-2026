@@ -355,22 +355,33 @@
               Review volunteer fundraising performance, individual targets, and authorized project fund withdrawals.
             </p>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <label for="ca-chapter-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Switch Chapter:</label>
-            <select id="ca-chapter-select" class="sf-form-control" style="width: auto;" onchange="app.switchChapter(this.value)">
-              <option value="Evergreen Bay Area Chapter" selected>Evergreen Bay Area Chapter</option>
-              <option value="Washington D.C Chapter">Washington D.C Chapter</option>
-              <option value="Orange County Chapter">Orange County Chapter</option>
-              <option value="Fremont Chapter">Fremont Chapter</option>
-              <option value="San Jose Chapter">San Jose Chapter</option>
-              <option value="Sunnyvale Chapter">Sunnyvale Chapter</option>
-              <option value="Cupertino Chapter">Cupertino Chapter</option>
-              <option value="Frisco Chapter">Frisco Chapter</option>
-              <option value="Michigan Chapter">Michigan Chapter</option>
-              <option value="New Jersey Chapter">New Jersey Chapter</option>
-              <option value="Seattle Chapter">Seattle Chapter</option>
-              <option value="Virginia Chapter">Virginia Chapter</option>
-            </select>
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label for="ca-chapter-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Chapter:</label>
+              <select id="ca-chapter-select" class="sf-form-control" style="width: auto;" onchange="app.switchChapter(this.value)">
+                <option value="Evergreen Bay Area Chapter" selected>Evergreen Bay Area Chapter</option>
+                <option value="Washington D.C Chapter">Washington D.C Chapter</option>
+                <option value="Orange County Chapter">Orange County Chapter</option>
+                <option value="Fremont Chapter">Fremont Chapter</option>
+                <option value="San Jose Chapter">San Jose Chapter</option>
+                <option value="Sunnyvale Chapter">Sunnyvale Chapter</option>
+                <option value="Cupertino Chapter">Cupertino Chapter</option>
+                <option value="Frisco Chapter">Frisco Chapter</option>
+                <option value="Michigan Chapter">Michigan Chapter</option>
+                <option value="New Jersey Chapter">New Jersey Chapter</option>
+                <option value="Seattle Chapter">Seattle Chapter</option>
+                <option value="Virginia Chapter">Virginia Chapter</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label for="ca-volunteer-select" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Choose Volunteer:</label>
+              <select id="ca-volunteer-select" class="sf-form-control" style="width: auto; min-width: 210px;" onchange="app.filterChapterVolunteer(this.value)">
+                <option value="all">👥 All Volunteers (Overview)</option>
+              </select>
+              <button id="ca-reset-volunteer-btn" class="sf-btn sf-btn-outline sf-btn-sm" style="display: none;" onclick="app.filterChapterVolunteer('all')" title="Show all volunteers">
+                Show All
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -423,15 +434,114 @@
         </div>
       </div>
 
-      <!-- TABLE 1: Youth Members / Volunteer Breakdown (Directly from Spreadsheet 1) -->
+      <!-- VOLUNTEER SPOTLIGHT (When a specific volunteer is chosen) -->
+      <div id="ca-volunteer-spotlight" class="sf-spotlight-card" style="display: none;">
+        <div class="sf-spotlight-header">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div id="ca-spotlight-avatar" class="sf-volunteer-avatar" style="width: 44px; height: 44px; font-size: 1rem;">SM</div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <h2 id="ca-spotlight-name" style="font-size: 1.3rem; font-weight: 800; margin: 0;">Shasta Mudda</h2>
+                <span class="sf-badge sf-badge-primary">Selected Youth Volunteer</span>
+              </div>
+              <p id="ca-spotlight-meta" style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                shasta@chiraghope.org • Evergreen Bay Area Chapter
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <button class="sf-btn sf-btn-success sf-btn-sm" onclick="app.openRaiseFundsForSelectedVolunteer()">
+              + Raise Funds for Volunteer
+            </button>
+            <button class="sf-btn sf-btn-warning sf-btn-sm" onclick="app.openWithdrawFundsForSelectedVolunteer()">
+              💸 Withdraw Funds
+            </button>
+            <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.filterChapterVolunteer('all')">
+              ✕ Back to All Volunteers
+            </button>
+          </div>
+        </div>
+
+        <div class="sf-kpi-grid" style="margin-bottom: 0;">
+          <div class="sf-kpi-card kpi-raised" style="padding: 0.85rem 1rem;">
+            <div class="sf-kpi-header"><span class="sf-kpi-label">Volunteer Raised</span><span>💰</span></div>
+            <div id="ca-spotlight-kpi-raised" class="sf-kpi-value" style="font-size: 1.35rem;">$0.00</div>
+            <div class="sf-kpi-footer">Funds raised by this youth member</div>
+          </div>
+          <div class="sf-kpi-card kpi-target" style="padding: 0.85rem 1rem;">
+            <div class="sf-kpi-header"><span class="sf-kpi-label">Assigned Target</span><span>🎯</span></div>
+            <div id="ca-spotlight-kpi-target" class="sf-kpi-value" style="font-size: 1.35rem;">$0.00</div>
+            <div class="sf-kpi-footer">Personal fundraising goal</div>
+          </div>
+          <div class="sf-kpi-card kpi-remaining" style="padding: 0.85rem 1rem;">
+            <div class="sf-kpi-header"><span class="sf-kpi-label">To Be Raised</span><span>⏳</span></div>
+            <div id="ca-spotlight-kpi-remaining" class="sf-kpi-value" style="font-size: 1.35rem;">$0.00</div>
+            <div class="sf-kpi-footer">Remaining to achieve goal</div>
+          </div>
+          <div class="sf-kpi-card kpi-withdrawn" style="padding: 0.85rem 1rem;">
+            <div class="sf-kpi-header"><span class="sf-kpi-label">Total Withdrawn</span><span>📤</span></div>
+            <div id="ca-spotlight-kpi-withdrawn" class="sf-kpi-value" style="font-size: 1.35rem;">$0.00</div>
+            <div class="sf-kpi-footer">Executed project disbursements</div>
+          </div>
+          <div class="sf-kpi-card kpi-balance" style="padding: 0.85rem 1rem;">
+            <div class="sf-kpi-header"><span class="sf-kpi-label">Net Available Balance</span><span>🏦</span></div>
+            <div id="ca-spotlight-kpi-balance" class="sf-kpi-value" style="font-size: 1.35rem;">$0.00</div>
+            <div class="sf-kpi-footer">Remaining funds available</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 1: OVERVIEW OF EVERY VOLUNTEER'S PROJECTS AND FUNDS -->
+      <div class="sf-section" id="ca-roster-section">
+        <div class="sf-section-header">
+          <div>
+            <h2 class="sf-section-title">
+              <span>👥 Chapter Volunteers Roster: Overview of Projects & Funds</span>
+            </h2>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+              Grounded in Google Sheet 1: Aggregate performance across all registered youth volunteers in <span id="ca-roster-chapter-title" style="color: var(--text-primary); font-weight: 600;">Evergreen Bay Area Chapter</span>.
+            </p>
+          </div>
+          <span class="sf-badge sf-badge-info" id="ca-roster-count-badge">10 Volunteers</span>
+        </div>
+
+        <div class="sf-table-responsive">
+          <table class="sf-table" id="ca-roster-table">
+            <thead>
+              <tr>
+                <th>Volunteer Member</th>
+                <th>Assigned Projects</th>
+                <th>Total Raised</th>
+                <th>Target</th>
+                <th>To Be Raised</th>
+                <th>Withdrawn</th>
+                <th>Net Balance</th>
+                <th>Progress</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ca-roster-tbody">
+              <!-- Dynamically populated from getChapterVolunteersOverview -->
+            </tbody>
+            <tfoot id="ca-roster-tfoot">
+              <!-- Summary row with chapter totals across all volunteers -->
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECTION 2: VOLUNTEER PROJECT ASSIGNMENTS BREAKDOWN -->
       <div class="sf-section">
         <div class="sf-section-header">
-          <h2 class="sf-section-title">
-            <span>👥 Volunteer Fundraising & Target Breakdown</span>
-          </h2>
-          <span style="font-size: 0.8rem; color: var(--text-secondary);">
-            Grounded in Google Sheet 1: Youth Members Column (Ojasvi, Shasta, Shreshtha, Esha, etc.)
-          </span>
+          <div>
+            <h2 class="sf-section-title">
+              <span id="ca-breakdown-title">📋 Volunteer Project Assignments Breakdown</span>
+            </h2>
+            <p id="ca-breakdown-subtitle" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+              Itemized project allocations, milestones, and status.
+            </p>
+          </div>
+          <span id="ca-breakdown-filter-badge" class="sf-badge sf-badge-secondary">All Volunteers</span>
         </div>
 
         <div class="sf-table-responsive">
@@ -446,6 +556,7 @@
                 <th>Withdrawn</th>
                 <th>Net Balance</th>
                 <th>Progress</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="ca-volunteers-tbody">
@@ -836,11 +947,31 @@
         SmartFunds.login(role, name, chapter);
       },
 
+      selectedVolunteer: 'all',
+      targetVolunteerForDonation: null,
+
       switchChapter(chapterName) {
         if (SmartFunds.state.activeUser) {
           SmartFunds.state.activeUser.chapter = chapterName;
         }
+        this.selectedVolunteer = 'all';
         this.render();
+      },
+
+      filterChapterVolunteer(volunteerName) {
+        this.selectedVolunteer = volunteerName;
+        const activeChapter = (SmartFunds.state.activeUser && SmartFunds.state.activeUser.chapter) ||
+                              (document.getElementById('ca-chapter-select') ? document.getElementById('ca-chapter-select').value : 'Evergreen Bay Area Chapter');
+        this.renderChapterAdmin(activeChapter);
+      },
+
+      openRaiseFundsForSelectedVolunteer() {
+        const vol = this.selectedVolunteer && this.selectedVolunteer !== 'all' ? this.selectedVolunteer : (SmartFunds.getActiveUser() ? SmartFunds.getActiveUser().name : 'Shasta Mudda');
+        this.openRaiseFundsModal(null, vol);
+      },
+
+      openWithdrawFundsForSelectedVolunteer() {
+        this.openWithdrawFundsModal();
       },
 
       switchView(viewId) {
@@ -982,48 +1113,226 @@
       renderChapterAdmin(chapterName) {
         document.getElementById('ca-chapter-title').textContent = chapterName;
         document.getElementById('ca-chapter-select').value = chapterName;
+        const rosterTitleEl = document.getElementById('ca-roster-chapter-title');
+        if (rosterTitleEl) {
+          rosterTitleEl.textContent = chapterName;
+        }
 
         const metrics = SmartFunds.getChapterMetrics(chapterName);
+        const volunteersOverview = SmartFunds.getChapterVolunteersOverview(chapterName);
 
+        // 1. Chapter Overview KPI Cards
         document.getElementById('ca-kpi-raised').textContent = SmartFunds.formatCurrency(metrics.totalRaised);
         document.getElementById('ca-kpi-target').textContent = SmartFunds.formatCurrency(metrics.totalTarget);
         document.getElementById('ca-kpi-remaining').textContent = SmartFunds.formatCurrency(metrics.toBeRaised);
         document.getElementById('ca-kpi-withdrawn').textContent = SmartFunds.formatCurrency(metrics.totalWithdrawn);
         document.getElementById('ca-kpi-balance').textContent = SmartFunds.formatCurrency(metrics.balance);
 
-        // TABLE 1: Volunteers / Youth Members breakdown (from Sheet 1)
-        const volTbody = document.getElementById('ca-volunteers-tbody');
-        volTbody.innerHTML = '';
+        // 2. Populate Volunteer Selector Dropdown
+        const volSelect = document.getElementById('ca-volunteer-select');
+        const resetBtn = document.getElementById('ca-reset-volunteer-btn');
+        const currentSelected = this.selectedVolunteer || 'all';
 
-        metrics.volunteers.forEach(v => {
-          v.assignments.forEach(a => {
-            const toBeRaised = Math.max(0, a.target - a.raised);
-            const balance = a.raised - a.withdrawn;
-            const pct = a.target > 0 ? Math.round((a.raised / a.target) * 100) : 100;
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td><strong>${v.name}</strong></td>
-              <td>${a.project}</td>
-              <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(a.raised)}</td>
-              <td>${SmartFunds.formatCurrency(a.target)}</td>
-              <td style="color: var(--warning);">${SmartFunds.formatCurrency(toBeRaised)}</td>
-              <td style="color: var(--danger);">${SmartFunds.formatCurrency(a.withdrawn)}</td>
-              <td style="font-weight: 700; color: var(--info);">${SmartFunds.formatCurrency(balance)}</td>
-              <td>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                  <div class="sf-progress-bar" style="width: 70px;">
-                    <div class="sf-progress-fill ${pct >= 100 ? 'complete' : ''}" style="width: ${Math.min(100, pct)}%"></div>
-                  </div>
-                  <span style="font-size: 0.75rem; color: var(--text-secondary);">${pct}%</span>
-                </div>
-              </td>
-            `;
-            volTbody.appendChild(tr);
-          });
+        volSelect.innerHTML = `<option value="all">👥 All Volunteers (Overview & Roster)</option>`;
+        volunteersOverview.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.name;
+          opt.textContent = `${v.name} (${v.projectsCount} proj - ${SmartFunds.formatCurrency(v.totalRaised)})`;
+          if (currentSelected.toLowerCase() === v.name.toLowerCase()) {
+            opt.selected = true;
+          }
+          volSelect.appendChild(opt);
         });
 
-        // TABLE 2: Chapter Projects Overview (from Sheet 1)
+        if (currentSelected && currentSelected !== 'all') {
+          volSelect.value = currentSelected;
+          if (resetBtn) resetBtn.style.display = 'inline-block';
+        } else {
+          volSelect.value = 'all';
+          if (resetBtn) resetBtn.style.display = 'none';
+        }
+
+        // 3. Render Volunteer Spotlight (if a volunteer is selected)
+        const spotlightEl = document.getElementById('ca-volunteer-spotlight');
+        if (currentSelected && currentSelected !== 'all') {
+          const vDetail = volunteersOverview.find(v => v.name.toLowerCase() === currentSelected.toLowerCase()) ||
+                          SmartFunds.getChapterVolunteerDetail(chapterName, currentSelected);
+          if (vDetail) {
+            spotlightEl.style.display = 'block';
+            document.getElementById('ca-spotlight-name').textContent = vDetail.name;
+            document.getElementById('ca-spotlight-meta').textContent = `${vDetail.email} • ${chapterName} • ${vDetail.projectsCount} assigned project${vDetail.projectsCount === 1 ? '' : 's'}`;
+            
+            // Initials avatar
+            const initials = vDetail.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('ca-spotlight-avatar').textContent = initials || 'VM';
+
+            document.getElementById('ca-spotlight-kpi-raised').textContent = SmartFunds.formatCurrency(vDetail.totalRaised);
+            document.getElementById('ca-spotlight-kpi-target').textContent = SmartFunds.formatCurrency(vDetail.totalTarget);
+            document.getElementById('ca-spotlight-kpi-remaining').textContent = SmartFunds.formatCurrency(vDetail.toBeRaised);
+            document.getElementById('ca-spotlight-kpi-withdrawn').textContent = SmartFunds.formatCurrency(vDetail.totalWithdrawn);
+            document.getElementById('ca-spotlight-kpi-balance').textContent = SmartFunds.formatCurrency(vDetail.balance);
+          } else {
+            spotlightEl.style.display = 'none';
+          }
+        } else {
+          spotlightEl.style.display = 'none';
+        }
+
+        // 4. SECTION 1: Chapter Volunteers Roster Table (Overview of Every Volunteer's Projects and Funds)
+        const rosterTbody = document.getElementById('ca-roster-tbody');
+        const rosterTfoot = document.getElementById('ca-roster-tfoot');
+        const rosterBadge = document.getElementById('ca-roster-count-badge');
+        rosterTbody.innerHTML = '';
+        if (rosterTfoot) rosterTfoot.innerHTML = '';
+
+        if (rosterBadge) {
+          rosterBadge.textContent = `${volunteersOverview.length} Volunteer${volunteersOverview.length === 1 ? '' : 's'}`;
+        }
+
+        if (volunteersOverview.length === 0) {
+          rosterTbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No volunteers registered for this chapter yet.</td></tr>`;
+        } else {
+          let sumProjects = 0;
+          let sumRaised = 0;
+          let sumTarget = 0;
+          let sumToBeRaised = 0;
+          let sumWithdrawn = 0;
+          let sumBalance = 0;
+
+          volunteersOverview.forEach(v => {
+            sumProjects += v.projectsCount;
+            sumRaised += v.totalRaised;
+            sumTarget += v.totalTarget;
+            sumToBeRaised += v.toBeRaised;
+            sumWithdrawn += v.totalWithdrawn;
+            sumBalance += v.balance;
+
+            const initials = v.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const projectPills = v.projectNames.map(p => `<span class="sf-project-pill" title="${p}">${p}</span>`).join('');
+            const isSelected = currentSelected.toLowerCase() === v.name.toLowerCase();
+
+            const tr = document.createElement('tr');
+            if (isSelected) {
+              tr.style.backgroundColor = 'rgba(56, 189, 248, 0.08)';
+              tr.style.borderLeft = '3px solid var(--info)';
+            }
+
+            tr.innerHTML = `
+              <td>
+                <div style="display: flex; align-items: center;">
+                  <span class="sf-volunteer-avatar">${initials}</span>
+                  <div>
+                    <strong>${v.name}</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">${v.email}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div style="margin-bottom: 0.25rem;"><strong style="color: var(--text-primary);">${v.projectsCount}</strong> project${v.projectsCount === 1 ? '' : 's'}</div>
+                <div style="max-width: 280px; display: flex; flex-wrap: wrap;">${projectPills}</div>
+              </td>
+              <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(v.totalRaised)}</td>
+              <td>${SmartFunds.formatCurrency(v.totalTarget)}</td>
+              <td style="color: var(--warning);">${SmartFunds.formatCurrency(v.toBeRaised)}</td>
+              <td style="color: var(--danger);">${SmartFunds.formatCurrency(v.totalWithdrawn)}</td>
+              <td style="font-weight: 700; color: var(--info);">${SmartFunds.formatCurrency(v.balance)}</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.45rem;">
+                  <div class="sf-progress-bar" style="width: 65px;">
+                    <div class="sf-progress-fill ${v.progress >= 100 ? 'complete' : ''}" style="width: ${Math.min(100, v.progress)}%"></div>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--text-secondary);">${v.progress}%</span>
+                </div>
+              </td>
+              <td>
+                <button class="sf-btn ${isSelected ? 'sf-btn-primary' : 'sf-btn-outline'} sf-btn-sm" onclick="app.filterChapterVolunteer('${v.name}')" title="Select ${v.name}">
+                  ${isSelected ? '✓ Active' : '🔍 Deep-Dive'}
+                </button>
+              </td>
+            `;
+            rosterTbody.appendChild(tr);
+          });
+
+          // Chapter summary footer
+          if (rosterTfoot) {
+            const overallPct = sumTarget > 0 ? Math.round((sumRaised / sumTarget) * 100) : 100;
+            rosterTfoot.innerHTML = `
+              <tr>
+                <td><strong>Chapter Volunteers Total (${volunteersOverview.length})</strong></td>
+                <td><strong>${sumProjects} Assignments</strong></td>
+                <td style="color: var(--success); font-weight: 800;">${SmartFunds.formatCurrency(sumRaised)}</td>
+                <td style="font-weight: 700;">${SmartFunds.formatCurrency(sumTarget)}</td>
+                <td style="color: var(--warning); font-weight: 700;">${SmartFunds.formatCurrency(sumToBeRaised)}</td>
+                <td style="color: var(--danger); font-weight: 700;">${SmartFunds.formatCurrency(sumWithdrawn)}</td>
+                <td style="color: var(--info); font-weight: 800;">${SmartFunds.formatCurrency(sumBalance)}</td>
+                <td><span style="font-weight: 700; color: var(--text-primary);">${overallPct}%</span></td>
+                <td>-</td>
+              </tr>
+            `;
+          }
+        }
+
+        // 5. SECTION 2: Volunteer Project Assignments Breakdown (Filtered or All)
+        const volTbody = document.getElementById('ca-volunteers-tbody');
+        const breakdownTitle = document.getElementById('ca-breakdown-title');
+        const breakdownFilterBadge = document.getElementById('ca-breakdown-filter-badge');
+        volTbody.innerHTML = '';
+
+        let volunteersToRender = metrics.volunteers;
+        if (currentSelected && currentSelected !== 'all') {
+          volunteersToRender = metrics.volunteers.filter(v => v.name.toLowerCase() === currentSelected.toLowerCase());
+          if (breakdownTitle) breakdownTitle.textContent = `📋 Projects Assigned to ${currentSelected}`;
+          if (breakdownFilterBadge) {
+            breakdownFilterBadge.className = 'sf-badge sf-badge-primary';
+            breakdownFilterBadge.textContent = `Filtered: ${currentSelected}`;
+          }
+        } else {
+          if (breakdownTitle) breakdownTitle.textContent = '📋 All Volunteer Project Assignments';
+          if (breakdownFilterBadge) {
+            breakdownFilterBadge.className = 'sf-badge sf-badge-secondary';
+            breakdownFilterBadge.textContent = 'All Volunteers';
+          }
+        }
+
+        if (volunteersToRender.length === 0) {
+          volTbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No project assignments found for this volunteer selection.</td></tr>`;
+        } else {
+          volunteersToRender.forEach(v => {
+            (v.assignments || []).forEach(a => {
+              const toBeRaised = Math.max(0, a.target - a.raised);
+              const balance = a.raised - a.withdrawn;
+              const pct = a.target > 0 ? Math.round((a.raised / a.target) * 100) : 100;
+
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td><strong>${v.name}</strong></td>
+                <td>${a.project}</td>
+                <td style="color: var(--success); font-weight: 700;">${SmartFunds.formatCurrency(a.raised)}</td>
+                <td>${SmartFunds.formatCurrency(a.target)}</td>
+                <td style="color: var(--warning);">${SmartFunds.formatCurrency(toBeRaised)}</td>
+                <td style="color: var(--danger);">${SmartFunds.formatCurrency(a.withdrawn)}</td>
+                <td style="font-weight: 700; color: var(--info);">${SmartFunds.formatCurrency(balance)}</td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div class="sf-progress-bar" style="width: 70px;">
+                      <div class="sf-progress-fill ${pct >= 100 ? 'complete' : ''}" style="width: ${Math.min(100, pct)}%"></div>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);">${pct}%</span>
+                  </div>
+                </td>
+                <td>
+                  <div style="display: flex; gap: 0.35rem;">
+                    <button class="sf-btn sf-btn-outline sf-btn-sm" onclick="app.openWithdrawFundsModal('${a.project}')" title="Disburse for project">Withdraw</button>
+                    <button class="sf-btn sf-btn-secondary sf-btn-sm" onclick="app.openExecuteProjectModal('${a.project}')" title="Update status">Status</button>
+                  </div>
+                </td>
+              `;
+              volTbody.appendChild(tr);
+            });
+          });
+        }
+
+        // 6. TABLE 3: Chapter Projects Overview (from Sheet 1)
         const projTbody = document.getElementById('ca-projects-tbody');
         projTbody.innerHTML = '';
 
@@ -1054,15 +1363,19 @@
           projTbody.appendChild(tr);
         });
 
-        // TABLE 3: Chapter Withdrawals
+        // 7. TABLE 4: Chapter Withdrawals (Optionally filtered by selected volunteer)
         const withTbody = document.getElementById('ca-withdrawals-tbody');
         withTbody.innerHTML = '';
-        const chapterWithdrawals = SmartFunds.state.transactions.filter(t =>
+        let chapterWithdrawals = SmartFunds.state.transactions.filter(t =>
           t.type === 'withdrawal' && t.chapter.toLowerCase() === chapterName.toLowerCase()
         );
 
+        if (currentSelected && currentSelected !== 'all') {
+          chapterWithdrawals = chapterWithdrawals.filter(t => t.volunteer.toLowerCase() === currentSelected.toLowerCase());
+        }
+
         if (chapterWithdrawals.length === 0) {
-          withTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1rem;">No withdrawals logged for this chapter.</td></tr>`;
+          withTbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1rem;">No withdrawals logged for ${currentSelected && currentSelected !== 'all' ? currentSelected : 'this chapter'}.</td></tr>`;
         } else {
           chapterWithdrawals.forEach(t => {
             const tr = document.createElement('tr');
@@ -1170,7 +1483,8 @@
       },
 
       // --- MODALS ---
-      openRaiseFundsModal(selectedProject) {
+      openRaiseFundsModal(selectedProject, volunteerName) {
+        this.targetVolunteerForDonation = volunteerName || null;
         const select = document.getElementById('rf-project');
         select.innerHTML = '';
         SmartFunds.state.projects.forEach(p => {
@@ -1200,7 +1514,8 @@
         document.getElementById('modal-execute-project').classList.add('open');
       },
 
-      openWithdrawFundsModal(selectedProject) {
+      openWithdrawFundsModal(selectedProject, volunteerName) {
+        this.targetVolunteerForWithdrawal = volunteerName || null;
         const select = document.getElementById('wf-project');
         select.innerHTML = '';
         SmartFunds.state.projects.forEach(p => {
@@ -1236,7 +1551,7 @@
         const amount = document.getElementById('rf-amount').value;
         const donor = document.getElementById('rf-donor').value.trim();
         const notes = document.getElementById('rf-notes').value.trim();
-        const volunteerName = SmartFunds.getActiveUser() ? SmartFunds.getActiveUser().name : "Shasta Mudda";
+        const volunteerName = this.targetVolunteerForDonation || (SmartFunds.getActiveUser() ? SmartFunds.getActiveUser().name : "Shasta Mudda");
 
         try {
           SmartFunds.raiseFunds(volunteerName, project, amount, donor, notes);
@@ -1269,7 +1584,7 @@
         const amount = document.getElementById('wf-amount').value;
         const purpose = document.getElementById('wf-purpose').value.trim();
         const receipt = document.getElementById('wf-receipt').value.trim();
-        const volunteerName = SmartFunds.getActiveUser() ? SmartFunds.getActiveUser().name : "Shasta Mudda";
+        const volunteerName = this.targetVolunteerForWithdrawal || (SmartFunds.getActiveUser() ? SmartFunds.getActiveUser().name : "Shasta Mudda");
 
         try {
           SmartFunds.withdrawFunds(volunteerName, project, amount, purpose, receipt);

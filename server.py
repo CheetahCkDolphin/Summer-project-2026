@@ -48,6 +48,7 @@ def get_initial_funds_dataset():
             {
                 "name": "Shasta Mudda",
                 "chapter": "Evergreen Bay Area Chapter",
+                "email": "shasta@chiraghope.org",
                 "assignments": [
                     {"project": "Education support and Seats of Hope for rural India", "target": 5000.0, "raised": 5000.0, "withdrawn": 5000.0},
                     {"project": "Education support and Seats of Hope for rural India Phase 2", "target": 3000.0, "raised": 3000.0, "withdrawn": 1000.0},
@@ -57,15 +58,105 @@ def get_initial_funds_dataset():
             {
                 "name": "Ojasvi Mudda",
                 "chapter": "Evergreen Bay Area Chapter",
+                "email": "ojasvi@chiraghope.org",
                 "assignments": [
                     {"project": "Mini-Library & Sports Club", "target": 1784.0, "raised": 1784.0, "withdrawn": 1784.0},
                     {"project": "Chirag O2 & Food - Support for 2nd Covid Wave", "target": 1500.0, "raised": 1500.0, "withdrawn": 1500.0},
                     {"project": "Education support and Seats of Hope for rural India Phase 2", "target": 3000.0, "raised": 3000.0, "withdrawn": 1116.0},
                     {"project": "Education support and Seats of Hope for rural India", "target": 1000.0, "raised": 1000.0, "withdrawn": 1000.0}
                 ]
+            },
+            {
+                "name": "Shreshtha Mudda",
+                "chapter": "Evergreen Bay Area Chapter",
+                "email": "shreshtha@chiraghope.org",
+                "assignments": [
+                    {"project": "Education support and Seats of Hope for rural India Phase 2", "target": 3000.0, "raised": 3000.0, "withdrawn": 0.0},
+                    {"project": "Mini-Library & Sports Club", "target": 0.0, "raised": 0.0, "withdrawn": 0.0}
+                ]
+            },
+            {
+                "name": "Esha Shivkumar",
+                "chapter": "Evergreen Bay Area Chapter",
+                "email": "esha@chiraghope.org",
+                "assignments": [
+                    {"project": "Mini-Library & Sports Club", "target": 310.0, "raised": 310.0, "withdrawn": 310.0}
+                ]
+            },
+            {
+                "name": "Pranati Prashanth",
+                "chapter": "Evergreen Bay Area Chapter",
+                "email": "pranati@chiraghope.org",
+                "assignments": [
+                    {"project": "Mini-Library & Sports Club", "target": 200.0, "raised": 200.0, "withdrawn": 200.0}
+                ]
+            },
+            {
+                "name": "Sindu Sirigineni",
+                "chapter": "Evergreen Bay Area Chapter",
+                "email": "sindu@chiraghope.org",
+                "assignments": [
+                    {"project": "Mini-Library & Sports Club", "target": 150.0, "raised": 150.0, "withdrawn": 150.0}
+                ]
+            },
+            {
+                "name": "Kaavya Kethini",
+                "chapter": "Evergreen Bay Area Chapter",
+                "email": "kaavya@chiraghope.org",
+                "assignments": [
+                    {"project": "Mini-Library & Sports Club", "target": 150.0, "raised": 150.0, "withdrawn": 150.0}
+                ]
+            },
+            {
+                "name": "Samhita Mahadevan",
+                "chapter": "Evergreen Bay Area Chapter",
+                "email": "samhita@chiraghope.org",
+                "assignments": [
+                    {"project": "Mini-Library & Sports Club", "target": 0.0, "raised": 0.0, "withdrawn": 0.0}
+                ]
+            },
+            {
+                "name": "Anh Tran",
+                "chapter": "Evergreen Bay Area Chapter",
+                "email": "anh@chiraghope.org",
+                "assignments": [
+                    {"project": "Mini-Library & Sports Club", "target": 0.0, "raised": 0.0, "withdrawn": 0.0}
+                ]
+            },
+            {
+                "name": "General",
+                "chapter": "Evergreen Bay Area Chapter",
+                "email": "general@chiraghope.org",
+                "assignments": [
+                    {"project": "Mini-Library & Sports Club", "target": 46.0, "raised": 46.0, "withdrawn": 46.0},
+                    {"project": "Aid4Afghans", "target": 120.0, "raised": 120.0, "withdrawn": 120.0}
+                ]
             }
         ],
-        "transactions": []
+        "transactions": [
+            {
+                "id": "tx-init-1",
+                "date": "2026-06-15",
+                "type": "donation",
+                "volunteer": "Shasta Mudda",
+                "chapter": "Evergreen Bay Area Chapter",
+                "project": "Education support and Seats of Hope for rural India Phase 2",
+                "amount": 3000.0,
+                "donor": "Community Donors & Matching",
+                "notes": "Campaign kickoff for school benches"
+            },
+            {
+                "id": "tx-init-2",
+                "date": "2026-06-20",
+                "type": "withdrawal",
+                "volunteer": "Shasta Mudda",
+                "chapter": "Evergreen Bay Area Chapter",
+                "project": "Education support and Seats of Hope for rural India Phase 2",
+                "amount": 1000.0,
+                "purpose": "Procure classroom dual-desks",
+                "notes": "Wire disbursement to manufacturer"
+            }
+        ]
     }
 
 FUNDS_STORE = get_initial_funds_dataset()

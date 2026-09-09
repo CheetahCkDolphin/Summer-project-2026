@@ -239,5 +239,49 @@ class TestSmartFundsManager(unittest.TestCase):
         self.assertGreater(os.path.getsize(sf_index), 500)
         self.assertGreater(os.path.getsize(sf_js), 500)
 
+    def test_chapter_admin_volunteers_roster_integrity(self):
+        """Verifies that each volunteer in Evergreen chapter has project counts, targets, raised, and withdrawals."""
+        data = server.FUNDS_STORE
+        evergreen_vols = [v for v in data["volunteers"] if v.get("chapter") == "Evergreen Bay Area Chapter"]
+        self.assertGreaterEqual(len(evergreen_vols), 9)
+
+        # Check Shasta Mudda
+        shasta = next(v for v in evergreen_vols if v["name"] == "Shasta Mudda")
+        self.assertEqual(len(shasta["assignments"]), 3)
+        raised = sum(a["raised"] for a in shasta["assignments"])
+        target = sum(a["target"] for a in shasta["assignments"])
+        withdrawn = sum(a["withdrawn"] for a in shasta["assignments"])
+        self.assertEqual(raised, 8810.0)
+        self.assertEqual(target, 8810.0)
+        self.assertEqual(withdrawn, 6810.0)
+        self.assertEqual(raised - withdrawn, 2000.0)
+
+        # Check Ojasvi Mudda
+        ojasvi = next(v for v in evergreen_vols if v["name"] == "Ojasvi Mudda")
+        self.assertEqual(len(ojasvi["assignments"]), 4)
+        o_raised = sum(a["raised"] for a in ojasvi["assignments"])
+        o_target = sum(a["target"] for a in ojasvi["assignments"])
+        o_withdrawn = sum(a["withdrawn"] for a in ojasvi["assignments"])
+        self.assertEqual(o_raised, 7284.0)
+        self.assertEqual(o_target, 7284.0)
+        self.assertEqual(o_withdrawn, 5400.0)
+        self.assertEqual(o_raised - o_withdrawn, 1884.0)
+
+    def test_chapter_admin_volunteer_selection_filter(self):
+        """Verifies filtering by volunteer isolates their specific assignments and withdrawal transactions."""
+        data = server.FUNDS_STORE
+        target_volunteer = "Shreshtha Mudda"
+        matched = [v for v in data["volunteers"] if v["name"] == target_volunteer]
+        self.assertEqual(len(matched), 1)
+        v = matched[0]
+        self.assertEqual(len(v["assignments"]), 2)
+        proj_names = [a["project"] for a in v["assignments"]]
+        self.assertIn("Education support and Seats of Hope for rural India Phase 2", proj_names)
+        self.assertIn("Mini-Library & Sports Club", proj_names)
+
+        # Check volunteer-filtered transactions
+        shasta_txs = [t for t in data["transactions"] if t.get("volunteer") == "Shasta Mudda"]
+        self.assertGreaterEqual(len(shasta_txs), 1)
+
 if __name__ == '__main__':
     unittest.main()

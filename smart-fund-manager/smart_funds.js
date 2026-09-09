@@ -422,6 +422,49 @@
       };
     },
 
+    getChapterVolunteersOverview(chapterName) {
+      const chapterVolunteers = this.state.volunteers.filter(v => v.chapter.toLowerCase() === chapterName.toLowerCase());
+      return chapterVolunteers.map(v => {
+        let totalRaised = 0;
+        let totalTarget = 0;
+        let totalWithdrawn = 0;
+        const projectNames = [];
+
+        (v.assignments || []).forEach(a => {
+          totalRaised += (Number(a.raised) || 0);
+          totalTarget += (Number(a.target) || 0);
+          totalWithdrawn += (Number(a.withdrawn) || 0);
+          if (a.project && !projectNames.includes(a.project)) {
+            projectNames.push(a.project);
+          }
+        });
+
+        const toBeRaised = Math.max(0, totalTarget - totalRaised);
+        const balance = totalRaised - totalWithdrawn;
+        const progress = totalTarget > 0 ? Math.round((totalRaised / totalTarget) * 100) : 100;
+
+        return {
+          name: v.name,
+          email: v.email || `${v.name.toLowerCase().replace(/\s+/g, '.')}@chiraghope.org`,
+          chapter: v.chapter,
+          projectsCount: (v.assignments || []).length,
+          projectNames: projectNames,
+          totalRaised,
+          totalTarget,
+          toBeRaised,
+          totalWithdrawn,
+          balance,
+          progress,
+          assignments: v.assignments || []
+        };
+      });
+    },
+
+    getChapterVolunteerDetail(chapterName, volunteerName) {
+      const overview = this.getChapterVolunteersOverview(chapterName);
+      return overview.find(v => v.name.toLowerCase() === volunteerName.toLowerCase()) || null;
+    },
+
     getNonprofitMetrics() {
       let totalRaised = 0;
       let totalTarget = 0;
