@@ -1226,73 +1226,7 @@ function transcribeAudioFile() {
     processNextChunk();
   }
 
-  const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-  if (state.audioFile && !isLocalhost) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      btn.innerHTML = `<span>Transcribing Speech...</span>`;
-      try {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        let finalTranscriptText = "";
-
-        recognition.onresult = (event) => {
-          let currentText = "";
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              finalTranscriptText += (finalTranscriptText ? " " : "") + event.results[i][0].transcript;
-            } else {
-              currentText += event.results[i][0].transcript;
-            }
-          }
-          const liveText = (finalTranscriptText + " " + currentText).trim();
-          if (liveText) {
-            const inputEl = document.getElementById('transcript-input') || DOM.transcriptInput || transcriptInput;
-            if (inputEl) {
-              inputEl.value = liveText;
-              try { inputEl.dispatchEvent(new Event('input', { bubbles: true })); } catch(e) {}
-            }
-            state.transcript = liveText;
-            try { evaluateSpeech(); } catch(e) {}
-          }
-        };
-
-        recognition.onend = () => {
-          btn.disabled = false;
-          btn.innerHTML = `
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem; display: inline-block; vertical-align: middle;">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span>Transcribed!</span>
-          `;
-          switchTranscriptView('edit');
-        };
-
-        recognition.onerror = (e) => {
-          console.warn("WebSpeech recognition notice:", e);
-        };
-
-        recognition.start();
-
-        if (state.audioElement) {
-          state.audioElement.currentTime = 0;
-          state.audioElement.muted = false;
-          state.audioElement.volume = 1.0;
-          state.audioElement.play().catch(e => console.warn("Playback note:", e));
-          state.audioElement.onended = () => {
-            try { recognition.stop(); } catch(e) {}
-          };
-        }
-        return;
-      } catch (e) {
-        console.warn("WebSpeech init exception:", e);
-      }
-    }
-  }
 
   if (state.audioFile) {
     if (state.audioBuffer) {
